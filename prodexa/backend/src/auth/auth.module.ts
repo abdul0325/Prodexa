@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { GithubStrategy } from './github.strategy';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { GithubStrategy } from './github.strategy';
       signOptions: { expiresIn: '7d' },
     }),
   ],
-  providers: [AuthService, GithubStrategy],
+  providers: [AuthService, GithubStrategy, JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

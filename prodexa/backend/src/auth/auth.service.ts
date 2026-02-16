@@ -20,13 +20,22 @@ export class AuthService {
     });
 
     if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          name: profile.displayName || profile.username,
-          email,
-        },
-      });
-    }
+  user = await this.prisma.user.create({
+    data: {
+      name: profile.displayName || profile.username,
+      email,
+      passwordHash: accessToken, // temporary storage
+    },
+  });
+} else {
+  user = await this.prisma.user.update({
+    where: { email },
+    data: {
+      passwordHash: accessToken, // update token
+    },
+  });
+}
+
 
     const payload = { sub: user.id, email: user.email };
 
