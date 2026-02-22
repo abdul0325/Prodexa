@@ -8,52 +8,69 @@ generator client {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  passwordHash  String?
-  role          Role     @default(MANAGER)
-  createdAt     DateTime @default(now())
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  role         Role     @default(MANAGER)
+  createdAt    DateTime @default(now())
 
-  projects      Project[]
+  projects Project[]
 }
 
 model Project {
-  id            String   @id @default(uuid())
-  name          String
-  repoUrl       String
-  ownerName     String
-  status        ProjectStatus @default(ACTIVE)
-  createdAt     DateTime @default(now())
+  id        String        @id @default(uuid())
+  name      String
+  repoUrl   String
+  ownerName String
+  status    ProjectStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
 
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  metrics       ProjectActivity[]
-  predictions   Prediction[]
+  metrics             ProjectActivity[]
+  predictions         Prediction[]
+  developerActivities DeveloperActivity[] // bidirectional relation added
 }
 
 model ProjectActivity {
-  id                 String   @id @default(uuid())
-  commitFrequency    Int
-  pullRequestCount   Int
-  issueCount         Int
-  contributorCount   Int
-  activityTimestamp  DateTime
+  id                String   @id @default(uuid())
+  projectId         String
+  commitFrequency   Int
+  pullRequestCount  Int
+  issueCount        Int
+  contributorCount  Int
+  productivityScore Int?
+  activityTimestamp DateTime @default(now())
 
-  projectId          String
-  project            Project  @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
 }
 
 model Prediction {
-  id                 String   @id @default(uuid())
-  productivityScore  Float
-  deliveryRisk       String
-  workloadForecast   Float
-  generatedAt        DateTime @default(now())
+  id                String   @id @default(uuid())
+  projectId         String
+  productivityScore Float
+  deliveryRisk      String
+  workloadForecast  Float
+  generatedAt       DateTime @default(now())
 
-  projectId          String
-  project            Project  @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model DeveloperActivity {
+  id                String   @id @default(uuid())
+  projectId         String
+  developerLogin    String
+  commits           Int
+  pullRequestCount  Int
+  issueCount        Int
+  productivityScore Int
+  activityTimestamp DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId, developerLogin])
 }
 
 enum Role {
