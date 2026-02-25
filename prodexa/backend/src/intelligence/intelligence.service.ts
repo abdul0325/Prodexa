@@ -26,7 +26,7 @@ export class IntelligenceService {
     const avgPRs = activities.reduce((sum, a) => sum + a.pullRequestCount, 0) / activities.length;
     const workloadForecast = avgCommits + avgPRs;
 
-    // Save prediction
+    // Save predictions
     const record = await this.prisma.prediction.create({
       data: {
         projectId,
