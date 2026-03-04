@@ -12,11 +12,19 @@ import { DeveloperAnalyticsService } from './developer-analytics/developer-analy
 import { DeveloperAnalyticsController } from './developer-analytics/developer-analytics.controller';
 import { DeveloperAnalyticsModule } from './developer-analytics/developer-analytics.module';
 import { IntelligenceModule } from './intelligence/intelligence.module';
-
+import { AnalyticsQueueModule } from './analytics-queue/analytics-queue.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
-  imports: [PrismaModule, UserModule, AuthModule, GithubModule, ProjectModule, ScheduleModule.forRoot(), DeveloperAnalyticsModule, IntelligenceModule],
+  imports: [PrismaModule, UserModule, AuthModule, GithubModule, ProjectModule, ScheduleModule.forRoot(), DeveloperAnalyticsModule, IntelligenceModule, AnalyticsQueueModule,
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+  ],
   controllers: [AppController, DeveloperAnalyticsController],
   providers: [AppService, IntelligenceService, DeveloperAnalyticsService],
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ProjectActivity, DeveloperActivity } from '@prisma/client';
 
 @Injectable()
 export class IntelligenceService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // Predict project-level metrics
   async predictProject(projectId: string) {
-    const activities: ProjectActivity[] = await this.prisma.projectActivity.findMany({
+    const activities = await this.prisma.projectActivity.findMany({
       where: { projectId },
       orderBy: { activityTimestamp: 'asc' },
     });
@@ -41,7 +40,7 @@ export class IntelligenceService {
 
   // Predict developer-level productivity
   async predictDeveloper(developerLogin: string, projectId: string) {
-    const devActivities: DeveloperActivity[] = await this.prisma.developerActivity.findMany({
+    const devActivities = await this.prisma.developerActivity.findMany({
       where: { projectId, developerLogin },
       orderBy: { activityTimestamp: 'asc' },
     });

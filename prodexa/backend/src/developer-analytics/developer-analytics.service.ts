@@ -9,7 +9,7 @@ export class DeveloperAnalyticsService {
     constructor(
         private prisma: PrismaService,
         private githubService: GithubService,
-    ) { }
+    ) { }   
 
     async analyzeDevelopers(
         projectId: string,

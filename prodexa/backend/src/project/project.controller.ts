@@ -2,11 +2,14 @@ import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nest
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectService } from './project.service';
 import { DeveloperAnalyticsService } from '../developer-analytics/developer-analytics.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Controller('projects')
 export class ProjectController {
     constructor(private projectService: ProjectService,
-        private devService: DeveloperAnalyticsService
+        private devService: DeveloperAnalyticsService,
+        @InjectQueue('analytics') private analyticsQueue: Queue,
     ) { }
 
     @UseGuards(JwtAuthGuard)
@@ -22,23 +25,16 @@ export class ProjectController {
     }
 
     @Post(':id/analyze')
-    async analyzeProject(
-        @Req() req,
-        @Param('id') projectId: string,
-        @Query('since') since?: string,
-    ) {
-        const sinceDate =
-            since ||
-            new Date(
-                Date.now() - 30 * 24 * 60 * 60 * 1000,
-            ).toISOString();
+async analyze(@Param('id') id: string) {
+  const job = await this.analyticsQueue.add('analyze-project', {
+    projectId: id,
+  });
 
-        return this.devService.analyzeDevelopers(
-            projectId,
-            req.user.passwordHash,
-            sinceDate,
-        );
-    }
+  return {
+    status: 'queued',
+    jobId: job.id,
+  };
+}
 
     @UseGuards(JwtAuthGuard)
     @Get(':id/analytics')
