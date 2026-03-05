@@ -74,4 +74,76 @@ export class IntelligenceService {
 
     return Math.max(0, Math.min(100, Math.round(predicted)));
   }
+
+  async getProjectInsights(projectId: string) {
+    const activities = await this.prisma.projectActivity.findMany({
+      where: { projectId },
+      orderBy: { activityTimestamp: 'desc' },
+      take: 30,
+    });
+
+    if (!activities.length) return null;
+
+    const avgProductivity =
+      activities.reduce((sum, a) => sum + (a.productivityScore ?? 0), 0) /
+      activities.length;
+
+    const totalCommits = activities.reduce(
+      (sum, a) => sum + a.commitFrequency,
+      0,
+    );
+
+    const totalPRs = activities.reduce(
+      (sum, a) => sum + a.pullRequestCount,
+      0,
+    );
+
+    const totalIssues = activities.reduce(
+      (sum, a) => sum + a.issueCount,
+      0,
+    );
+
+    return {
+      projectId,
+      avgProductivity: Math.round(avgProductivity),
+      totalCommits,
+      totalPRs,
+      totalIssues,
+      activityPoints: activities.length,
+    };
+  }
+
+  async getDeveloperLeaderboard(projectId: string) {
+    const devs = await this.prisma.developerActivity.findMany({
+      where: { projectId },
+    });
+
+    const leaderboard = Object.values(
+      devs.reduce((acc: any, dev) => {
+        if (!acc[dev.developerLogin]) {
+          acc[dev.developerLogin] = {
+            developerLogin: dev.developerLogin,
+            commits: 0,
+            pullRequests: 0,
+            productivity: 0,
+            count: 0,
+          };
+        }
+
+        acc[dev.developerLogin].commits += dev.commits;
+        acc[dev.developerLogin].pullRequests += dev.pullRequestCount;
+        acc[dev.developerLogin].productivity += dev.productivityScore;
+        acc[dev.developerLogin].count += 1;
+
+        return acc;
+      }, {}),
+    ).map((dev: any) => ({
+      developerLogin: dev.developerLogin,
+      commits: dev.commits,
+      pullRequests: dev.pullRequests,
+      productivity: Math.round(dev.productivity / dev.count),
+    }));
+
+    return leaderboard.sort((a, b) => b.productivity - a.productivity);
+  }
 }

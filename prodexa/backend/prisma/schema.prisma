@@ -8,12 +8,13 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  passwordHash String?
-  role         Role     @default(MANAGER)
-  createdAt    DateTime @default(now())
+  id               String   @id @default(uuid())
+  name             String
+  email            String   @unique
+  passwordHash     String?
+  githubToken      String?  
+  role             Role     @default(MANAGER)
+  createdAt        DateTime @default(now())
 
   projects Project[]
 }

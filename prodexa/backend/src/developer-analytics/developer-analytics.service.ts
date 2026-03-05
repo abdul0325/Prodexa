@@ -9,7 +9,7 @@ export class DeveloperAnalyticsService {
     constructor(
         private prisma: PrismaService,
         private githubService: GithubService,
-    ) { }   
+    ) { }
 
     async analyzeDevelopers(
         projectId: string,
@@ -32,7 +32,7 @@ export class DeveloperAnalyticsService {
         const contributors = await this.githubService.getContributors(
             owner,
             repo,
-            token,
+            token, // token comes from req.user.githubToken
         );
 
         const commits = await this.githubService.getCommitsFromProject(

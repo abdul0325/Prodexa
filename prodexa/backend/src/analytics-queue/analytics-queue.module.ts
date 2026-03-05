@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { AnalyticsProcessor } from './analytics.processor';
+import { AnalyticsQueueService } from './analytics-queue.service';
 
 @Module({
   imports: [
@@ -8,7 +8,7 @@ import { AnalyticsProcessor } from './analytics.processor';
       name: 'analytics',
     }),
   ],
-  providers: [AnalyticsProcessor],
-  exports: [BullModule],
+  providers: [AnalyticsQueueService],
+  exports: [AnalyticsQueueService, BullModule], 
 })
 export class AnalyticsQueueModule {}

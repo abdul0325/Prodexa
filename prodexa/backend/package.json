@@ -30,7 +30,7 @@
     "@nestjs/schedule": "^6.1.1",
     "@prisma/client": "^6.19.2",
     "axios": "^1.13.5",
-    "bullmq": "^5.70.1",
+    "bullmq": "^5.70.2",
     "cache-manager": "^7.2.8",
     "ioredis": "^5.10.0",
     "nest": "^0.1.6",
