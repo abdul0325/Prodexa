@@ -14,6 +14,7 @@ import { DeveloperAnalyticsModule } from './developer-analytics/developer-analyt
 import { IntelligenceModule } from './intelligence/intelligence.module';
 import { AnalyticsQueueModule } from './analytics-queue/analytics-queue.module';
 import { BullModule } from '@nestjs/bullmq';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [PrismaModule, UserModule, AuthModule, GithubModule, ProjectModule, ScheduleModule.forRoot(), DeveloperAnalyticsModule, IntelligenceModule, AnalyticsQueueModule,
@@ -23,6 +24,7 @@ import { BullModule } from '@nestjs/bullmq';
         port: 6379,
       },
     }),
+    DashboardModule,
   ],
   controllers: [AppController, DeveloperAnalyticsController],
   providers: [AppService, IntelligenceService, DeveloperAnalyticsService],
