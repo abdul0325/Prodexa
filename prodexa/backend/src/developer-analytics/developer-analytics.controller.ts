@@ -26,13 +26,6 @@ export class DeveloperAnalyticsController {
     @Post('project/:id/contributors')
     analyzeContributors(@Param('id') projectId: string) {
 
-        const owner = "facebook";
-        const repo = "react";
-
-        return this.devService.analyzeProjectContributors(
-            projectId,
-            owner,
-            repo
-        );
+        return this.devService.analyzeProjectContributors(projectId);
     }
 }

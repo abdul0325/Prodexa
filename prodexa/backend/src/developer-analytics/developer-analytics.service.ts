@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GithubService } from '../github/github.service';
 import { GitHubCommit, GitHubPull, GitHubIssue } from '../github/github.types';
 import { randomUUID } from 'crypto';
+import { parseRepoUrl } from 'src/github/utils/parse-repo.util';
 
 @Injectable()
 export class DeveloperAnalyticsService {
@@ -112,41 +113,69 @@ export class DeveloperAnalyticsService {
         });
     }
 
-    async analyzeProjectContributors(projectId: string, owner: string, repo: string) {
+    async analyzeProjectContributors(projectId: string) {
+
+        const project = await this.prisma.project.findUnique({
+            where: { id: projectId },
+        });
+        if (!project) {
+            throw new Error("Project not found");
+        }
+
+        const { owner, repo } = parseRepoUrl(project.repoUrl);
+
         const contributors = await this.githubService.getContributors(owner, repo);
+
+        const commits = await this.githubService.getAllCommits(owner, repo);
+        const prs = await this.githubService.getAllPullRequests(owner, repo);
+        const issues = await this.githubService.getAllIssues(owner, repo);
 
         for (const contributor of contributors) {
 
-            const commits = await this.githubService.getCommitCount(owner, repo, contributor.login);
+            const commitCount = commits.filter(
+                (c) => c.author?.login === contributor.login
+            ).length;
 
-            const prs = await this.githubService.getPullRequestCount(owner, repo, contributor.login);
+            const prCount = prs.filter(
+                (p) => p.user?.login === contributor.login
+            ).length;
 
-            const issues = await this.githubService.getIssueCount(owner, repo, contributor.login);
+            const issueCount = issues.filter(
+                (i) => i.user?.login === contributor.login
+            ).length;
 
             const productivityScore =
-                commits * 2 +
-                prs * 5 +
-                issues * 3;
+                commitCount * 2 +
+                prCount * 5 +
+                issueCount * 3;
 
-            await this.prisma.developerActivity.update({
+            await this.prisma.developerActivity.upsert({
                 where: {
                     developerLogin_projectId: {
                         developerLogin: contributor.login,
                         projectId,
                     },
                 },
-                data: {
-                    commits,
-                    pullRequestCount: prs,
-                    issueCount: issues,
+                update: {
+                    commits: commitCount,
+                    pullRequestCount: prCount,
+                    issueCount,
+                    productivityScore,
+                },
+                create: {
+                    developerLogin: contributor.login,
+                    projectId,
+                    commits: commitCount,
+                    pullRequestCount: prCount,
+                    issueCount,
                     productivityScore,
                 },
             });
         }
 
         return {
-            message: "Contributors detected and saved",
-            count: contributors.length
+            message: "Contributors analyzed and saved",
+            count: contributors.length,
         };
     }
 }

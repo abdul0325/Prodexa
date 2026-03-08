@@ -77,14 +77,22 @@ export class DashboardService {
         });
     }
 
-    async getLeaderboard(projectId: string) {
-        return this.prisma.developerActivity.findMany({
+    async getProjectLeaderboard(projectId: string) {
+        const developers = await this.prisma.developerActivity.findMany({
             where: {
                 projectId: projectId,
             },
             orderBy: {
-                productivityScore: 'desc',
+                productivityScore: "desc",
             },
         });
+
+        return developers.map((dev) => ({
+            developer: dev.developerLogin,
+            commits: dev.commits,
+            prs: dev.pullRequestCount,
+            issues: dev.issueCount,
+            score: dev.productivityScore,
+        }));
     }
 }

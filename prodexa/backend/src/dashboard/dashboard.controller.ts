@@ -20,8 +20,8 @@ export class DashboardController {
         return this.dashboardService.getActivityTimeline(projectId);
     }
 
-    @Get('project/:id/leaderboard')
-    getLeaderboard(@Param('id') projectId: string) {
-        return this.dashboardService.getLeaderboard(projectId);
-    }
+    @Get("project/:id/leaderboard")
+getLeaderboard(@Param("id") projectId: string) {
+  return this.dashboardService.getProjectLeaderboard(projectId);
+}
 }

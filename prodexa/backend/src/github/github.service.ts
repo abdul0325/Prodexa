@@ -170,4 +170,45 @@ export class GithubService {
 
     return response.data.total_count;
   }
+
+  async getAllCommits(owner: string, repo: string) {
+    const res = await this.httpService.axiosRef.get(
+      `https://api.github.com/repos/${owner}/${repo}/commits`,
+      {
+        params: { per_page: 100 },
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+
+    return res.data;
+  }
+
+  async getAllPullRequests(owner: string, repo: string) {
+    const res = await this.httpService.axiosRef.get(
+      `https://api.github.com/repos/${owner}/${repo}/pulls`,
+      {
+        params: { state: "all", per_page: 100 },
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+
+    return res.data;
+  }
+  async getAllIssues(owner: string, repo: string) {
+    const res = await this.httpService.axiosRef.get(
+      `https://api.github.com/repos/${owner}/${repo}/issues`,
+      {
+        params: { state: "all", per_page: 100 },
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+
+    return res.data;
+  }
 }
