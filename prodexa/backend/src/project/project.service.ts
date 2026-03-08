@@ -3,19 +3,34 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GithubService } from '../github/github.service';
 import { GitHubCommit, GitHubPull, GitHubIssue } from '../github/github.types';
 import { randomUUID } from 'crypto';
+import { AnalyticsQueueService } from 'src/analytics-queue/analytics-queue.service';
+import { CreateProjectDto } from './dto/create-project.dto';
 
 @Injectable()
 export class ProjectService {
     constructor(
         private prisma: PrismaService,
         private githubService: GithubService,
+        private analyticsQueueService: AnalyticsQueueService,
     ) { }
 
     // 1️⃣ Create a project
-    async createProject(userId: string, data: { name: string; repoUrl: string; ownerName: string }) {
-        return this.prisma.project.create({
-            data: { ...data, userId },
+    async createProject(createProjectDto: CreateProjectDto, userId: string) {
+
+        const project = await this.prisma.project.create({
+            data: {
+                name: createProjectDto.name,
+                repoUrl: createProjectDto.repoUrl,
+                ownerName: createProjectDto.ownerName,
+                user: {
+                    connect: { id: userId },
+                },
+            },
         });
+
+        await this.analyticsQueueService.addProjectAnalysisJob(project.id);
+
+        return project;
     }
 
     // 2️⃣ Get user's projects

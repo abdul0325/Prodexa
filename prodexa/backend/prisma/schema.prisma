@@ -67,6 +67,7 @@ model DeveloperActivity {
   pullRequestCount  Int      @default(0)
   issueCount        Int      @default(0)
   productivityScore Int      @default(0)
+  predictedScore    Int?
   activityTimestamp DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id])

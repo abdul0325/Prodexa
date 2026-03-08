@@ -146,4 +146,91 @@ export class IntelligenceService {
 
     return leaderboard.sort((a, b) => b.productivity - a.productivity);
   }
+
+  async getProjectIntelligence(projectId: string) {
+
+    const activities = await this.prisma.developerActivity.findMany({
+      where: {
+        projectId: projectId,
+      },
+    });
+
+    const totalCommits = activities.reduce(
+      (sum, dev) => sum + dev.commits,
+      0
+    );
+
+    const totalPRs = activities.reduce(
+      (sum, dev) => sum + dev.pullRequestCount,
+      0
+    );
+
+    const totalIssues = activities.reduce(
+      (sum, dev) => sum + dev.issueCount,
+      0
+    );
+
+    const activeDevelopers = activities.filter(
+      (dev) => dev.commits > 0 || dev.pullRequestCount > 0
+    ).length;
+
+    const healthScore =
+      totalCommits * 0.4 +
+      totalPRs * 0.4 -
+      totalIssues * 0.2;
+
+    let projectHealth = "LOW";
+
+    if (healthScore > 200) projectHealth = "EXCELLENT";
+    else if (healthScore > 100) projectHealth = "GOOD";
+    else if (healthScore > 50) projectHealth = "MODERATE";
+
+    let riskLevel = "HIGH";
+
+    if (activeDevelopers > 10) riskLevel = "LOW";
+    else if (activeDevelopers > 5) riskLevel = "MEDIUM";
+
+    return {
+      projectHealth,
+      riskLevel,
+      activeDevelopers,
+      totalCommits,
+      totalPRs,
+      totalIssues,
+    };
+  }
+
+  async getProjectTrainingData(projectId: string) {
+    // Fetch project info
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { developerActivities: true },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    const devActivities = project.developerActivities;
+
+    // Aggregate metrics
+    const totalCommits = devActivities.reduce((sum, d) => sum + d.commits, 0);
+    const totalPRs = devActivities.reduce((sum, d) => sum + d.pullRequestCount, 0);
+    const totalIssues = devActivities.reduce((sum, d) => sum + d.issueCount, 0);
+    const avgProductivity = devActivities.length
+      ? Math.round(devActivities.reduce((sum, d) => sum + d.productivityScore, 0) / devActivities.length)
+      : 0;
+    const activityPoints = devActivities.length;
+
+    return {
+      projectId: project.id,
+      projectName: project.name,
+      totalDevelopers: devActivities.length,
+      avgProductivity,
+      totalCommits,
+      totalPRs,
+      totalIssues,
+      activityPoints,
+    };
+  }
 }

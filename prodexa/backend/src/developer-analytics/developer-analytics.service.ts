@@ -130,7 +130,7 @@ export class DeveloperAnalyticsService {
         const prs = await this.githubService.getAllPullRequests(owner, repo);
         const issues = await this.githubService.getAllIssues(owner, repo);
 
-        for (const contributor of contributors) {
+        const tasks = contributors.map(async (contributor) => {
 
             const commitCount = commits.filter(
                 (c) => c.author?.login === contributor.login
@@ -149,7 +149,7 @@ export class DeveloperAnalyticsService {
                 prCount * 5 +
                 issueCount * 3;
 
-            await this.prisma.developerActivity.upsert({
+            return this.prisma.developerActivity.upsert({
                 where: {
                     developerLogin_projectId: {
                         developerLogin: contributor.login,
@@ -171,7 +171,10 @@ export class DeveloperAnalyticsService {
                     productivityScore,
                 },
             });
-        }
+
+        });
+
+        await Promise.all(tasks);
 
         return {
             message: "Contributors analyzed and saved",

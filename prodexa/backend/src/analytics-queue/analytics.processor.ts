@@ -1,10 +1,14 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { DeveloperAnalyticsService } from '../developer-analytics/developer-analytics.service';
+import { IntelligenceService } from 'src/intelligence/intelligence.service';
+import { Process } from '@nestjs/bull';
 
 @Processor('analytics')
 export class AnalyticsProcessor extends WorkerHost {
-  constructor(private devService: DeveloperAnalyticsService) {
+  constructor(private devService: DeveloperAnalyticsService,
+    private intelligenceService: IntelligenceService,
+  ) {
     super();
   }
 
@@ -18,5 +22,16 @@ export class AnalyticsProcessor extends WorkerHost {
         since,
       );
     }
+  }
+
+  @Process('analyze-project')
+  async handleProjectAnalysis(job: any) {
+
+    const { projectId } = job.data;
+
+    await this.devService.analyzeProjectContributors(projectId);
+
+    await this.intelligenceService.getProjectIntelligence(projectId);
+
   }
 }

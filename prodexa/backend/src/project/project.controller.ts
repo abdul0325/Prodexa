@@ -2,68 +2,78 @@ import { BadRequestException, Body, Controller, Get, Param, Post, Query, Req, Us
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectService } from './project.service';
 import { DeveloperAnalyticsService } from '../developer-analytics/developer-analytics.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateProjectDto } from './dto/create-project.dto';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { AnalyticsQueueService } from 'src/analytics-queue/analytics-queue.service';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('projects')
 export class ProjectController {
-    constructor(private projectService: ProjectService,
-        private queueService: AnalyticsQueueService,
-        private devService: DeveloperAnalyticsService,
-        private prisma: PrismaService,
-        @InjectQueue('analytics') private analyticsQueue: Queue,
-    ) { }
+  constructor(
+    private projectService: ProjectService,
+    private devService: DeveloperAnalyticsService,
+    private queueService: AnalyticsQueueService,
+    private prisma: PrismaService,
+    @InjectQueue('analytics') private analyticsQueue: Queue,
+  ) {}
 
-    @UseGuards(JwtAuthGuard)
-    @Post()
-    async create(@Req() req, @Body() body: any) {
-        return this.projectService.createProject(req.user.userId, body);
-    }
+  // -------------------- Project CRUD --------------------
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
+    return this.projectService.createProject(createProjectDto, req.user.id);
+  }
 
-    @UseGuards(JwtAuthGuard)
-    @Get()
-    async getUserProjects(@Req() req) {
-        return this.projectService.getUserProjects(req.user.userId);
-    }
-    @UseGuards(JwtAuthGuard)
-    @Post(':id/analyze')
-    async analyzeProject(
-        @Req() req,
-        @Param('id') projectId: string,
-        @Query('since') since?: string,
-    ) {
-        // Fetch the user from the database
-        const user = await this.prisma.user.findUnique({
-            where: { id: req.user.userId },
-        });
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getUserProjects(@Req() req) {
+    return this.projectService.getUserProjects(req.user.id);
+  }
 
-        if (!user || !user.githubToken) {
-            throw new Error('GitHub token not found for this user');
-        }
+  // -------------------- Developer Analytics --------------------
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/analyze')
+  async analyzeProject(@Req() req, @Param('id') projectId: string, @Query('since') since?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user || !user.githubToken) throw new BadRequestException('GitHub token not found for this user');
 
-        const sinceDate = since || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const sinceDate = since || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-        return this.devService.analyzeDevelopers(
-            projectId,
-            user.githubToken, // use token from DB
-            sinceDate,
-        );
-    }
-    @UseGuards(JwtAuthGuard)
-    @Get(':id/analytics')
-    async getAnalytics(@Req() req, @Param('id') id: string) {
-        return this.projectService.getProjectAnalytics(req.user.userId, id);
-    }
+    // Add job to analytics queue for async processing
+    await this.analyticsQueue.add('analyzeProject', { projectId, token: user.githubToken, since: sinceDate });
 
-    @UseGuards(JwtAuthGuard)
-    @Get(':id/summary')
-    async getSummary(@Req() req, @Param('id') id: string) {
-        return this.projectService.getProjectSummary(req.user.userId, id);
-    }
+    return { message: 'Analysis job added to queue' };
+  }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/analytics')
+  async getAnalytics(@Req() req, @Param('id') id: string) {
+    return this.projectService.getProjectAnalytics(req.user.id, id);
+  }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/summary')
+  async getSummary(@Req() req, @Param('id') id: string) {
+    return this.projectService.getProjectSummary(req.user.id, id);
+  }
 
+  // -------------------- ML/Intelligence Endpoints --------------------
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/intelligence/project')
+  async getProjectPrediction(@Param('id') projectId: string) {
+    return this.devService.predictProject(projectId);
+  }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/intelligence/developer/:login')
+  async getDeveloperPrediction(@Param('id') projectId: string, @Param('login') developerLogin: string) {
+    return this.devService.predictDeveloper(developerLogin, projectId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/leaderboard')
+  async getLeaderboard(@Param('id') projectId: string) {
+    return this.devService.getProjectLeaderboard(projectId);
+  }
 }

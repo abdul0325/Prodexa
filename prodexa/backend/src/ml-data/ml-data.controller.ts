@@ -1,0 +1,19 @@
+import { Controller, Get, Param } from '@nestjs/common';
+import { MLDataService } from './ml-data.service';
+
+@Controller('ml')
+export class MLDataController {
+  constructor(private mlDataService: MLDataService) {}
+
+  // Project-level training data
+  @Get('project/:id')
+  async getProjectData(@Param('id') projectId: string) {
+    return this.mlDataService.getProjectData(projectId);
+  }
+
+  // Developer-level training data
+  @Get('project/:id/developers')
+  async getDeveloperData(@Param('id') projectId: string) {
+    return this.mlDataService.getDeveloperData(projectId);
+  }
+}
