@@ -8,13 +8,13 @@ generator client {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  name             String
-  email            String   @unique
-  passwordHash     String?
-  githubToken      String?  
-  role             Role     @default(MANAGER)
-  createdAt        DateTime @default(now())
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  githubToken  String?
+  role         Role     @default(MANAGER)
+  createdAt    DateTime @default(now())
 
   projects Project[]
 }
@@ -32,7 +32,7 @@ model Project {
 
   metrics             ProjectActivity[]
   predictions         Prediction[]
-  developerActivities DeveloperActivity[] // bidirectional relation added
+  developerActivities DeveloperActivity[]
 }
 
 model ProjectActivity {
@@ -63,15 +63,15 @@ model DeveloperActivity {
   id                String   @id @default(uuid())
   projectId         String
   developerLogin    String
-  commits           Int
-  pullRequestCount  Int
-  issueCount        Int
-  productivityScore Int
+  commits           Int      @default(0)
+  pullRequestCount  Int      @default(0)
+  issueCount        Int      @default(0)
+  productivityScore Int      @default(0)
   activityTimestamp DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id])
 
-  @@index([projectId, developerLogin])
+  @@unique([developerLogin, projectId])
 }
 
 enum Role {

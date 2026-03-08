@@ -9,7 +9,7 @@ export class GithubService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
-  ) {}
+  ) { }
 
   // -------------------------------
   // CORE REQUEST HANDLER
@@ -59,11 +59,22 @@ export class GithubService {
   // PUBLIC METHODS
   // -------------------------------
 
-  async getContributors(owner: string, repo: string, token: string) {
-    return this.fetchPaginated<{ login: string }>(
-      `https://api.github.com/repos/${owner}/${repo}/contributors`,
-      token,
-    );
+  async getContributors(owner: string, repo: string) {
+    try {
+      const response = await this.httpService.axiosRef.get(
+        `https://api.github.com/repos/${owner}/${repo}/contributors`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+          },
+        },
+      );
+      console.log(`Fetching contributors for ${owner}/${repo}`);
+      return response.data;
+    } catch (error) {
+      console.error("GitHub API error:", error.response?.data || error.message);
+      throw new Error("Failed to fetch contributors");
+    }
   }
 
   async getCommitsFromProject(
@@ -104,13 +115,59 @@ export class GithubService {
   }
 
   async getUserRepos(userId: string) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user?.passwordHash) throw new Error('GitHub token not found');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.passwordHash) throw new Error('GitHub token not found');
 
-        const response = await this.httpService.axiosRef.get('https://api.github.com/user/repos', {
-            headers: { Authorization: `token ${user.passwordHash}` },
-        });
+    const response = await this.httpService.axiosRef.get('https://api.github.com/user/repos', {
+      headers: { Authorization: `token ${user.passwordHash}` },
+    });
 
-        return response.data;
-    }
+    return response.data;
+  }
+
+  async getCommitCount(owner: string, repo: string, author: string) {
+    const response = await this.httpService.axiosRef.get(
+      `https://api.github.com/repos/${owner}/${repo}/commits`,
+      {
+        params: { author },
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+
+    return response.data.length;
+  }
+
+  async getPullRequestCount(owner: string, repo: string, author: string) {
+    const response = await this.httpService.axiosRef.get(
+      `https://api.github.com/search/issues`,
+      {
+        params: {
+          q: `repo:${owner}/${repo} type:pr author:${author}`,
+        },
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+
+    return response.data.total_count;
+  }
+
+  async getIssueCount(owner: string, repo: string, author: string) {
+    const response = await this.httpService.axiosRef.get(
+      `https://api.github.com/search/issues`,
+      {
+        params: {
+          q: `repo:${owner}/${repo} type:issue author:${author}`,
+        },
+        headers: {
+          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+
+    return response.data.total_count;
+  }
 }

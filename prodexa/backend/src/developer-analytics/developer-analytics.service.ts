@@ -32,7 +32,6 @@ export class DeveloperAnalyticsService {
         const contributors = await this.githubService.getContributors(
             owner,
             repo,
-            token, // token comes from req.user.githubToken
         );
 
         const commits = await this.githubService.getCommitsFromProject(
@@ -111,5 +110,43 @@ export class DeveloperAnalyticsService {
             },
             orderBy: { activityTimestamp: 'asc' },
         });
+    }
+
+    async analyzeProjectContributors(projectId: string, owner: string, repo: string) {
+        const contributors = await this.githubService.getContributors(owner, repo);
+
+        for (const contributor of contributors) {
+
+            const commits = await this.githubService.getCommitCount(owner, repo, contributor.login);
+
+            const prs = await this.githubService.getPullRequestCount(owner, repo, contributor.login);
+
+            const issues = await this.githubService.getIssueCount(owner, repo, contributor.login);
+
+            const productivityScore =
+                commits * 2 +
+                prs * 5 +
+                issues * 3;
+
+            await this.prisma.developerActivity.update({
+                where: {
+                    developerLogin_projectId: {
+                        developerLogin: contributor.login,
+                        projectId,
+                    },
+                },
+                data: {
+                    commits,
+                    pullRequestCount: prs,
+                    issueCount: issues,
+                    productivityScore,
+                },
+            });
+        }
+
+        return {
+            message: "Contributors detected and saved",
+            count: contributors.length
+        };
     }
 }

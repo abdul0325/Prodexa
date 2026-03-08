@@ -22,4 +22,17 @@ export class DeveloperAnalyticsController {
     ) {
         return this.devService.getDeveloperAnalytics(projectId, developerLogin);
     }
+
+    @Post('project/:id/contributors')
+    analyzeContributors(@Param('id') projectId: string) {
+
+        const owner = "facebook";
+        const repo = "react";
+
+        return this.devService.analyzeProjectContributors(
+            projectId,
+            owner,
+            repo
+        );
+    }
 }
