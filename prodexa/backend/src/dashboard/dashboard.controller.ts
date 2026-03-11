@@ -1,27 +1,35 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DashboardService } from './dashboard.service';
 
+@UseGuards(JwtAuthGuard)
 @Controller('dashboard')
 export class DashboardController {
-    constructor(private dashboardService: DashboardService) { }
+    constructor(private readonly dashboardService: DashboardService) { }
 
+    /**
+     * Unified project dashboard endpoint
+     * Returns: health, leaderboard, developer risk
+     */
     @Get('project/:id')
-    async getProjectDashboard(@Param('id') projectId: string) {
-        return this.dashboardService.getProjectDashboard(projectId);
+    async getProjectDashboard(
+        @Param('id') projectId: string,
+        @Query('days') daysThreshold?: string,
+    ) {
+        const days = daysThreshold ? parseInt(daysThreshold, 10) : 7;
+        return this.dashboardService.getProjectDashboard(projectId, days);
     }
 
-    @Get('project/:id/developers')
-    async getDeveloperLeaderboard(@Param('id') projectId: string) {
-        return this.dashboardService.getDeveloperLeaderboard(projectId);
-    }
-
+    /**
+     * Optional: Project activity timeline endpoint
+     */
     @Get('project/:id/activity')
     async getActivityTimeline(@Param('id') projectId: string) {
         return this.dashboardService.getActivityTimeline(projectId);
     }
 
-    @Get("project/:id/leaderboard")
-getLeaderboard(@Param("id") projectId: string) {
-  return this.dashboardService.getProjectLeaderboard(projectId);
-}
+    @Get('project/:id/leaderboard')
+    async getLeaderboard(@Param('id') projectId: string) {
+        return this.dashboardService.getProjectLeaderboard(projectId);
+    }
 }

@@ -139,4 +139,5 @@ export class ProjectService {
 
         return { latestMetrics: latest, trend, riskLevel };
     }
+
 }

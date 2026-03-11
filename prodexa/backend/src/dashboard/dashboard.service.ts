@@ -1,98 +1,75 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { DeveloperAnalyticsService } from 'src/developer-analytics/developer-analytics.service';
 
 @Injectable()
 export class DashboardService {
-    constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private devService: DeveloperAnalyticsService,
+  ) {}
 
-    async getProjectDashboard(projectId: string) {
+  /**
+   * Unified Project Dashboard
+   */
+  async getProjectDashboard(projectId: string, daysThreshold = 7) {
+    // 1️⃣ Health Score
+    const health = await this.devService.getProjectHealth(projectId);
 
-        const project = await this.prisma.project.findUnique({
-            where: { id: projectId },
-        });
+    // 2️⃣ Leaderboard
+    const leaderboard = await this.getProjectLeaderboard(projectId);
 
-        const activities = await this.prisma.projectActivity.findMany({
-            where: { projectId },
-        });
+    // 3️⃣ Developer Risk
+    const developerRisk = await this.devService.getDeveloperRisk(projectId, daysThreshold);
 
-        const developers = await this.prisma.developerActivity.findMany({
-            where: { projectId },
-        });
+    return {
+      projectId,
+      healthScore: health.healthScore,
+      healthStatus: health.status,
+      metrics: health.metrics,
+      leaderboard: {
+        totals: {
+          totalCommits: health.metrics?.totalCommits,
+          totalPRs: health.metrics?.totalPRs,
+          totalIssues: health.metrics?.totalIssues,
+        },
+        developers: leaderboard,
+      },
+      developerRisk: developerRisk.riskDevelopers,
+    };
+  }
 
-        const predictions = await this.prisma.prediction.findFirst({
-            where: { projectId },
-            orderBy: { generatedAt: 'desc' },
-        });
+  /**
+   * Leaderboard per developer, sorted by productivityScore
+   */
+  async getProjectLeaderboard(projectId: string) {
+    const developers = await this.prisma.developerActivity.findMany({
+      where: { projectId },
+      orderBy: { productivityScore: 'desc' },
+    });
 
-        const totalCommits = developers.reduce((sum, d) => sum + d.commits, 0);
-        const totalPRs = developers.reduce((sum, d) => sum + d.pullRequestCount, 0);
-        const totalIssues = developers.reduce((sum, d) => sum + d.issueCount, 0);
+    return developers.map((dev) => ({
+      developerLogin: dev.developerLogin,
+      commits: dev.commits,
+      prs: dev.pullRequestCount,
+      issues: dev.issueCount,
+      productivityScore: dev.productivityScore,
+    }));
+  }
 
-        const avgProductivity =
-            developers.length === 0
-                ? 0
-                : Math.round(
-                    developers.reduce((sum, d) => sum + d.productivityScore, 0) /
-                    developers.length,
-                );
-
-        return {
-            projectName: project?.name,
-            totalCommits,
-            totalPRs,
-            totalIssues,
-            contributorCount: developers.length,
-            avgProductivity,
-            deliveryRisk: predictions?.deliveryRisk ?? 'Unknown',
-        };
-    }
-
-    async getDeveloperLeaderboard(projectId: string) {
-
-        const developers = await this.prisma.developerActivity.findMany({
-            where: { projectId },
-            orderBy: { productivityScore: 'desc' },
-        });
-
-        return developers.map((dev) => ({
-            developerLogin: dev.developerLogin,
-            commits: dev.commits,
-            pullRequests: dev.pullRequestCount,
-            issues: dev.issueCount,
-            productivityScore: dev.productivityScore,
-        }));
-    }
-
-    async getActivityTimeline(projectId: string) {
-
-        return this.prisma.projectActivity.findMany({
-            where: { projectId },
-            orderBy: { activityTimestamp: 'asc' },
-            select: {
-                activityTimestamp: true,
-                commitFrequency: true,
-                pullRequestCount: true,
-                issueCount: true,
-            },
-        });
-    }
-
-    async getProjectLeaderboard(projectId: string) {
-        const developers = await this.prisma.developerActivity.findMany({
-            where: {
-                projectId: projectId,
-            },
-            orderBy: {
-                productivityScore: "desc",
-            },
-        });
-
-        return developers.map((dev) => ({
-            developer: dev.developerLogin,
-            commits: dev.commits,
-            prs: dev.pullRequestCount,
-            issues: dev.issueCount,
-            score: dev.productivityScore,
-        }));
-    }
+  /**
+   * Timeline of project activity
+   */
+  async getActivityTimeline(projectId: string) {
+    return this.prisma.projectActivity.findMany({
+      where: { projectId },
+      orderBy: { activityTimestamp: 'asc' },
+      select: {
+        activityTimestamp: true,
+        commitFrequency: true,
+        pullRequestCount: true,
+        issueCount: true,
+      },
+    });
+  }
 }

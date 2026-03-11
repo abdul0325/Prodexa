@@ -181,4 +181,196 @@ export class DeveloperAnalyticsService {
             count: contributors.length,
         };
     }
+
+    // -------------------- Intelligence Methods --------------------
+
+    async predictProject(projectId: string) {
+        const devs = await this.prisma.developerActivity.findMany({
+            where: { projectId },
+        });
+
+        if (!devs.length) {
+            return { message: 'No analytics data found for project' };
+        }
+
+        const totalScore = devs.reduce((sum, d) => sum + d.productivityScore, 0);
+
+        const avgScore = totalScore / devs.length;
+
+        const predictedHealth =
+            avgScore > 80
+                ? 'Excellent'
+                : avgScore > 60
+                    ? 'Good'
+                    : avgScore > 40
+                        ? 'Average'
+                        : 'Low';
+
+        return {
+            projectId,
+            developerCount: devs.length,
+            averageProductivity: avgScore,
+            predictedHealth,
+        };
+    }
+
+    async predictDeveloper(developerLogin: string, projectId: string) {
+        const dev = await this.prisma.developerActivity.findFirst({
+            where: { developerLogin, projectId },
+        });
+
+        if (!dev) {
+            return { message: 'Developer analytics not found' };
+        }
+
+        const predictedScore =
+            dev.commits * 3 +
+            dev.pullRequestCount * 5 +
+            dev.issueCount * 2;
+
+        await this.prisma.developerActivity.update({
+            where: {
+                developerLogin_projectId: {
+                    developerLogin,
+                    projectId,
+                },
+            },
+            data: {
+                predictedScore,
+            },
+        });
+
+        return {
+            developerLogin,
+            projectId,
+            predictedScore,
+        };
+    }
+
+    async getProjectHealth(projectId: string) {
+        const activities = await this.prisma.developerActivity.findMany({
+            where: { projectId },
+        });
+
+        if (!activities.length) {
+            return { message: 'No analytics found for this project' };
+        }
+
+        let totalCommits = 0;
+        let totalPRs = 0;
+        let totalIssues = 0;
+
+        for (const dev of activities) {
+            totalCommits += dev.commits;
+            totalPRs += dev.pullRequestCount;
+            totalIssues += dev.issueCount;
+        }
+
+        const activeDevelopers = activities.length;
+
+        // Normalization thresholds (reasonable limits)
+        const commitScore = Math.min((totalCommits / 500) * 100, 100);
+        const prScore = Math.min((totalPRs / 200) * 100, 100);
+        const issueScore = Math.min((totalIssues / 200) * 100, 100);
+        const devScore = Math.min((activeDevelopers / 20) * 100, 100);
+
+        const healthScore =
+            commitScore * 0.3 +
+            prScore * 0.3 +
+            issueScore * 0.2 +
+            devScore * 0.2;
+
+        let status = 'Risky';
+
+        if (healthScore >= 80) status = 'Excellent';
+        else if (healthScore >= 60) status = 'Healthy';
+        else if (healthScore >= 40) status = 'Moderate';
+
+        return {
+            projectId,
+            healthScore: Math.round(healthScore),
+            status,
+            metrics: {
+                totalCommits,
+                totalPRs,
+                totalIssues,
+                activeDevelopers,
+            },
+        };
+    }
+
+    async getProjectLeaderboard(projectId: string) {
+        const developers = await this.prisma.developerActivity.findMany({
+            where: { projectId },
+        });
+
+        if (!developers.length) {
+            return { message: 'No developer data found' };
+        }
+
+        const leaderboard = developers
+            .map((dev) => {
+                const commitScore = Math.min((dev.commits / 100) * 100, 100);
+                const prScore = Math.min((dev.pullRequestCount / 100) * 100, 100);
+                const issueScore = Math.min((dev.issueCount / 50) * 100, 100);
+
+                const score =
+                    commitScore * 0.5 +
+                    prScore * 0.3 +
+                    issueScore * 0.2;
+
+                return {
+                    developer: dev.developerLogin,
+                    commits: dev.commits,
+                    prs: dev.pullRequestCount,
+                    issues: dev.issueCount,
+                    score: Math.round(score),
+                };
+            })
+            .sort((a, b) => b.score - a.score);
+
+        return {
+            projectId,
+            leaderboard,
+        };
+    }
+
+    async getDeveloperRisk(projectId: string, daysThreshold = 7) {
+        const now = new Date();
+
+        // Fetch all developer activities for the project
+        const activities = await this.prisma.developerActivity.findMany({
+            where: { projectId },
+            orderBy: { activityTimestamp: 'desc' }, // latest activity first
+        });
+
+        if (!activities.length) {
+            return { message: 'No developer activity found for this project' };
+        }
+
+        // Calculate days since last activity per developer
+        const developerLastActivityMap: Record<string, Date> = {};
+        activities.forEach((activity) => {
+            const login = activity.developerLogin;
+            if (!developerLastActivityMap[login] || developerLastActivityMap[login] < activity.activityTimestamp) {
+                developerLastActivityMap[login] = activity.activityTimestamp;
+            }
+        });
+
+        const riskDevelopers = Object.entries(developerLastActivityMap)
+            .map(([developer, lastActive]) => {
+                const diffMs = now.getTime() - lastActive.getTime();
+                const daysSinceLastCommit = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+                return {
+                    developer,
+                    lastActive: lastActive.toISOString(),
+                    daysSinceLastCommit,
+                    risk: daysSinceLastCommit > daysThreshold ? 'Inactive' : 'Active',
+                };
+            })
+            .sort((a, b) => b.daysSinceLastCommit - a.daysSinceLastCommit); // sort by inactivity
+
+        return { projectId, riskDevelopers };
+    }
 }
