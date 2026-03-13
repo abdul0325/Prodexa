@@ -1,1 +1,1 @@
-Prodexa.
+Prodexa
