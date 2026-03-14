@@ -12,7 +12,7 @@ export class MLService {
 
     private mlServiceUrl = 'http://localhost:5000'; // ML-service backend URL
 
-    // Send project data to ML-service for prediction
+    // Send project data to ML-service for predictions
     async analyzeProject(projectId: string) {
         // Get project & developer data
         const project = await this.prisma.project.findUnique({
