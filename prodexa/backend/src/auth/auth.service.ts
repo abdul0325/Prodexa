@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -20,25 +19,25 @@ export class AuthService {
     });
 
     if (!user) {
-  user = await this.prisma.user.create({
-    data: {
-      name: profile.displayName || profile.username,
-      email,
-      passwordHash: accessToken, // temporary storage
-    },
-  });
-} else {
-  user = await this.prisma.user.update({
-    where: { email },
-    data: {
-      passwordHash: accessToken, // update token
-    },
-  });
-}
-
+      user = await this.prisma.user.create({
+        data: {
+          name: profile.displayName || profile.username,
+          email,
+          // FIX: store GitHub OAuth token in githubToken field, NOT passwordHash
+          githubToken: accessToken,
+        },
+      });
+    } else {
+      user = await this.prisma.user.update({
+        where: { email },
+        data: {
+          // FIX: update githubToken on every login to keep it fresh
+          githubToken: accessToken,
+        },
+      });
+    }
 
     const payload = { sub: user.id, email: user.email };
-
     const token = this.jwtService.sign(payload);
 
     return { user, token };

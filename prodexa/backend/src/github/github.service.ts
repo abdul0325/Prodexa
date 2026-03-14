@@ -69,7 +69,7 @@ export class GithubService {
           },
         },
       );
-      console.log(`Fetching contributors for ${owner}/${repo}`);
+
       return response.data;
     } catch (error) {
       console.error("GitHub API error:", error.response?.data || error.message);
@@ -181,7 +181,6 @@ export class GithubService {
         },
       },
     );
-
     return res.data;
   }
 

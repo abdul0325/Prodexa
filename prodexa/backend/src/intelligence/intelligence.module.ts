@@ -7,5 +7,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [PrismaModule],
   providers: [IntelligenceService],
   controllers: [IntelligenceController, MLDataController],
+  exports: [IntelligenceService],
 })
 export class IntelligenceModule {}

@@ -14,9 +14,13 @@ model User {
   passwordHash String?
   githubToken  String?
   role         Role     @default(MANAGER)
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 
-  projects Project[]
+  projects      Project[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
 }
 
 model Project {
@@ -26,6 +30,7 @@ model Project {
   ownerName String
   status    ProjectStatus @default(ACTIVE)
   createdAt DateTime      @default(now())
+  updatedAt DateTime      @default(now()) @updatedAt
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -33,6 +38,7 @@ model Project {
   metrics             ProjectActivity[]
   predictions         Prediction[]
   developerActivities DeveloperActivity[]
+  notifications       Notification[]
 }
 
 model ProjectActivity {
@@ -75,6 +81,32 @@ model DeveloperActivity {
   @@unique([developerLogin, projectId])
 }
 
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  targetType String
+  targetId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  projectId String?
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+}
+
 enum Role {
   ADMIN
   MANAGER
@@ -83,4 +115,12 @@ enum Role {
 enum ProjectStatus {
   ACTIVE
   INACTIVE
+}
+
+enum NotificationType {
+  PRODUCTIVITY_DROP
+  HIGH_DELIVERY_RISK
+  INACTIVE_DEVELOPER
+  ANALYSIS_COMPLETE
+  SYSTEM_ALERT
 }
