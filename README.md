@@ -4,14 +4,13 @@
 
 ## Author
 
-**Abdul Rehman**
-BS Computer Science — Final Year Project
-Supervisor: `<Supervisor Name>`
+**Abdul Rehman**  
+BS Computer Science — Final Year Project  
+Supervisor: Ma'am Hira Awais  
 
 ---
 
-> Final Year Project (FYP) | BS Computer Science
-> An intelligent, automated platform for tracking software project productivity using GitHub data and Machine Learning.
+> Prodexa is built to demonstrate real-world full-stack engineering combining microservices architecture, AI/ML integration, async job processing, and modern frontend development — all within a single cohesive product.
 
 ---
 
