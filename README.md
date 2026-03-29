@@ -7,7 +7,6 @@
 **Abdul Rehman**  
 BS Computer Science — Final Year Project  
 Supervisor: Ma'am Hira Awais  
-
 ---
 
 > Prodexa is built to demonstrate real-world full-stack engineering combining microservices architecture, AI/ML integration, async job processing, and modern frontend development — all within a single cohesive product.
