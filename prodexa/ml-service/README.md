@@ -1,6 +1,6 @@
 # Prodexa ML Service
 
-Random Forest-based productivity prediction microservice built with FastAPI.
+Random Forest-based productivity prediction microservice built with FastAPI. 
 
 ## Setup
 
