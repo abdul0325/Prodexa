@@ -16,29 +16,40 @@ import { MLDataModule } from './ml-data/ml-data.module';
 import { MLModule } from './ml/ml.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
-    PrismaModule,
-    UserModule,
-    AuthModule,
-    GithubModule,
-    ProjectModule,
-    ScheduleModule.forRoot(),
-    DeveloperAnalyticsModule,
-    IntelligenceModule,
-    AnalyticsQueueModule,
+    // Redis — used for caching + BullMQ
+    RedisModule.forRoot({
+      type: 'single',
+      url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`,
+    }),
+
+    // BullMQ job queue
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
       },
     }),
+
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    UserModule,
+    AuthModule,
+    GithubModule,
+    ProjectModule,
+    DeveloperAnalyticsModule,
+    IntelligenceModule,
+    AnalyticsQueueModule,
     DashboardModule,
     MLDataModule,
     MLModule,
-    AdminModule,         // NEW
-    NotificationsModule, // NEW
+    AdminModule,
+    NotificationsModule,
+    GatewayModule,   // NEW: WebSocket real-time
   ],
   controllers: [AppController],
   providers: [AppService],

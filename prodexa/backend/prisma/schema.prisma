@@ -1,16 +1,22 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
 model User {
   id           String   @id @default(uuid())
   name         String
   email        String   @unique
+  githubLogin  String?  // NEW: GitHub username for avatars
+  avatarUrl    String?  // NEW: GitHub avatar URL
   passwordHash String?
   githubToken  String?
   role         Role     @default(MANAGER)
@@ -21,16 +27,28 @@ model User {
   projects      Project[]
   auditLogs     AuditLog[]
   notifications Notification[]
+
+  @@index([email])       // fast email lookup
+  @@index([role])        // fast admin queries
 }
 
+// ─────────────────────────────────────────────
+// PROJECT
+// ─────────────────────────────────────────────
 model Project {
-  id        String        @id @default(uuid())
-  name      String
-  repoUrl   String
-  ownerName String
-  status    ProjectStatus @default(ACTIVE)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @default(now()) @updatedAt
+  id              String          @id @default(uuid())
+  name            String
+  repoUrl         String
+  ownerName       String
+  repoOwner       String?         // NEW: parsed GitHub owner from URL
+  repoName        String?         // NEW: parsed GitHub repo name from URL
+  status          ProjectStatus   @default(ACTIVE)
+  analysisStatus  AnalysisStatus  @default(IDLE)  // NEW: track analysis state
+  lastSyncedAt    DateTime?       // NEW: when GitHub data was last fetched
+  cacheExpiresAt  DateTime?       // NEW: when cache becomes stale
+  lastError       String?         // NEW: store last analysis error message
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -39,8 +57,16 @@ model Project {
   predictions         Prediction[]
   developerActivities DeveloperActivity[]
   notifications       Notification[]
+
+  @@index([userId])             // fast user project queries
+  @@index([status])             // fast active project queries
+  @@index([analysisStatus])     // fast queue status checks
+  @@index([lastSyncedAt])       // fast cache invalidation
 }
 
+// ─────────────────────────────────────────────
+// PROJECT ACTIVITY
+// ─────────────────────────────────────────────
 model ProjectActivity {
   id                String   @id @default(uuid())
   projectId         String
@@ -51,36 +77,58 @@ model ProjectActivity {
   productivityScore Int?
   activityTimestamp DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([activityTimestamp])  // fast timeline queries
 }
 
+// ─────────────────────────────────────────────
+// PREDICTION
+// ─────────────────────────────────────────────
 model Prediction {
   id                String   @id @default(uuid())
   projectId         String
   productivityScore Float
   deliveryRisk      String
   workloadForecast  Float
+  teamHealthStatus  String?  // NEW: Excellent/Good/Moderate/Risky
   generatedAt       DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([generatedAt])        // fast latest prediction query
 }
 
+// ─────────────────────────────────────────────
+// DEVELOPER ACTIVITY
+// ─────────────────────────────────────────────
 model DeveloperActivity {
   id                String   @id @default(uuid())
   projectId         String
   developerLogin    String
+  avatarUrl         String?  // NEW: GitHub avatar URL
   commits           Int      @default(0)
   pullRequestCount  Int      @default(0)
   issueCount        Int      @default(0)
   productivityScore Int      @default(0)
   predictedScore    Int?
+  trend             String?  // NEW: improving/stable/declining (from ML)
+  riskLevel         String?  // NEW: Low/Medium/High (from ML)
   activityTimestamp DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([developerLogin, projectId])
+  @@index([projectId])
+  @@index([productivityScore]) // fast leaderboard sorting
+  @@index([developerLogin])    // fast developer lookup
 }
 
+// ─────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────
 model AuditLog {
   id         String   @id @default(uuid())
   userId     String
@@ -91,8 +139,15 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])          // fast recent logs query
+  @@index([action])             // fast action filtering
 }
 
+// ─────────────────────────────────────────────
+// NOTIFICATION
+// ─────────────────────────────────────────────
 model Notification {
   id        String           @id @default(uuid())
   userId    String
@@ -104,9 +159,17 @@ model Notification {
   createdAt DateTime         @default(now())
 
   user    User     @relation(fields: [userId], references: [id])
-  project Project? @relation(fields: [projectId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([isRead])             // fast unread count query
+  @@index([userId, isRead])     // composite: user's unread notifications
+  @@index([createdAt])
 }
 
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
 enum Role {
   ADMIN
   MANAGER
@@ -115,6 +178,15 @@ enum Role {
 enum ProjectStatus {
   ACTIVE
   INACTIVE
+}
+
+// NEW: Track analysis job lifecycle
+enum AnalysisStatus {
+  IDLE        // no analysis running
+  QUEUED      // job added to BullMQ
+  ANALYZING   // actively fetching GitHub data
+  DONE        // analysis complete
+  FAILED      // analysis failed — check lastError
 }
 
 enum NotificationType {

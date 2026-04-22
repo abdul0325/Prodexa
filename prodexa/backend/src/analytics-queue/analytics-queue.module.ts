@@ -6,13 +6,14 @@ import { DeveloperAnalyticsModule } from 'src/developer-analytics/developer-anal
 import { AnalyticsProcessor } from './analytics.processor';
 import { IntelligenceModule } from 'src/intelligence/intelligence.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { GatewayModule } from 'src/gateway/gateway.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({
       name: 'analytics',
     }),
-    PrismaModule, DeveloperAnalyticsModule,IntelligenceModule, NotificationsModule
+    PrismaModule, DeveloperAnalyticsModule,IntelligenceModule, NotificationsModule,GatewayModule
   ],
   providers: [AnalyticsQueueService, AnalyticsProcessor],
   exports: [AnalyticsQueueService, BullModule],
