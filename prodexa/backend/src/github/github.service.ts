@@ -1,7 +1,5 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
 import { PrismaService } from '../prisma/prisma.service';
 import { GitHubCommit, GitHubPull, GitHubIssue } from './github.types';
 
@@ -14,8 +12,7 @@ export class GithubService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
-    @InjectRedis() private redis: Redis,
-  ) {}
+  ) { }
 
   // ─────────────────────────────────────────────
   // CORE: Paginated fetcher with retry + rate limit
@@ -97,26 +94,24 @@ export class GithubService {
     return `github:${type}:${owner}:${repo}`;
   }
 
+  private cache = new Map<string, { data: any; expiresAt: number }>();
+
   private async getFromCache<T>(key: string): Promise<T[] | null> {
-    try {
-      const cached = await this.redis.get(key);
-      if (cached) {
-        this.logger.log(`Cache HIT: ${key}`);
-        return JSON.parse(cached);
-      }
-    } catch (e) {
-      this.logger.warn(`Cache read error: ${e}`);
+    const entry = this.cache.get(key);
+    if (entry && entry.expiresAt > Date.now()) {
+      this.logger.log(`Cache HIT: ${key}`);
+      return entry.data;
     }
+    this.cache.delete(key);
     return null;
   }
 
   private async setCache(key: string, data: any): Promise<void> {
-    try {
-      await this.redis.setex(key, CACHE_TTL, JSON.stringify(data));
-      this.logger.log(`Cache SET: ${key} (TTL: ${CACHE_TTL}s)`);
-    } catch (e) {
-      this.logger.warn(`Cache write error: ${e}`);
-    }
+    this.cache.set(key, {
+      data,
+      expiresAt: Date.now() + CACHE_TTL * 1000,
+    });
+    this.logger.log(`Cache SET: ${key}`);
   }
 
   async invalidateCache(owner: string, repo: string): Promise<void> {
@@ -126,7 +121,7 @@ export class GithubService {
       this.getCacheKey('issues', owner, repo),
       this.getCacheKey('contributors', owner, repo),
     ];
-    await Promise.all(keys.map(k => this.redis.del(k)));
+    keys.forEach(k => this.cache.delete(k));
     this.logger.log(`Cache invalidated for ${owner}/${repo}`);
   }
 
@@ -140,6 +135,8 @@ export class GithubService {
     if (cached) return cached;
 
     try {
+      this.logger.log(`Fetching contributors for ${owner}/${repo} with token: ${!!process.env.GITHUB_TOKEN}`);
+
       const response = await this.httpService.axiosRef.get(
         `https://api.github.com/repos/${owner}/${repo}/contributors`,
         { headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } },
@@ -148,10 +145,19 @@ export class GithubService {
       this.logger.log(`Fetched ${response.data.length} contributors for ${owner}/${repo}`);
       return response.data;
     } catch (error: any) {
+      // LOG THE REAL ERROR
+      this.logger.error(`Contributors fetch failed for ${owner}/${repo}`);
+      this.logger.error(`Status: ${error.response?.status}`);
+      this.logger.error(`Message: ${error.response?.data?.message}`);
+      this.logger.error(`URL tried: https://api.github.com/repos/${owner}/${repo}/contributors`);
+
       if (error.response?.status === 404) {
         throw new HttpException('Repository not found', HttpStatus.NOT_FOUND);
       }
-      throw new HttpException('Failed to fetch contributors', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        `Failed to fetch contributors: ${error.response?.data?.message || error.message}`,
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 

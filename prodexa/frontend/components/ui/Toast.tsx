@@ -9,77 +9,76 @@ interface Toast {
   message?: string;
 }
 
-const toastIcons = {
-  success: '✅',
-  error: '❌',
-  warning: '⚠️',
-  info: '🔔',
-};
-
-const toastColors = {
+const icons = { success: '✅', error: '❌', warning: '⚠️', info: '🔔' };
+const colors = {
   success: 'var(--success)',
   error: 'var(--danger)',
   warning: 'var(--warning)',
   info: 'var(--accent)',
 };
 
-// Global toast state
-let addToastGlobal: ((toast: Omit<Toast, 'id'>) => void) | null = null;
+// Global trigger function
+let _addToast: ((t: Omit<Toast, 'id'>) => void) | null = null;
 
 export function toast(type: Toast['type'], title: string, message?: string) {
-  addToastGlobal?.({ type, title, message });
+  _addToast?.({ type, title, message });
 }
 
 export function ToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = useCallback((t: Omit<Toast, 'id'>) => {
+  const add = useCallback((t: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts(prev => [...prev, { ...t, id }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 4000);
+    setToasts(p => [...p, { ...t, id }]);
+    setTimeout(() => setToasts(p => p.filter(x => x.id !== id)), 4500);
   }, []);
 
   useEffect(() => {
-    addToastGlobal = addToast;
-    return () => { addToastGlobal = null; };
-  }, [addToast]);
+    _addToast = add;
+    return () => { _addToast = null; };
+  }, [add]);
+
+  if (!toasts.length) return null;
 
   return (
     <div style={{
       position: 'fixed', bottom: '1.5rem', right: '1.5rem',
       display: 'flex', flexDirection: 'column', gap: '0.5rem',
-      zIndex: 9999, maxWidth: 360,
+      zIndex: 9999, maxWidth: 360, width: '100%',
     }}>
       {toasts.map(t => (
         <div key={t.id} style={{
           background: 'var(--bg-card)',
-          border: `1px solid ${toastColors[t.type]}`,
-          borderLeft: `4px solid ${toastColors[t.type]}`,
+          border: `1px solid ${colors[t.type]}`,
+          borderLeft: `4px solid ${colors[t.type]}`,
           borderRadius: 10,
           padding: '0.875rem 1rem',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-          animation: 'slideIn 0.3s ease',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
           display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+          animation: 'toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}>
-          <span style={{ fontSize: '1.1rem' }}>{toastIcons[t.type]}</span>
-          <div>
+          <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{icons[t.type]}</span>
+          <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
               {t.title}
             </div>
             {t.message && (
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
                 {t.message}
               </div>
             )}
           </div>
+          <button onClick={() => setToasts(p => p.filter(x => x.id !== t.id))} style={{
+            background: 'none', border: 'none',
+            color: 'var(--text-muted)', cursor: 'pointer',
+            fontSize: '1rem', padding: 0, flexShrink: 0,
+          }}>✕</button>
         </div>
       ))}
       <style>{`
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateX(100%); }
-          to { opacity: 1; transform: translateX(0); }
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateX(100%) scale(0.8); }
+          to   { opacity: 1; transform: translateX(0) scale(1); }
         }
       `}</style>
     </div>

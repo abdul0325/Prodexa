@@ -5,103 +5,100 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+// Singleton socket instance
+let globalSocket: Socket | null = null;
+
 export function useSocket() {
-  const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('prodexa_token');
     if (!token) return;
 
-    const socket = io(`${SOCKET_URL}/realtime`, {
-      auth: { token },
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-    });
+    if (!globalSocket) {
+      globalSocket = io(`${SOCKET_URL}/realtime`, {
+        auth: { token },
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
+      });
+    }
 
-    socket.on('connect', () => {
-      setConnected(true);
-      console.log('🔌 WebSocket connected');
-    });
+    const socket = globalSocket;
 
-    socket.on('disconnect', () => {
-      setConnected(false);
-      console.log('🔌 WebSocket disconnected');
-    });
+    function onConnect() { setConnected(true); }
+    function onDisconnect() { setConnected(false); }
 
-    socketRef.current = socket;
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+    if (socket.connected) setConnected(true);
 
     return () => {
-      socket.disconnect();
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
     };
   }, []);
 
   const subscribeToProject = useCallback((projectId: string) => {
-    socketRef.current?.emit('subscribe:project', { projectId });
+    globalSocket?.emit('subscribe:project', { projectId });
   }, []);
 
   const unsubscribeFromProject = useCallback((projectId: string) => {
-    socketRef.current?.emit('unsubscribe:project', { projectId });
+    globalSocket?.emit('unsubscribe:project', { projectId });
   }, []);
 
   const on = useCallback((event: string, handler: (...args: any[]) => void) => {
-    socketRef.current?.on(event, handler);
-    return () => socketRef.current?.off(event, handler);
+    globalSocket?.on(event, handler);
+    return () => { globalSocket?.off(event, handler); };
   }, []);
 
-  return { socket: socketRef.current, connected, subscribeToProject, unsubscribeFromProject, on };
+  return { connected, subscribeToProject, unsubscribeFromProject, on };
 }
 
-// ─── Project-specific hook ───────────────────────────────────────
-
+// ─── Project-specific real-time hook ────────────────────────────
 export function useProjectRealtime(projectId: string) {
   const { subscribeToProject, unsubscribeFromProject, on, connected } = useSocket();
   const [analysisStatus, setAnalysisStatus] = useState<string>('IDLE');
   const [analysisMessage, setAnalysisMessage] = useState<string>('');
   const [healthScore, setHealthScore] = useState<number | null>(null);
   const [healthStatus, setHealthStatus] = useState<string>('');
-  const [liveDevActivity, setLiveDevActivity] = useState<any[]>([]);
+  const [liveDevs, setLiveDevs] = useState<Record<string, any>>({});
   const [dashboardUpdated, setDashboardUpdated] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
-
     subscribeToProject(projectId);
 
     const unsubs = [
       on('analysis:status', (data: any) => {
-        if (data.projectId === projectId) {
-          setAnalysisStatus(data.status);
-          setAnalysisMessage(data.message || '');
-          if (data.status === 'DONE') setDashboardUpdated(true);
+        if (data.projectId !== projectId) return;
+        setAnalysisStatus(data.status);
+        setAnalysisMessage(data.message || '');
+        if (data.status === 'DONE') {
+          setDashboardUpdated(true);
+          setTimeout(() => setAnalysisStatus('IDLE'), 5000);
         }
       }),
 
       on('health:update', (data: any) => {
-        if (data.projectId === projectId) {
-          setHealthScore(data.healthScore);
-          setHealthStatus(data.status);
-        }
+        if (data.projectId !== projectId) return;
+        setHealthScore(data.healthScore);
+        setHealthStatus(data.status);
       }),
 
       on('developer:activity', (data: any) => {
-        if (data.projectId === projectId) {
-          setLiveDevActivity(prev => {
-            const exists = prev.find(d => d.developer === data.developer);
-            if (exists) {
-              return prev.map(d => d.developer === data.developer ? { ...d, ...data.data } : d);
-            }
-            return [...prev, { developer: data.developer, ...data.data }];
-          });
-        }
+        if (data.projectId !== projectId) return;
+        setLiveDevs(prev => ({
+          ...prev,
+          [data.developer]: { developer: data.developer, ...data.data },
+        }));
       }),
 
       on('dashboard:update', (data: any) => {
-        if (data.projectId === projectId) {
-          setDashboardUpdated(true);
-        }
+        if (data.projectId !== projectId) return;
+        setDashboardUpdated(true);
       }),
     ];
 
@@ -116,21 +113,20 @@ export function useProjectRealtime(projectId: string) {
     analysisMessage,
     healthScore,
     healthStatus,
-    liveDevActivity,
+    liveDevs: Object.values(liveDevs),
     dashboardUpdated,
     resetDashboardUpdated: () => setDashboardUpdated(false),
   };
 }
 
 // ─── Notifications real-time hook ────────────────────────────────
-
 export function useRealtimeNotifications(onNew: (notif: any) => void) {
-  const { on, connected } = useSocket();
+  const { on } = useSocket();
 
   useEffect(() => {
     const unsub = on('notification:new', (data: any) => {
       onNew(data.notification);
     });
     return unsub;
-  }, [connected, onNew]);
+  }, [onNew]);
 }
