@@ -7,8 +7,13 @@ import { AnalysisStatusBar, AnalysisStatusBadge } from '@/components/ui/Analysis
 import { ToastContainer, toast } from '@/components/ui/Toast';
 import { useProjectRealtime } from '@/hooks/useSocket';
 import { api, isAuthenticated } from '@/lib/api';
+import { CommitActivityChart } from '@/components/charts/CommitActivityChart';
+import { DeveloperProductivityChart } from '@/components/charts/DeveloperProductivityChart';
+import { HealthTrendChart } from '@/components/charts/HealthTrendChart';
+import { WorkloadDistributionChart } from '@/components/charts/WorkloadDistributionChart';
+import { RiskOverviewChart } from '@/components/charts/RiskOverviewChart';
 
-// ─── Small reusable components ───────────────────────────────────
+// ─── Reusable components ────────────────────────────────────────
 
 function StatCard({ label, value, sub, color, updating }: any) {
   return (
@@ -21,10 +26,9 @@ function StatCard({ label, value, sub, color, updating }: any) {
         }} />
       )}
       <div className="stat-label">{label}</div>
-      <div className="stat-value" style={{
-        color: color || 'var(--text-primary)',
-        transition: 'color 0.5s',
-      }}>{value}</div>
+      <div className="stat-value" style={{ color: color || 'var(--text-primary)', transition: 'color 0.5s' }}>
+        {value}
+      </div>
       {sub && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sub}</div>}
     </div>
   );
@@ -36,9 +40,7 @@ function HealthBar({ score }: { score: number }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Health Score</span>
-        <span style={{ fontSize: '0.8rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>
-          {score}/100
-        </span>
+        <span style={{ fontSize: '0.8rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{score}/100</span>
       </div>
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${score}%`, background: color }} />
@@ -48,10 +50,7 @@ function HealthBar({ score }: { score: number }) {
 }
 
 function RiskBadge({ risk }: { risk: string }) {
-  const map: any = {
-    Low: 'badge-success', Medium: 'badge-warning', High: 'badge-danger',
-    Active: 'badge-success', Inactive: 'badge-danger',
-  };
+  const map: any = { Low: 'badge-success', Medium: 'badge-warning', High: 'badge-danger', Active: 'badge-success', Inactive: 'badge-danger' };
   return <span className={`badge ${map[risk] || 'badge-neutral'}`}>{risk}</span>;
 }
 
@@ -65,50 +64,43 @@ function DevAvatar({ login }: { login: string }) {
   return (
     <div style={{
       width: 32, height: 32, borderRadius: '50%',
-      background: 'var(--accent-soft)',
+      background: 'var(--accent-soft)', overflow: 'hidden', flexShrink: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent)',
-      overflow: 'hidden', flexShrink: 0,
     }}>
-      <img
-        src={`https://github.com/${login}.png?size=64`}
-        alt={login}
+      <img src={`https://github.com/${login}.png?size=64`} alt={login}
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = 'none';
-        }}
-      />
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
     </div>
   );
 }
 
-// ─── Skeleton loader ─────────────────────────────────────────────
-function Skeleton({ width = '100%', height = 20, radius = 6 }: any) {
+function ChartCard({ title, children, height }: { title: string; children: React.ReactNode; height?: number }) {
   return (
-    <div style={{
-      width, height, borderRadius: radius,
-      background: 'var(--bg-hover)',
-      animation: 'shimmer 1.5s infinite',
-    }} />
+    <div className="card" style={{ height: height ? height + 80 : 'auto' }}>
+      <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {title}
+      </h4>
+      {children}
+    </div>
   );
 }
 
-// ─── Live activity feed item ─────────────────────────────────────
+function Skeleton({ width = '100%', height = 20, radius = 6 }: any) {
+  return <div style={{ width, height, borderRadius: radius, background: 'var(--bg-hover)', animation: 'shimmer 1.5s infinite' }} />;
+}
+
 function LiveDevItem({ dev }: { dev: any }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.625rem 0.875rem',
-      background: 'var(--accent-soft)',
-      borderRadius: 8, marginBottom: '0.5rem',
-      animation: 'fadeIn 0.4s ease',
-      border: '1px solid var(--accent)',
+      background: 'var(--accent-soft)', borderRadius: 8, marginBottom: '0.5rem',
+      animation: 'fadeIn 0.4s ease', border: '1px solid var(--accent)',
     }}>
       <DevAvatar login={dev.developer} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: '0.875rem', fontFamily: 'var(--font-mono)' }}>
-          {dev.developer}
-        </div>
+        <div style={{ fontWeight: 600, fontSize: '0.875rem', fontFamily: 'var(--font-mono)' }}>{dev.developer}</div>
         <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
           {dev.commits} commits · {dev.pullRequestCount} PRs · {dev.issueCount} issues
         </div>
@@ -120,68 +112,57 @@ function LiveDevItem({ dev }: { dev: any }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────
+// ─── Main Page ───────────────────────────────────────────────────
+
 export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = use(params);
   const router = useRouter();
 
-  const [dashboard, setDashboard] = useState<any>(null);
-  const [mlData, setMlData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [runningML, setRunningML] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'developers' | 'ml' | 'live'>('overview');
+  const [dashboard, setDashboard]   = useState<any>(null);
+  const [activity, setActivity]     = useState<any[]>([]);
+  const [mlData, setMlData]         = useState<any>(null);
+  const [loading, setLoading]       = useState(true);
+  const [analyzing, setAnalyzing]   = useState(false);
+  const [runningML, setRunningML]   = useState(false);
+  const [activeTab, setActiveTab]   = useState<'overview' | 'charts' | 'developers' | 'ml' | 'live'>('overview');
 
-  // ── WebSocket real-time data ──────────────────────────────────
   const {
-    analysisStatus,
-    analysisMessage,
-    healthScore: liveHealthScore,
-    healthStatus: liveHealthStatus,
-    liveDevs,
-    dashboardUpdated,
-    resetDashboardUpdated,
+    analysisStatus, analysisMessage,
+    healthScore: liveHealthScore, healthStatus: liveHealthStatus,
+    liveDevs, dashboardUpdated, resetDashboardUpdated,
   } = useProjectRealtime(projectId);
 
-  // Auto-reload dashboard when WebSocket signals completion
   useEffect(() => {
     if (dashboardUpdated) {
       toast('success', '✅ Analysis Complete', 'Dashboard updated with latest data');
-      loadDashboard();
+      loadAll();
       resetDashboardUpdated();
       setAnalyzing(false);
     }
   }, [dashboardUpdated]);
 
-  // Show live devs tab automatically when analysis starts
   useEffect(() => {
-    if (analysisStatus === 'ANALYZING' && liveDevs.length > 0) {
-      setActiveTab('live');
-    }
+    if (analysisStatus === 'ANALYZING' && liveDevs.length > 0) setActiveTab('live');
   }, [analysisStatus, liveDevs.length]);
 
-  // Toast on status changes
   useEffect(() => {
-    if (analysisStatus === 'FAILED') {
-      toast('error', '❌ Analysis Failed', analysisMessage);
-      setAnalyzing(false);
-    }
-    if (analysisStatus === 'QUEUED') {
-      toast('info', '⏳ Analysis Queued', 'Your project is queued for analysis');
-    }
+    if (analysisStatus === 'FAILED') { toast('error', '❌ Analysis Failed', analysisMessage); setAnalyzing(false); }
+    if (analysisStatus === 'QUEUED') toast('info', '⏳ Queued', 'Analysis added to queue');
   }, [analysisStatus]);
 
   useEffect(() => {
     if (!isAuthenticated()) { router.push('/'); return; }
-    loadDashboard();
+    loadAll();
   }, [projectId, router]);
 
-  async function loadDashboard() {
+  async function loadAll() {
     try {
-      const [dash] = await Promise.all([
+      const [dash, act] = await Promise.all([
         api.dashboard.get(projectId),
+        api.dashboard.activity(projectId),
       ]);
       setDashboard(dash);
+      setActivity(act || []);
     } catch (e: any) {
       toast('error', 'Failed to load dashboard', e.message);
     } finally {
@@ -194,7 +175,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
     setActiveTab('live');
     try {
       await api.projects.analyze(projectId);
-      toast('info', '⚡ Analysis Started', 'Watch live updates below');
+      toast('info', '⚡ Analysis Started', 'Watch live updates in the Live Feed tab');
     } catch (e: any) {
       toast('error', 'Failed to start analysis', e.message);
       setAnalyzing(false);
@@ -207,43 +188,39 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
       const result = await api.ml.analyze(projectId);
       setMlData(result);
       setActiveTab('ml');
-      toast('success', '🤖 ML Analysis Done', `Project score: ${result.projectScore?.toFixed(1)}`);
+      toast('success', '🤖 ML Done', `Score: ${result.projectScore?.toFixed(1)} · Risk: ${result.deliveryRisk}`);
     } catch (e: any) {
-      toast('error', 'ML service error', e.message);
+      toast('error', 'ML error', e.message);
     } finally {
       setRunningML(false);
     }
   }
 
-  // Use live health score if available, otherwise fall back to dashboard data
-  const displayHealthScore = liveHealthScore ?? dashboard?.healthScore ?? 0;
-  const displayHealthStatus = liveHealthStatus || dashboard?.healthStatus || '—';
-  const isLiveHealth = liveHealthScore !== null;
-
-  const devs = dashboard?.leaderboard?.developers || [];
-  const riskDevs = dashboard?.developerRisk || [];
-  const metrics = dashboard?.metrics || {};
+  const displayHealth    = liveHealthScore ?? dashboard?.healthScore ?? 0;
+  const displayStatus    = liveHealthStatus || dashboard?.healthStatus || '—';
+  const isLive           = liveHealthScore !== null;
+  const devs             = dashboard?.leaderboard?.developers || [];
+  const riskDevs         = dashboard?.developerRisk || [];
+  const metrics          = dashboard?.metrics || {};
 
   const tabs = [
-    { key: 'overview',   label: '📊 Overview' },
+    { key: 'overview',   label: '📊 Overview'   },
+    { key: 'charts',     label: '📈 Charts'     },
     { key: 'developers', label: '👥 Leaderboard' },
     { key: 'ml',         label: '🤖 ML Predictions' },
-    { key: 'live',       label: `⚡ Live Feed ${liveDevs.length > 0 ? `(${liveDevs.length})` : ''}` },
+    { key: 'live',       label: `⚡ Live${liveDevs.length > 0 ? ` (${liveDevs.length})` : ''}` },
   ] as const;
 
   if (loading) return (
     <div style={{ display: 'flex' }}>
       <Sidebar />
       <main className="main-content" style={{ padding: '2rem' }}>
-        {/* Skeleton loading */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <Skeleton width={200} height={28} />
-            <Skeleton width={120} height={16} />
+            <Skeleton width={200} height={28} /> <Skeleton width={120} height={16} />
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <Skeleton width={120} height={38} radius={8} />
-            <Skeleton width={150} height={38} radius={8} />
+            <Skeleton width={120} height={38} radius={8} /> <Skeleton width={150} height={38} radius={8} />
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -264,20 +241,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button onClick={() => router.push('/projects')} style={{
-              background: 'none', border: 'none',
-              color: 'var(--text-secondary)', cursor: 'pointer',
-              fontSize: '1.2rem', padding: '0.25rem',
-            }}>←</button>
+            <button onClick={() => router.push('/projects')} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.25rem' }}>←</button>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Project Dashboard
-                </h1>
+                <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>Project Dashboard</h1>
                 <AnalysisStatusBadge status={analysisStatus} />
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                {projectId.slice(0, 8)}...
+                {dashboard?.repoUrl?.replace('https://github.com/', '') || projectId.slice(0, 8) + '...'}
               </p>
             </div>
           </div>
@@ -291,67 +262,56 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
         </div>
 
-        {/* Live analysis status bar */}
+        {/* Status bar */}
         <AnalysisStatusBar status={analysisStatus} message={analysisMessage} />
 
         {/* KPI Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-          <StatCard
-            label="Health Score"
-            value={displayHealthScore}
-            sub={displayHealthStatus}
-            color={displayHealthScore >= 70 ? 'var(--success)' : displayHealthScore >= 40 ? 'var(--warning)' : 'var(--danger)'}
-            updating={isLiveHealth}
-          />
-          <StatCard label="Commits" value={metrics.totalCommits ?? 0} sub="total" />
-          <StatCard label="Pull Requests" value={metrics.totalPRs ?? 0} sub="total" />
-          <StatCard label="Issues" value={metrics.totalIssues ?? 0} sub="total" />
-          <StatCard label="Developers" value={devs.length} sub="active" />
+          <StatCard label="Health Score" value={displayHealth} sub={displayStatus} updating={isLive}
+            color={displayHealth >= 70 ? 'var(--success)' : displayHealth >= 40 ? 'var(--warning)' : 'var(--danger)'} />
+          <StatCard label="Commits"     value={metrics.totalCommits ?? 0} sub="total" />
+          <StatCard label="Pull Requests" value={metrics.totalPRs ?? 0}  sub="total" />
+          <StatCard label="Issues"      value={metrics.totalIssues ?? 0}  sub="total" />
+          <StatCard label="Developers"  value={devs.length}               sub="active" />
         </div>
 
         {/* Health bar */}
         <div className="card" style={{ marginBottom: '1.5rem' }}>
-          <HealthBar score={displayHealthScore} />
+          <HealthBar score={displayHealth} />
           <div style={{ display: 'flex', gap: '2.5rem', marginTop: '1rem' }}>
             {[
-              { label: 'Status', value: displayHealthStatus },
-              { label: 'Risk', value: displayHealthScore < 30 ? 'High' : displayHealthScore < 60 ? 'Medium' : 'Low' },
-              { label: 'Developers', value: devs.length },
-              { label: 'Last Updated', value: isLiveHealth ? 'Just now 🔴' : 'Cached' },
+              { label: 'Status',       value: displayStatus },
+              { label: 'Risk',         value: displayHealth < 30 ? 'High' : displayHealth < 60 ? 'Medium' : 'Low' },
+              { label: 'Developers',   value: devs.length },
+              { label: 'Last Updated', value: isLive ? 'Live 🔴' : 'Cached' },
             ].map(item => (
               <div key={item.label}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {item.label}
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</div>
+                <div style={{ fontWeight: 600, color: item.label === 'Last Updated' && isLive ? 'var(--success)' : 'var(--text-primary)', marginTop: 2, fontSize: '0.875rem' }}>
+                  {item.value}
                 </div>
-                <div style={{
-                  fontWeight: 600, color: item.label === 'Last Updated' && isLiveHealth ? 'var(--success)' : 'var(--text-primary)',
-                  marginTop: 2, fontSize: '0.875rem',
-                }}>{item.value}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
           {tabs.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
               padding: '0.625rem 1.1rem', background: 'none', border: 'none',
               borderBottom: activeTab === tab.key ? '2px solid var(--accent)' : '2px solid transparent',
               color: activeTab === tab.key ? 'var(--accent)' : 'var(--text-secondary)',
               fontWeight: activeTab === tab.key ? 600 : 400,
-              fontSize: '0.875rem', cursor: 'pointer', transition: 'color 0.15s',
-              whiteSpace: 'nowrap',
+              fontSize: '0.875rem', cursor: 'pointer', transition: 'color 0.15s', whiteSpace: 'nowrap',
             }}>{tab.label}</button>
           ))}
         </div>
 
-        {/* ── Tab: Overview ── */}
+        {/* ── Overview Tab ── */}
         {activeTab === 'overview' && (
           <div className="animate-fade-in">
-            <h3 style={{ fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              Developer Risk Status
-            </h3>
+            <h3 style={{ fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>Developer Risk Status</h3>
             {riskDevs.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                 No developer data yet — run an analysis first
@@ -359,9 +319,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             ) : (
               <div className="table-wrapper">
                 <table>
-                  <thead>
-                    <tr><th>Developer</th><th>Last Active</th><th>Days Inactive</th><th>Status</th></tr>
-                  </thead>
+                  <thead><tr><th>Developer</th><th>Last Active</th><th>Days Inactive</th><th>Status</th></tr></thead>
                   <tbody>
                     {riskDevs.map((dev: any) => (
                       <tr key={dev.developer}>
@@ -371,9 +329,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{dev.developer}</span>
                           </div>
                         </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                          {new Date(dev.lastActive).toLocaleDateString()}
-                        </td>
+                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{new Date(dev.lastActive).toLocaleDateString()}</td>
                         <td style={{ fontFamily: 'var(--font-mono)' }}>{dev.daysSinceLastCommit}d</td>
                         <td><RiskBadge risk={dev.risk} /></td>
                       </tr>
@@ -385,17 +341,45 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
         )}
 
-        {/* ── Tab: Leaderboard ── */}
+        {/* ── Charts Tab ── */}
+        {activeTab === 'charts' && (
+          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+            {/* Row 1: Activity + Health Trend */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <ChartCard title="📈 Commit Activity Over Time">
+                <CommitActivityChart data={activity} />
+              </ChartCard>
+              <ChartCard title="💚 Health Score Trend">
+                <HealthTrendChart data={activity} />
+              </ChartCard>
+            </div>
+
+            {/* Row 2: Productivity + Workload */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <ChartCard title="🏆 Developer Productivity Scores">
+                <DeveloperProductivityChart developers={devs} />
+              </ChartCard>
+              <ChartCard title="🥧 Workload Distribution">
+                <WorkloadDistributionChart developers={devs} />
+              </ChartCard>
+            </div>
+
+            {/* Row 3: Risk Overview full width */}
+            <ChartCard title="🚨 Risk Distribution">
+              <RiskOverviewChart developers={riskDevs} />
+            </ChartCard>
+
+          </div>
+        )}
+
+        {/* ── Leaderboard Tab ── */}
         {activeTab === 'developers' && (
           <div className="animate-fade-in">
-            <h3 style={{ fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              Developer Leaderboard
-            </h3>
+            <h3 style={{ fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>Developer Leaderboard</h3>
             <div className="table-wrapper">
               <table>
-                <thead>
-                  <tr><th>#</th><th>Developer</th><th>Commits</th><th>PRs</th><th>Issues</th><th>Score</th></tr>
-                </thead>
+                <thead><tr><th>#</th><th>Developer</th><th>Commits</th><th>PRs</th><th>Issues</th><th>Score</th></tr></thead>
                 <tbody>
                   {devs.map((dev: any, i: number) => (
                     <tr key={dev.developerLogin}>
@@ -419,9 +403,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
                               background: dev.productivityScore >= 60 ? 'var(--success)' : dev.productivityScore >= 30 ? 'var(--warning)' : 'var(--danger)',
                             }} />
                           </div>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', minWidth: 28 }}>
-                            {dev.productivityScore}
-                          </span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', minWidth: 28 }}>{dev.productivityScore}</span>
                         </div>
                       </td>
                     </tr>
@@ -432,20 +414,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
         )}
 
-        {/* ── Tab: ML Predictions ── */}
+        {/* ── ML Tab ── */}
         {activeTab === 'ml' && (
           <div className="animate-fade-in">
             {!mlData ? (
-              <div style={{
-                textAlign: 'center', padding: '3rem',
-                background: 'var(--bg-card)', border: '2px dashed var(--border)', borderRadius: 16,
-              }}>
+              <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', border: '2px dashed var(--border)', borderRadius: 16 }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
-                <h3 style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                  No ML predictions yet
-                </h3>
+                <h3 style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>No ML predictions yet</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-                  Click "Run ML" to analyze this project with Random Forest AI
+                  Click "Run ML" to analyze with Random Forest AI
                 </p>
                 <button className="btn-primary" onClick={handleMLAnalyze} disabled={runningML}>
                   {runningML ? '🤖 Running...' : '🤖 Run ML Now'}
@@ -454,17 +431,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
-                  <StatCard label="ML Project Score" value={mlData.projectScore?.toFixed(1)} color="var(--accent)" />
-                  <StatCard label="Delivery Risk" value={mlData.deliveryRisk}
+                  <StatCard label="ML Project Score"  value={mlData.projectScore?.toFixed(1)}   color="var(--accent)" />
+                  <StatCard label="Delivery Risk"     value={mlData.deliveryRisk}
                     color={mlData.deliveryRisk === 'Low' ? 'var(--success)' : mlData.deliveryRisk === 'Medium' ? 'var(--warning)' : 'var(--danger)'} />
-                  <StatCard label="Team Health" value={mlData.teamHealthStatus} />
+                  <StatCard label="Team Health"       value={mlData.teamHealthStatus} />
                   <StatCard label="Workload Forecast" value={mlData.workloadForecast?.toFixed(1)} sub="predicted units" />
                 </div>
                 <div className="table-wrapper">
                   <table>
-                    <thead>
-                      <tr><th>Developer</th><th>Current</th><th>Predicted</th><th>Trend</th><th>Risk</th></tr>
-                    </thead>
+                    <thead><tr><th>Developer</th><th>Current</th><th>Predicted</th><th>Trend</th><th>Risk</th></tr></thead>
                     <tbody>
                       {mlData.developers?.map((dev: any) => (
                         <tr key={dev.developerLogin}>
@@ -475,9 +450,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
                             </div>
                           </td>
                           <td style={{ fontFamily: 'var(--font-mono)' }}>{dev.currentScore}</td>
-                          <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
-                            {dev.predictedScore?.toFixed(1)}
-                          </td>
+                          <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>{dev.predictedScore?.toFixed(1)}</td>
                           <td><TrendIcon trend={dev.trend} /></td>
                           <td><RiskBadge risk={dev.riskLevel} /></td>
                         </tr>
@@ -493,68 +466,44 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
         )}
 
-        {/* ── Tab: Live Feed ── */}
+        {/* ── Live Feed Tab ── */}
         {activeTab === 'live' && (
           <div className="animate-fade-in">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h3 style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                Live Developer Activity
-              </h3>
+              <h3 style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Live Developer Activity</h3>
               {analysisStatus === 'ANALYZING' && (
-                <span style={{
-                  fontSize: '0.8rem', color: 'var(--accent)',
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                }}>
-                  <span style={{
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: 'var(--accent)', display: 'inline-block',
-                    animation: 'pulse 1s infinite',
-                  }} />
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
                   Live
                 </span>
               )}
             </div>
-
             {liveDevs.length === 0 ? (
-              <div style={{
-                textAlign: 'center', padding: '3rem',
-                background: 'var(--bg-card)', border: '2px dashed var(--border)', borderRadius: 16,
-              }}>
+              <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', border: '2px dashed var(--border)', borderRadius: 16 }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
-                <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-                  No live data yet
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  Click "Re-analyze" and watch developers appear here in real time
-                </p>
+                <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No live data yet</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Click "Re-analyze" and watch developers appear here in real time</p>
               </div>
             ) : (
               <div>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                   {liveDevs.length} developer{liveDevs.length !== 1 ? 's' : ''} analyzed
-                  {analysisStatus === 'ANALYZING' ? ' — updating live...' : ' — analysis complete'}
+                  {analysisStatus === 'ANALYZING' ? ' — updating live...' : ' — complete'}
                 </p>
-                {liveDevs.map((dev: any) => (
-                  <LiveDevItem key={dev.developer} dev={dev} />
-                ))}
+                {liveDevs.map((dev: any) => <LiveDevItem key={dev.developer} dev={dev} />)}
               </div>
             )}
           </div>
         )}
+
       </main>
 
       <ToastContainer />
 
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideRight {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
+        @keyframes slideRight { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:0.4} }
       `}</style>
     </div>
   );
