@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { ToastContainer, toast } from '@/components/ui/Toast';
 import { AdminStatsChart } from '@/components/charts/AdminStatsChart';
 import { api, isAuthenticated } from '@/lib/api';
+import { BarChart3, Users, FolderOpen, FileText } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -65,9 +66,9 @@ export default function AdminPage() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="main-content page-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: 40, height: 40, border: '3px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
           <p style={{ color: 'var(--text-secondary)' }}>Loading admin panel...</p>
@@ -78,9 +79,9 @@ export default function AdminPage() {
   );
 
   if (error) return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="main-content page-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⬡</div>
           <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Access Denied</h2>
@@ -94,9 +95,9 @@ export default function AdminPage() {
   );
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem' }}>
+      <main className="main-content page-main">
         <div style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Admin Panel</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: 2 }}>
@@ -105,12 +106,12 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+        <div className="tab-row">
           {([
-            { key: 'stats',    label: '⬡ Overview'   },
-            { key: 'users',    label: '◉ Users'       },
-            { key: 'projects', label: '◈ Projects'    },
-            { key: 'logs',     label: '📋 Audit Logs' },
+            { key: 'stats',    label: <><BarChart3 size={16} style={{ marginRight: '0.5rem' }} />Overview</> },
+            { key: 'users',    label: <><Users size={16} style={{ marginRight: '0.5rem' }} />Users</> },
+            { key: 'projects', label: <><FolderOpen size={16} style={{ marginRight: '0.5rem' }} />Projects</> },
+            { key: 'logs',     label: <><FileText size={16} style={{ marginRight: '0.5rem' }} />Audit Logs</> },
           ] as const).map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
               padding: '0.625rem 1.25rem', background: 'none', border: 'none',
@@ -124,9 +125,9 @@ export default function AdminPage() {
 
         {/* Overview */}
         {activeTab === 'stats' && stats && (
-          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="animate-fade-in section-gap">
             {/* Stat cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+            <div className="card-grid compact">
               {[
                 { label: 'TOTAL USERS',     value: stats.users.total,      sub: `${stats.users.active} active` },
                 { label: 'TOTAL PROJECTS',  value: stats.projects.total,   sub: `${stats.projects.active} active` },

@@ -59,11 +59,11 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem' }}>
+      <main className="main-content page-main">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div className="page-header" style={{ marginBottom: '2rem' }}>
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               Notifications
@@ -80,16 +80,13 @@ export default function NotificationsPage() {
               Smart alerts from your project analysis
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--bg-hover)', borderRadius: 8, padding: '0.25rem' }}>
+          <div className="page-actions">
+            <div className="filter-chip-group">
               {(['all', 'unread'] as const).map(f => (
-                <button key={f} onClick={() => setFilter(f)} style={{
-                  padding: '0.4rem 0.875rem',
-                  borderRadius: 6, border: 'none',
+                <button key={f} onClick={() => setFilter(f)} className="filter-chip" style={{
                   background: filter === f ? 'var(--bg-card)' : 'transparent',
                   color: filter === f ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  fontSize: '0.8rem', fontWeight: filter === f ? 600 : 400,
-                  cursor: 'pointer', textTransform: 'capitalize',
+                  fontWeight: filter === f ? 600 : 400,
                   boxShadow: filter === f ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                 }}>{f}</button>
               ))}
@@ -113,11 +110,7 @@ export default function NotificationsPage() {
             ))}
           </div>
         ) : notifications.length === 0 ? (
-          <div style={{
-            textAlign: 'center', padding: '4rem',
-            background: 'var(--bg-card)', border: '2px dashed var(--border)',
-            borderRadius: 16,
-          }}>
+          <div className="empty-state">
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔔</div>
             <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
@@ -127,10 +120,9 @@ export default function NotificationsPage() {
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="section-gap" style={{ gap: '0.75rem' }}>
             {notifications.map(notif => (
-              <div key={notif.id} className="card" style={{
-                display: 'flex', alignItems: 'flex-start', gap: '1rem',
+              <div key={notif.id} className="card notif-card" style={{
                 opacity: notif.isRead ? 0.7 : 1,
                 borderLeft: notif.isRead ? '1px solid var(--border)' : '3px solid var(--accent)',
                 transition: 'opacity 0.2s',
@@ -143,9 +135,9 @@ export default function NotificationsPage() {
                 }}>{typeIcons[notif.type]}</div>
 
                 {/* Content */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                <div className="notif-card-content" style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+                    <span className="wrap-anywhere" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                       {notif.title}
                     </span>
                     <span className={`badge ${typeBadge[notif.type]}`} style={{ fontSize: '0.65rem' }}>
@@ -158,15 +150,15 @@ export default function NotificationsPage() {
                       }} />
                     )}
                   </div>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.5 }}>
+                  <p className="wrap-anywhere" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.5 }}>
                     {notif.message}
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {new Date(notif.createdAt).toLocaleString()}
                     </span>
                     {notif.project && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                      <span className="wrap-anywhere" style={{ fontSize: '0.75rem', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
                         {notif.project.name}
                       </span>
                     )}
@@ -174,7 +166,7 @@ export default function NotificationsPage() {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="notif-card-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                   {!notif.isRead && (
                     <button onClick={() => markRead(notif.id)} style={{
                       background: 'none', border: '1px solid var(--border)',

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/api';
+import { FolderOpen, Bell, Settings } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function LoginPage() {
       justifyContent: 'center',
       position: 'relative',
       overflow: 'hidden',
+      padding: '1rem 0',
     }}>
       {/* Background grid */}
       <div style={{
@@ -35,7 +37,7 @@ export default function LoginPage() {
       {/* Glow */}
       <div style={{
         position: 'absolute',
-        width: 600, height: 600,
+        width: 'min(80vw, 600px)', height: 'min(80vw, 600px)',
         background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)',
         opacity: 0.07,
         top: '50%', left: '50%',
@@ -44,17 +46,7 @@ export default function LoginPage() {
       }} />
 
       {/* Card */}
-      <div className="animate-fade-in" style={{
-        position: 'relative',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 20,
-        padding: '3rem 2.5rem',
-        width: '100%',
-        maxWidth: 420,
-        textAlign: 'center',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.12)',
-      }}>
+      <div className="animate-fade-in auth-card">
         {/* Logo */}
         <div style={{
           width: 56, height: 56,
@@ -80,9 +72,9 @@ export default function LoginPage() {
           textAlign: 'left',
         }}>
           {[
-            { icon: '◈', text: 'Real-time GitHub activity tracking' },
-            { icon: '◉', text: 'ML-powered productivity predictions' },
-            { icon: '⬡', text: 'Developer leaderboard & risk alerts' },
+            { icon: <FolderOpen size={16} />, text: 'Real-time GitHub activity tracking' },
+            { icon: <Bell size={16} />, text: 'ML-powered productivity predictions' },
+            { icon: <Settings size={16} />, text: 'Developer leaderboard & risk alerts' },
           ].map(f => (
             <div key={f.text} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span style={{ color: 'var(--accent)', fontSize: '1rem' }}>{f.icon}</span>

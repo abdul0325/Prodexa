@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import { api, isAuthenticated } from '@/lib/api';
 import { Project } from '@/types';
+import { RefreshCw, FolderOpen } from 'lucide-react';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -57,18 +58,18 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem' }}>
+      <main className="main-content page-main">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div className="page-header" style={{ marginBottom: '2rem' }}>
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Projects</h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: 2 }}>
               {projects.length} project{projects.length !== 1 ? 's' : ''} connected
             </p>
           </div>
-          <button className="btn-primary" onClick={() => setShowModal(true)}>
+          <button className="btn-primary" onClick={() => setShowModal(true)} style={{ whiteSpace: 'nowrap' }}>
             + New Project
           </button>
         </div>
@@ -83,7 +84,7 @@ export default function ProjectsPage() {
 
         {/* Projects Grid */}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card-grid">
             {[1, 2, 3].map(i => (
               <div key={i} style={{
                 height: 160, borderRadius: 12,
@@ -93,12 +94,10 @@ export default function ProjectsPage() {
             ))}
           </div>
         ) : projects.length === 0 ? (
-          <div style={{
-            textAlign: 'center', padding: '4rem 2rem',
-            background: 'var(--bg-card)', border: '2px dashed var(--border)',
-            borderRadius: 16,
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>◈</div>
+          <div className="empty-state">
+            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--text-muted)' }}>
+              <FolderOpen size={48} />
+            </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               No projects yet
             </h3>
@@ -110,7 +109,7 @@ export default function ProjectsPage() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div className="card-grid">
             {projects.map(project => (
               <div key={project.id} className="card" style={{ cursor: 'pointer' }}
                 onClick={() => router.push(`/projects/${project.id}`)}>
@@ -127,18 +126,19 @@ export default function ProjectsPage() {
                 <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                   {project.name}
                 </h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', fontFamily: 'var(--font-mono)' }}>
+                <p className="wrap-anywhere" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', fontFamily: 'var(--font-mono)' }}>
                   {project.repoUrl.replace('https://github.com/', '')}
                 </p>
 
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn-primary" style={{ flex: 1, justifyContent: 'center', fontSize: '0.8rem', padding: '0.5rem' }}
+                <div className="card-actions">
+                  <button className="btn-primary"
                     onClick={(e) => { e.stopPropagation(); router.push(`/projects/${project.id}`); }}>
                     View Dashboard
                   </button>
-                  <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.5rem 0.875rem' }}
+                  <button className="btn-secondary"
                     onClick={(e) => handleAnalyze(project.id, e)}>
-                    ↻ Analyze
+                    <RefreshCw size={14} style={{ marginRight: '0.25rem' }} />
+                    Analyze
                   </button>
                 </div>
               </div>
@@ -159,7 +159,7 @@ export default function ProjectsPage() {
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: 16, padding: '2rem',
-            width: '100%', maxWidth: 460,
+            width: 'calc(100% - 2rem)', maxWidth: 460, maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto',
             animation: 'fadeIn 0.2s ease',
           }} onClick={e => e.stopPropagation()}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>

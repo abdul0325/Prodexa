@@ -8,6 +8,7 @@ import { ToastContainer, toast } from '@/components/ui/Toast';
 import { useProjectRealtime } from '@/hooks/useSocket';
 import { api, isAuthenticated } from '@/lib/api';
 import { CommitActivityChart } from '@/components/charts/CommitActivityChart';
+import { RefreshCw, Bot, Clock, BarChart3, TrendingUp, Users, Zap, FileText } from 'lucide-react';
 import { DeveloperProductivityChart } from '@/components/charts/DeveloperProductivityChart';
 import { HealthTrendChart } from '@/components/charts/HealthTrendChart';
 import { WorkloadDistributionChart } from '@/components/charts/WorkloadDistributionChart';
@@ -204,26 +205,26 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
   const metrics          = dashboard?.metrics || {};
 
   const tabs = [
-    { key: 'overview',   label: '📊 Overview'   },
-    { key: 'charts',     label: '📈 Charts'     },
-    { key: 'developers', label: '👥 Leaderboard' },
-    { key: 'ml',         label: '🤖 ML Predictions' },
-    { key: 'live',       label: `⚡ Live${liveDevs.length > 0 ? ` (${liveDevs.length})` : ''}` },
+    { key: 'overview',   label: <><BarChart3 size={16} style={{ marginRight: '0.5rem' }} />Overview</> },
+    { key: 'charts',     label: <><TrendingUp size={16} style={{ marginRight: '0.5rem' }} />Charts</> },
+    { key: 'developers', label: <><Users size={16} style={{ marginRight: '0.5rem' }} />Leaderboard</> },
+    { key: 'ml',         label: <><Bot size={16} style={{ marginRight: '0.5rem' }} />ML Predictions</> },
+    { key: 'live',       label: <><Zap size={16} style={{ marginRight: '0.5rem' }} />Live{liveDevs.length > 0 ? ` (${liveDevs.length})` : ''}</> },
   ] as const;
 
   if (loading) return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <main className="main-content page-main project-detail-main">
+        <div className="page-header">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <Skeleton width={200} height={28} /> <Skeleton width={120} height={16} />
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="page-actions">
             <Skeleton width={120} height={38} radius={8} /> <Skeleton width={150} height={38} radius={8} />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="card-grid compact project-kpi-grid" style={{ marginBottom: '1.5rem' }}>
           {[1,2,3,4,5].map(i => <Skeleton key={i} height={90} radius={12} />)}
         </div>
         <Skeleton height={80} radius={12} />
@@ -234,39 +235,40 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
   );
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="page-shell">
       <Sidebar />
-      <main className="main-content" style={{ padding: '2rem' }}>
+      <main className="main-content page-main project-detail-main">
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="page-header project-detail-header" style={{ marginBottom: '1.25rem' }}>
+          <div className="project-detail-title-wrap" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button onClick={() => router.push('/projects')} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.25rem' }}>←</button>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>Project Dashboard</h1>
+            <div className="project-detail-title-content">
+              <div className="project-detail-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <h1 className="project-detail-title" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>Project Dashboard</h1>
                 <AnalysisStatusBadge status={analysisStatus} />
               </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              <p className="wrap-anywhere" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 {dashboard?.repoUrl?.replace('https://github.com/', '') || projectId.slice(0, 8) + '...'}
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="page-actions project-detail-actions">
             <button className="btn-secondary" onClick={handleAnalyze} disabled={analyzing || analysisStatus === 'ANALYZING'}>
-              {analyzing || analysisStatus === 'ANALYZING' ? '⏳ Analyzing...' : '↻ Re-analyze'}
+              {analyzing || analysisStatus === 'ANALYZING' ? <><Clock size={14} style={{ marginRight: '0.25rem' }} />Analyzing...</> : <><RefreshCw size={14} style={{ marginRight: '0.25rem' }} />Re-analyze</>}
             </button>
             <button className="btn-primary" onClick={handleMLAnalyze} disabled={runningML}>
-              {runningML ? '🤖 Running...' : '🤖 Run ML'}
+              {runningML ? <><Bot size={14} style={{ marginRight: '0.25rem' }} />Running...</> : <><Bot size={14} style={{ marginRight: '0.25rem' }} />Run ML</>}
             </button>
           </div>
         </div>
 
+        <div className="project-detail-content">
         {/* Status bar */}
         <AnalysisStatusBar status={analysisStatus} message={analysisMessage} />
 
         {/* KPI Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="card-grid compact" style={{ marginBottom: '1.5rem' }}>
           <StatCard label="Health Score" value={displayHealth} sub={displayStatus} updating={isLive}
             color={displayHealth >= 70 ? 'var(--success)' : displayHealth >= 40 ? 'var(--warning)' : 'var(--danger)'} />
           <StatCard label="Commits"     value={metrics.totalCommits ?? 0} sub="total" />
@@ -278,7 +280,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         {/* Health bar */}
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <HealthBar score={displayHealth} />
-          <div style={{ display: 'flex', gap: '2.5rem', marginTop: '1rem' }}>
+          <div className="info-row">
             {[
               { label: 'Status',       value: displayStatus },
               { label: 'Risk',         value: displayHealth < 30 ? 'High' : displayHealth < 60 ? 'Medium' : 'Low' },
@@ -296,7 +298,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
+        <div className="tab-row">
           {tabs.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
               padding: '0.625rem 1.1rem', background: 'none', border: 'none',
@@ -343,10 +345,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
 
         {/* ── Charts Tab ── */}
         {activeTab === 'charts' && (
-          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="animate-fade-in section-gap">
 
             {/* Row 1: Activity + Health Trend */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div className="two-col-grid">
               <ChartCard title="📈 Commit Activity Over Time">
                 <CommitActivityChart data={activity} />
               </ChartCard>
@@ -356,7 +358,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             </div>
 
             {/* Row 2: Productivity + Workload */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div className="two-col-grid">
               <ChartCard title="🏆 Developer Productivity Scores">
                 <DeveloperProductivityChart developers={devs} />
               </ChartCard>
@@ -418,19 +420,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         {activeTab === 'ml' && (
           <div className="animate-fade-in">
             {!mlData ? (
-              <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', border: '2px dashed var(--border)', borderRadius: 16 }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
+              <div className="empty-state">
+                <div style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--text-muted)' }}>
+                  <Bot size={48} />
+                </div>
                 <h3 style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>No ML predictions yet</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
                   Click "Run ML" to analyze with Random Forest AI
                 </p>
                 <button className="btn-primary" onClick={handleMLAnalyze} disabled={runningML}>
-                  {runningML ? '🤖 Running...' : '🤖 Run ML Now'}
+                  {runningML ? <><Bot size={14} style={{ marginRight: '0.25rem' }} />Running...</> : <><Bot size={14} style={{ marginRight: '0.25rem' }} />Run ML Now</>}
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
+              <div className="section-gap">
+                <div className="card-grid compact">
                   <StatCard label="ML Project Score"  value={mlData.projectScore?.toFixed(1)}   color="var(--accent)" />
                   <StatCard label="Delivery Risk"     value={mlData.deliveryRisk}
                     color={mlData.deliveryRisk === 'Low' ? 'var(--success)' : mlData.deliveryRisk === 'Medium' ? 'var(--warning)' : 'var(--danger)'} />
@@ -479,7 +483,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
               )}
             </div>
             {liveDevs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', border: '2px dashed var(--border)', borderRadius: 16 }}>
+              <div className="empty-state">
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
                 <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No live data yet</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Click "Re-analyze" and watch developers appear here in real time</p>
@@ -495,6 +499,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             )}
           </div>
         )}
+        </div>
 
       </main>
 
