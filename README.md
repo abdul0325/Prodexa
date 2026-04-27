@@ -4,7 +4,7 @@
 
 ## Author
 
-**Abdul Rehman**  
+**Abdul Rehman**   
 BS Computer Science — Final Year Project  
 Supervisor: Ma'am Hira Awais  
 ---
