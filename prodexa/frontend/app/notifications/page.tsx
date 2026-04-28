@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import { api, isAuthenticated } from '@/lib/api';
 import { Notification } from '@/types';
+import { NexusPulse } from '@/components/loader/NexusPulse';
 
 const typeIcons: Record<string, string> = {
   PRODUCTIVITY_DROP: '⚠️',
@@ -28,32 +29,53 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  useEffect(() => {
-    if (!isAuthenticated()) { router.push('/'); return; }
-    loadNotifications();
-  }, [filter, router]);
-
-  async function loadNotifications() {
+  const loadNotifications = useCallback(async () => {
     try {
       const data = await api.notifications.list(filter === 'unread');
       setNotifications(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }
+  }, [filter]);
+
+  useEffect(() => {
+    if (!isAuthenticated()) { router.push('/'); return; }
+    loadNotifications();
+  }, [filter, router, loadNotifications]);
 
   async function markRead(id: string) {
     await api.notifications.markRead(id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    // Update sidebar unread count
+    updateSidebarUnreadCount();
   }
 
   async function markAllRead() {
     await api.notifications.markAllRead();
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    // Update sidebar unread count
+    updateSidebarUnreadCount();
   }
 
   async function deleteNotif(id: string) {
     await api.notifications.delete(id);
     setNotifications(prev => prev.filter(n => n.id !== id));
+    // Update sidebar unread count
+    updateSidebarUnreadCount();
+  }
+
+  // Function to update sidebar unread count
+  function updateSidebarUnreadCount() {
+    const token = localStorage.getItem('prodexa_token');
+    if (!token) return;
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications/unread-count`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => {
+        // Dispatch custom event to update sidebar
+        window.dispatchEvent(new CustomEvent('notificationCountUpdate', { detail: d.unreadCount || 0 }));
+      })
+      .catch(() => {});
   }
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -101,13 +123,8 @@ export default function NotificationsPage() {
 
         {/* Notifications list */}
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{
-                height: 80, borderRadius: 12,
-                background: 'var(--bg-card)', border: '1px solid var(--border)',
-              }} />
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '3rem 0' }}>
+            <NexusPulse size="medium" showText={true} text="Loading notifications..." />
           </div>
         ) : notifications.length === 0 ? (
           <div className="empty-state">

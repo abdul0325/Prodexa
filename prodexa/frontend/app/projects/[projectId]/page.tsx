@@ -7,13 +7,15 @@ import { AnalysisStatusBar, AnalysisStatusBadge } from '@/components/ui/Analysis
 import { ToastContainer, toast } from '@/components/ui/Toast';
 import { useProjectRealtime } from '@/hooks/useSocket';
 import { api, isAuthenticated } from '@/lib/api';
+import { NexusPulse } from '@/components/loader/NexusPulse';
 import { CommitActivityChart } from '@/components/charts/CommitActivityChart';
-import { RefreshCw, Bot, Clock, BarChart3, TrendingUp, Users, Zap, FileText } from 'lucide-react';
 import { DeveloperProductivityChart } from '@/components/charts/DeveloperProductivityChart';
 import { HealthTrendChart } from '@/components/charts/HealthTrendChart';
 import { WorkloadDistributionChart } from '@/components/charts/WorkloadDistributionChart';
 import { RiskOverviewChart } from '@/components/charts/RiskOverviewChart';
+import { RefreshCw, Bot, Clock, BarChart3, TrendingUp, Users, Zap, FileText, ArrowLeft } from 'lucide-react';
 
+// ... rest of the code remains the same ...
 // ─── Reusable components ────────────────────────────────────────
 
 function StatCard({ label, value, sub, color, updating }: any) {
@@ -122,6 +124,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
   const [dashboard, setDashboard]   = useState<any>(null);
   const [activity, setActivity]     = useState<any[]>([]);
   const [mlData, setMlData]         = useState<any>(null);
+  const [projectName, setProjectName] = useState<string>('');
   const [loading, setLoading]       = useState(true);
   const [analyzing, setAnalyzing]   = useState(false);
   const [runningML, setRunningML]   = useState(false);
@@ -158,12 +161,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
 
   async function loadAll() {
     try {
-      const [dash, act] = await Promise.all([
+      const [dash, act, projects] = await Promise.all([
         api.dashboard.get(projectId),
         api.dashboard.activity(projectId),
+        api.projects.list(),
       ]);
       setDashboard(dash);
       setActivity(act || []);
+      
+      // Find current project from projects list
+      const currentProject = projects.find((p: any) => p.id === projectId);
+      if (currentProject?.name) {
+        setProjectName(currentProject.name);
+      }
     } catch (e: any) {
       toast('error', 'Failed to load dashboard', e.message);
     } finally {
@@ -217,20 +227,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
       <Sidebar />
       <main className="main-content page-main project-detail-main">
         <div className="page-header">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <Skeleton width={200} height={28} /> <Skeleton width={120} height={16} />
-          </div>
-          <div className="page-actions">
-            <Skeleton width={120} height={38} radius={8} /> <Skeleton width={150} height={38} radius={8} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+            <NexusPulse size="medium" showText={true} text="Loading dashboard..." />
           </div>
         </div>
-        <div className="card-grid compact project-kpi-grid" style={{ marginBottom: '1.5rem' }}>
-          {[1,2,3,4,5].map(i => <Skeleton key={i} height={90} radius={12} />)}
-        </div>
-        <Skeleton height={80} radius={12} />
       </main>
-      <ToastContainer />
-      <style>{`@keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
     </div>
   );
 
@@ -241,11 +242,43 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
 
         {/* Header */}
         <div className="page-header project-detail-header" style={{ marginBottom: '1.25rem' }}>
-          <div className="project-detail-title-wrap" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button onClick={() => router.push('/projects')} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.25rem' }}>←</button>
-            <div className="project-detail-title-content">
+          <div className="project-detail-title-wrap" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              onClick={() => router.push('/projects')} 
+              className="btn-back"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--bg-hover)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.borderColor = 'var(--accent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-card)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.borderColor = 'var(--border)';
+              }}
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <div className="project-detail-title-content" style={{ flex: 1 }}>
               <div className="project-detail-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <h1 className="project-detail-title" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>Project Dashboard</h1>
+                <h1 className="project-detail-title" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {projectName || 'Project Dashboard'}
+                </h1>
                 <AnalysisStatusBadge status={analysisStatus} />
               </div>
               <p className="wrap-anywhere" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
@@ -255,10 +288,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
           <div className="page-actions project-detail-actions">
             <button className="btn-secondary" onClick={handleAnalyze} disabled={analyzing || analysisStatus === 'ANALYZING'}>
-              {analyzing || analysisStatus === 'ANALYZING' ? <><Clock size={14} style={{ marginRight: '0.25rem' }} />Analyzing...</> : <><RefreshCw size={14} style={{ marginRight: '0.25rem' }} />Re-analyze</>}
+              {analyzing || analysisStatus === 'ANALYZING' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <NexusPulse size="small" showText={false} />
+                  <span>Analyzing...</span>
+                </div>
+              ) : <><RefreshCw size={14} style={{ marginRight: '0.25rem' }} />Re-analyze</>}
             </button>
             <button className="btn-primary" onClick={handleMLAnalyze} disabled={runningML}>
-              {runningML ? <><Bot size={14} style={{ marginRight: '0.25rem' }} />Running...</> : <><Bot size={14} style={{ marginRight: '0.25rem' }} />Run ML</>}
+              {runningML ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <NexusPulse size="small" showText={false} />
+                  <span>Running...</span>
+                </div>
+              ) : <><Bot size={14} style={{ marginRight: '0.25rem' }} />Run ML</>}
             </button>
           </div>
         </div>

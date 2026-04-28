@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { api, isAuthenticated } from '@/lib/api';
 import { Project } from '@/types';
 import { RefreshCw, FolderOpen } from 'lucide-react';
+import { NexusPulse } from '@/components/loader/NexusPulse';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -13,13 +14,22 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [navigating, setNavigating] = useState(false);
   const [form, setForm] = useState({ name: '', repoUrl: '', ownerName: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated()) { router.push('/'); return; }
+    if (!isAuthenticated()) { 
+      router.push('/'); 
+      return; 
+    }
     loadProjects();
   }, [router]);
+
+  // Reset navigation state when component mounts
+  useEffect(() => {
+    setNavigating(false);
+  }, []);
 
   async function loadProjects() {
     try {
@@ -132,8 +142,17 @@ export default function ProjectsPage() {
 
                 <div className="card-actions">
                   <button className="btn-primary"
-                    onClick={(e) => { e.stopPropagation(); router.push(`/projects/${project.id}`); }}>
-                    View Dashboard
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNavigating(true);
+                      router.push(`/projects/${project.id}`);
+                    }}>
+                    {navigating ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <NexusPulse size="small" showText={false} />
+                        <span>Loading...</span>
+                      </div>
+                    ) : 'View Dashboard'}
                   </button>
                   <button className="btn-secondary"
                     onClick={(e) => handleAnalyze(project.id, e)}>
@@ -196,7 +215,12 @@ export default function ProjectsPage() {
                 <button type="button" className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}
                   onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={creating}>
-                  {creating ? 'Creating...' : 'Create Project'}
+                  {creating ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <NexusPulse size="small" showText={false} />
+                      <span>Creating...</span>
+                    </div>
+                  ) : 'Create Project'}
                 </button>
               </div>
             </form>

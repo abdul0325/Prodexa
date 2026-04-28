@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { clearToken } from '@/lib/api';
 import { useRealtimeNotifications } from '@/hooks/useSocket';
 import { toast } from '@/components/ui/Toast';
-import { FolderOpen, Bell, Settings, X, Menu, ChevronLeft, Sun, Moon, LogOut } from 'lucide-react';
+import { FolderOpen, Bell, Settings, X, Menu, ChevronLeft, ChevronRight, Sun, Moon, LogOut } from 'lucide-react';
 
 const navItems = [
   { href: '/projects',      icon: <FolderOpen size={18} />, label: 'Projects'      },
@@ -48,6 +48,19 @@ export default function Sidebar() {
       .catch(() => {});
   }, []);
 
+  // Listen for notification count updates
+  useEffect(() => {
+    const handleNotificationCountUpdate = (event: CustomEvent) => {
+      setUnreadCount(event.detail);
+    };
+
+    window.addEventListener('notificationCountUpdate', handleNotificationCountUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('notificationCountUpdate', handleNotificationCountUpdate as EventListener);
+    };
+  }, []);
+
   // Real-time notification handler
   const handleNewNotif = useCallback((notif: RealtimeNotification) => {
     setUnreadCount(prev => prev + 1);
@@ -67,6 +80,7 @@ export default function Sidebar() {
         setIsCollapsed(false);
       } else {
         setIsOpen(true);
+        // Don't reset collapsed state on desktop - preserve user preference
       }
     };
 
@@ -144,16 +158,7 @@ export default function Sidebar() {
             </div>
           )}
         </div>
-        {!isMobile && (
-          <button
-            onClick={handleToggleSidebar}
-            className="sidebar-toggle-internal"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <Menu size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        )}
-      </div>
+              </div>
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -176,10 +181,21 @@ export default function Sidebar() {
               {/* Live unread badge on Notifications */}
               {item.label === 'Notifications' && unreadCount > 0 && (
                 <span style={{
-                  background: 'var(--danger)', color: 'white',
-                  borderRadius: 9999, padding: '0.1rem 0.45rem',
-                  fontSize: '0.7rem', fontWeight: 700,
+                  background: 'var(--danger)', 
+                  color: 'white',
+                  borderRadius: 9999, 
+                  padding: collapsed ? '0.15rem 0.3rem' : '0.1rem 0.45rem',
+                  fontSize: collapsed ? '0.65rem' : '0.7rem', 
+                  fontWeight: 700,
                   animation: 'badgePop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                  position: collapsed ? 'absolute' : 'relative',
+                  top: collapsed ? '-0.25rem' : 'auto',
+                  right: collapsed ? '-0.25rem' : 'auto',
+                  minWidth: collapsed ? '1.2rem' : 'auto',
+                  height: collapsed ? '1.2rem' : 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}>{unreadCount > 99 ? '99+' : unreadCount}</span>
               )}
             </Link>
@@ -211,12 +227,23 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <style>{`
-        @keyframes badgePop {
-          from { transform: scale(0); }
-          to   { transform: scale(1); }
-        }
-      `}</style>
+      {/* Desktop toggle button - positioned absolutely outside sidebar */}
+      {!isMobile && (
+        <button
+          onClick={handleToggleSidebar}
+          className="sidebar-toggle-internal"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      )}
+
+        <style>{`
+          @keyframes badgePop {
+            from { transform: scale(0); }
+            to   { transform: scale(1); }
+          }
+        `}</style>
       </aside>
     </>
   );

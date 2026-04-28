@@ -45,42 +45,56 @@ const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: an
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
   return (
     <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={700}>
-      {`${(percent * 100).toFixed(0)}%`}
+      {`${(percent ).toFixed(0)}%`}
     </text>
   );
 };
 
 export function WorkloadDistributionChart({ developers }: Props) {
   if (!developers?.length) return (
-    <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-      No data yet
+    <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ fontSize: '2rem' }}>🥧</div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem' }}>No Workload Data</div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Run an analysis to see developer workload distribution</div>
+      </div>
     </div>
   );
 
-  const total = developers.reduce((sum, d) => sum + d.commits, 0);
-
-  const data = developers
+  const filteredDevelopers = developers
     .filter(d => d.commits > 0)
-    .map((d, i) => ({
-      name: d.developerLogin,
+    .sort((a, b) => b.commits - a.commits)
+    .slice(0, 6); // Limit to top 6 developers for better visualization
+
+  const total = filteredDevelopers.reduce((sum, d) => sum + d.commits, 0);
+
+  const data = filteredDevelopers.map((d, i) => {
+    const percentage = total > 0 ? (d.commits / total) * 100 : 0;
+    return {
+      name: d.developerLogin.length > 10 ? d.developerLogin.slice(0, 10) + '…' : d.developerLogin,
       value: d.commits,
       fill: COLORS[i % COLORS.length],
-      percent: total > 0 ? Math.round((d.commits / total) * 100) : 0,
-    }));
+      percent: Math.round(percentage * 10) / 10, // Round to 1 decimal place
+    };
+  });
 
   if (!data.length) return (
-    <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-      No commit data yet
+    <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ fontSize: '2rem' }}>🥧</div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem' }}>No Commit Data</div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No commits found for workload distribution</div>
+      </div>
     </div>
   );
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={200}>
       <PieChart>
         <Pie
           data={data} cx="50%" cy="50%"
-          innerRadius={55} outerRadius={85}
-          paddingAngle={3} dataKey="value"
+          innerRadius={45} outerRadius={75}
+          paddingAngle={2} dataKey="value"
           labelLine={false} label={<CustomLabel />}
         >
           {data.map((entry, i) => (
@@ -90,10 +104,10 @@ export function WorkloadDistributionChart({ developers }: Props) {
         <Tooltip content={<CustomTooltip />} />
         <Legend
           formatter={(value) => (
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{value}</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{value}</span>
           )}
-          iconType="circle" iconSize={8}
-          wrapperStyle={{ paddingTop: '0.5rem' }}
+          iconType="circle" iconSize={6}
+          wrapperStyle={{ paddingTop: '0.25rem' }}
         />
       </PieChart>
     </ResponsiveContainer>

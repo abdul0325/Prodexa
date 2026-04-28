@@ -7,6 +7,7 @@ import { ToastContainer, toast } from '@/components/ui/Toast';
 import { AdminStatsChart } from '@/components/charts/AdminStatsChart';
 import { api, isAuthenticated } from '@/lib/api';
 import { BarChart3, Users, FolderOpen, FileText } from 'lucide-react';
+import { NexusPulse } from '@/components/loader/NexusPulse';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -70,11 +71,9 @@ export default function AdminPage() {
       <Sidebar />
       <main className="main-content page-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 40, height: 40, border: '3px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
-          <p style={{ color: 'var(--text-secondary)' }}>Loading admin panel...</p>
+          <NexusPulse size="medium" showText={true} text="Loading admin panel..." />
         </div>
       </main>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 

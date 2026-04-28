@@ -148,16 +148,22 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 40;
-  transition: background 0.2s, width 0.2s ease, transform 0.25s ease;
+  transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .sidebar-header {
   position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .sidebar.desktop.collapsed {
   width: var(--sidebar-collapsed-width, 84px);
+}
+
+.sidebar.desktop.collapsed .sidebar-header {
+  padding: 1.5rem 0.5rem !important;
 }
 
 .sidebar.mobile {
@@ -198,30 +204,54 @@ body {
 
 .sidebar-toggle-internal {
   position: absolute;
-  top: 1.1rem;
-  right: 0.9rem;
-  width: 1.9rem;
-  height: 1.9rem;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-secondary);
-  border-radius: 8px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-toggle-internal:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
   border-color: var(--accent);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar.desktop.collapsed .sidebar-toggle-internal {
   right: 50%;
-  transform: translateX(50%);
+  transform: translateY(-50%) translateX(50%);
+}
+
+.sidebar.desktop.collapsed .sidebar-toggle-internal:hover {
+  transform: translateY(-50%) translateX(50%) scale(1.1);
+}
+
+/* Navigation items positioning in collapsed state */
+.sidebar.desktop.collapsed nav {
+  padding: 1rem 0.25rem;
+}
+
+.sidebar.desktop.collapsed nav a {
+  position: relative;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+}
+
+.sidebar.desktop.collapsed nav a span:first-child {
+  margin: 0;
 }
 
 .main-content {
@@ -232,7 +262,7 @@ body {
   min-width: 0;
   max-width: 100%;
   background: var(--bg);
-  transition: margin-left 0.2s ease;
+  transition: margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow-x: clip;
 }
 
