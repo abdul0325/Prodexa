@@ -7,6 +7,7 @@ import { clearToken } from '@/lib/api';
 import { useRealtimeNotifications } from '@/hooks/useSocket';
 import { toast } from '@/components/ui/Toast';
 import { FolderOpen, Bell, Settings, X, Menu, ChevronLeft, ChevronRight, Sun, Moon, LogOut } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const navItems = [
   { href: '/projects',      icon: <FolderOpen size={18} />, label: 'Projects'      },
@@ -22,19 +23,12 @@ type RealtimeNotification = {
 export default function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    return (localStorage.getItem('prodexa_theme') as 'light' | 'dark') || 'dark';
-  });
+  const { theme, toggleTheme } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Apply theme to DOM whenever it changes
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   // Load initial unread count
   useEffect(() => {
@@ -102,12 +96,6 @@ export default function Sidebar() {
     };
   }, [isMobile, isOpen, isCollapsed]);
 
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('prodexa_theme', next);
-  }
 
   function handleLogout() {
     clearToken();

@@ -71,7 +71,7 @@ export default function AdminPage() {
       <Sidebar />
       <main className="main-content page-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <NexusPulse size="medium" showText={true} text="Loading admin panel..." />
+          <NexusPulse size="small" showText={true} text="Loading Panel..." />
         </div>
       </main>
     </div>

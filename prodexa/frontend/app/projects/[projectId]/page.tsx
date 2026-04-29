@@ -228,7 +228,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
       <main className="main-content page-main project-detail-main">
         <div className="page-header">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
-            <NexusPulse size="medium" showText={true} text="Loading dashboard..." />
+            <NexusPulse size="small" showText={true} text="Loading Data..." />
           </div>
         </div>
       </main>
@@ -290,7 +290,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             <button className="btn-secondary" onClick={handleAnalyze} disabled={analyzing || analysisStatus === 'ANALYZING'}>
               {analyzing || analysisStatus === 'ANALYZING' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <NexusPulse size="small" showText={false} />
                   <span>Analyzing...</span>
                 </div>
               ) : <><RefreshCw size={14} style={{ marginRight: '0.25rem' }} />Re-analyze</>}
@@ -298,7 +297,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             <button className="btn-primary" onClick={handleMLAnalyze} disabled={runningML}>
               {runningML ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <NexusPulse size="small" showText={false} />
                   <span>Running...</span>
                 </div>
               ) : <><Bot size={14} style={{ marginRight: '0.25rem' }} />Run ML</>}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ToastContainer } from '@/components/ui/Toast';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -24,8 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        {children}
-        <ToastContainer />
+        <ThemeProvider>
+          {children}
+          <ToastContainer />
+        </ThemeProvider>
       </body>
     </html>
   );

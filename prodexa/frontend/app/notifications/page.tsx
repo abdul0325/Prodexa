@@ -124,7 +124,7 @@ export default function NotificationsPage() {
         {/* Notifications list */}
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '3rem 0' }}>
-            <NexusPulse size="medium" showText={true} text="Loading notifications..." />
+            <NexusPulse size="small" showText={true} text="Loading notifications..." />
           </div>
         ) : notifications.length === 0 ? (
           <div className="empty-state">

@@ -94,14 +94,8 @@ export default function ProjectsPage() {
 
         {/* Projects Grid */}
         {loading ? (
-          <div className="card-grid">
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{
-                height: 160, borderRadius: 12,
-                background: 'var(--bg-card)', border: '1px solid var(--border)',
-                animation: 'pulse 1.5s infinite',
-              }} />
-            ))}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+            <NexusPulse size="small" showText={true} text="Loading Projects..." />
           </div>
         ) : projects.length === 0 ? (
           <div className="empty-state">
@@ -149,7 +143,6 @@ export default function ProjectsPage() {
                     }}>
                     {navigating ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <NexusPulse size="small" showText={false} />
                         <span>Loading...</span>
                       </div>
                     ) : 'View Dashboard'}
