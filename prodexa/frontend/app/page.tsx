@@ -138,9 +138,10 @@ export default function LandingPage() {
   ];
 
   const mlDemoData = [
-    { developer: 'shakeeldev1', score: 74.3, trend: 'Rising', risk: 'Low' },
-    { developer: 'malikumair', score: 58.1, trend: 'Stable', risk: 'Medium' },
-    { developer: 'sadiqhussain', score: 41.2, trend: 'Falling', risk: 'High' }
+    { developer: 'muneeb', score: 74.3, trend: 'Rising', risk: 'Low' },
+    { developer: 'zain', score: 58.1, trend: 'Stable', risk: 'Medium' },
+    { developer: 'shahzaib', score: 41.2, trend: 'Falling', risk: 'High' },
+    { developer: 'moiz-ur-rehman', score: 65.2, trend: 'Rising', risk: 'low' }
   ];
 const isDark = theme === 'dark';
 

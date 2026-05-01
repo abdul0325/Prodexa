@@ -233,6 +233,80 @@ export function TechStackSection({ title, techs }: TechStackSectionProps) {
           ))}
         </div>
       </div>
+
+      {/* Mobile Responsive Styles */}
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
+          }
+        }
+
+        @media (max-width: 768px) {
+          section[style*="padding: 7rem 1rem"] {
+            padding: 5rem 1rem;
+          }
+          
+          div[style*="marginBottom: 4rem"] {
+            margin-bottom: 3rem;
+          }
+          
+          div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+          }
+          
+          div[style*="padding: 2rem"] {
+            padding: 1.5rem;
+          }
+          
+          div[style*="width: 64px; height: 64px"] {
+            width: 56px;
+            height: 56px;
+          }
+          
+          h3[style*="fontSize: 1.1rem"] {
+            font-size: 1rem;
+          }
+          
+          div[style*="fontSize: 0.75rem"] {
+            font-size: 0.7rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          section[style*="padding: 7rem 1rem"] {
+            padding: 4rem 0.75rem;
+          }
+          
+          div[style*="marginBottom: 4rem"] {
+            margin-bottom: 2.5rem;
+          }
+          
+          div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+          }
+          
+          div[style*="padding: 2rem"] {
+            padding: 1.25rem;
+          }
+          
+          div[style*="width: 64px; height: 64px"] {
+            width: 48px;
+            height: 48px;
+          }
+          
+          h3[style*="fontSize: 1.1rem"] {
+            font-size: 0.95rem;
+          }
+          
+          div[style*="fontSize: 0.75rem"] {
+            font-size: 0.65rem;
+          }
+        }
+      `}</style>
     </section>
   );
 }

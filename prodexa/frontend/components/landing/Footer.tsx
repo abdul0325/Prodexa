@@ -255,6 +255,90 @@ export function Footer({
           View on GitHub
         </a>
       </div>
+
+      {/* Mobile Responsive Styles */}
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+          }
+          
+          div[style*="padding: 4rem 1rem 2rem"] {
+            padding: 3rem 1rem 2rem;
+          }
+        }
+
+        @media (max-width: 768px) {
+          footer[style*="padding: 4rem 1rem 2rem"] {
+            padding: 2.5rem 1rem 1.5rem;
+          }
+          
+          div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            text-align: center;
+          }
+          
+          div[style*="display: flex; justifyContent: space-between"] {
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            text-align: center;
+          }
+          
+          div[style*="display: flex; flexDirection: column"] {
+            align-items: center;
+          }
+          
+          div[style*="display: flex; alignItems: center"] {
+            justify-content: center;
+          }
+          
+          button[style*="textAlign: left"] {
+            text-align: center;
+          }
+        }
+
+        @media (max-width: 480px) {
+          footer[style*="padding: 4rem 1rem 2rem"] {
+            padding: 2rem 0.75rem 1rem;
+          }
+          
+          div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+            gap: 1.5rem;
+          }
+          
+          div[style*="width: 40px; height: 40px"] {
+            width: 32px;
+            height: 32px;
+          }
+          
+          span[style*="fontSize: 1.5rem"] {
+            font-size: 1.25rem;
+          }
+          
+          p[style*="fontSize: 0.95rem"] {
+            font-size: 0.875rem;
+          }
+          
+          h4[style*="fontSize: 0.875rem"] {
+            font-size: 0.8rem;
+          }
+          
+          div[style*="fontSize: 0.9rem"] {
+            font-size: 0.8rem;
+          }
+          
+          div[style*="fontSize: 0.85rem"] {
+            font-size: 0.75rem;
+          }
+          
+          div[style*="fontSize: 0.875rem"] {
+            font-size: 0.75rem;
+          }
+        }
+      `}</style>
     </footer>
   );
 }

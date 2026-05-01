@@ -234,6 +234,88 @@ export function CTASection({ title, subtitle, buttonText, note }: CTASectionProp
           </p>
         </div>
       </div>
+
+      {/* Mobile Responsive Styles */}
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          div[style*="maxWidth: 800px"] {
+            max-width: 700px;
+          }
+          
+          div[style*="padding: 1rem 2.5rem"] {
+            padding: 0.875rem 2rem;
+          }
+          
+          h2[style*="clamp(2rem, 4vw, 3rem)"] {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+          }
+        }
+
+        @media (max-width: 768px) {
+          section[style*="padding: 7rem 1rem"] {
+            padding: 5rem 1rem;
+          }
+          
+          div[style*="maxWidth: 800px"] {
+            max-width: 600px;
+          }
+          
+          div[style*="width: 80px; height: 80px"] {
+            width: 64px;
+            height: 64px;
+          }
+          
+          h2[style*="clamp(2rem, 4vw, 3rem)"] {
+            font-size: clamp(1.5rem, 6vw, 2.25rem);
+          }
+          
+          p[style*="fontSize: 1.25rem"] {
+            font-size: 1.1rem;
+          }
+          
+          div[style*="padding: 1rem 2.5rem"] {
+            padding: 0.875rem 1.75rem;
+            font-size: 1rem;
+          }
+          
+          p[style*="fontSize: 0.875rem"] {
+            font-size: 0.8rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          section[style*="padding: 7rem 1rem"] {
+            padding: 4rem 0.75rem;
+          }
+          
+          div[style*="maxWidth: 800px"] {
+            max-width: 100%;
+          }
+          
+          div[style*="width: 80px; height: 80px"] {
+            width: 56px;
+            height: 56px;
+          }
+          
+          h2[style*="clamp(2rem, 4vw, 3rem)"] {
+            font-size: clamp(1.25rem, 8vw, 2rem);
+          }
+          
+          p[style*="fontSize: 1.25rem"] {
+            font-size: 1rem;
+            margin: 0 auto 2rem;
+          }
+          
+          div[style*="padding: 1rem 2.5rem"] {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+          }
+          
+          p[style*="fontSize: 0.875rem"] {
+            font-size: 0.75rem;
+          }
+        }
+      `}</style>
     </section>
   );
 }

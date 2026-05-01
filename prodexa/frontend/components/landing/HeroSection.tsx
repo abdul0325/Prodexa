@@ -432,6 +432,87 @@ export function HeroSection() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Responsive Styles */}
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          div[style*="grid-template-columns: 1.2fr 1fr"] {
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            text-align: center;
+          }
+          
+          div[style*="maxWidth: 500px"] {
+            max-width: 600px;
+            margin: 0 auto;
+          }
+          
+          div[style*="display: flex; gap: 1.5rem"] {
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+        }
+
+        @media (max-width: 768px) {
+          section[style*="minHeight: 100vh"] {
+            padding: 6rem 1rem 4rem;
+          }
+          
+          div[style*="grid-template-columns: 1.2fr 1fr"] {
+            gap: 2rem;
+          }
+          
+          h1[style*="clamp(2.5rem, 6vw, 5rem)"] {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+          }
+          
+          div[style*="fontSize: 1.25rem"] {
+            font-size: 1.1rem;
+          }
+          
+          div[style*="padding: 2rem"] {
+            padding: 1.5rem;
+          }
+          
+          div[style*="display: grid; gridTemplateColumns: repeat(3, 1fr)"] {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          section[style*="minHeight: 100vh"] {
+            padding: 5rem 0.75rem 3rem;
+          }
+          
+          h1[style*="clamp(2.5rem, 6vw, 5rem)"] {
+            font-size: clamp(1.75rem, 10vw, 2.5rem);
+          }
+          
+          div[style*="fontSize: 1.25rem"] {
+            font-size: 1rem;
+          }
+          
+          div[style*="padding: 2rem"] {
+            padding: 1rem;
+          }
+          
+          div[style*="display: flex; gap: 1.5rem"] {
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+          }
+          
+          button[style*="padding: 0.75rem 1.75rem"] {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+          }
+          
+          div[style*="fontSize: 2.5rem"] {
+            font-size: 2rem;
+          }
+        }
+      `}</style>
     </section>
   );
 }

@@ -216,16 +216,63 @@ export function StatsBar({ stats }: StatsBarProps) {
           100% { background-position: 200% 0; }
         }
 
+        @media (max-width: 1024px) {
+          div[style*="fontSize: 2.5rem"] {
+            font-size: 2.2rem;
+          }
+          
+          div[style*="flex: 1"] {
+            min-width: 140px;
+          }
+        }
+
         @media (max-width: 768px) {
+          div[style*="padding: 3rem 1rem"] {
+            padding: 2.5rem 1rem;
+          }
+          
           div[style*="justify-content: space-around"] {
             justify-content: center;
             gap: 2rem;
+            flex-wrap: wrap;
           }
           
           div[style*="left: 25%"],
           div[style*="left: 50%"],
           div[style*="left: 75%"] {
             display: none;
+          }
+          
+          div[style*="fontSize: 2.5rem"] {
+            font-size: 2rem;
+          }
+          
+          div[style*="flex: 1"] {
+            min-width: 120px;
+            flex-basis: calc(50% - 1rem);
+          }
+        }
+
+        @media (max-width: 480px) {
+          div[style*="padding: 3rem 1rem"] {
+            padding: 2rem 0.75rem;
+          }
+          
+          div[style*="justify-content: space-around"] {
+            gap: 1.5rem;
+          }
+          
+          div[style*="fontSize: 2.5rem"] {
+            font-size: 1.75rem;
+          }
+          
+          div[style*="fontSize: 0.875rem"] {
+            font-size: 0.8rem;
+          }
+          
+          div[style*="flex: 1"] {
+            flex-basis: calc(50% - 0.75rem);
+            min-width: 100px;
           }
         }
       `}</style>

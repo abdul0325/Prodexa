@@ -1024,3 +1024,55 @@ tr:hover td { background: var(--bg-hover); }
     flex: 1 1 100%;
   }
 }
+
+/* Large device optimizations for landing page */
+@media (min-width: 1400px) {
+  .landing-container {
+    max-width: 1400px;
+  }
+  
+  .hero-grid {
+    gap: 5rem;
+  }
+  
+  .feature-grid {
+    gap: 2rem;
+  }
+  
+  .section-padding {
+    padding: 8rem 1rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .landing-container {
+    max-width: 1600px;
+  }
+  
+  .hero-grid {
+    gap: 6rem;
+  }
+  
+  .section-padding {
+    padding: 9rem 1rem;
+  }
+}
+
+/* Ultra-wide screen optimizations */
+@media (min-width: 1920px) {
+  .landing-container {
+    max-width: 1800px;
+  }
+  
+  .hero-grid {
+    gap: 7rem;
+  }
+  
+  .section-padding {
+    padding: 10rem 1rem;
+  }
+  
+  .feature-grid {
+    gap: 2.5rem;
+  }
+}

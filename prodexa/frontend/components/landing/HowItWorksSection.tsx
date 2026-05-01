@@ -49,6 +49,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
   return (
     <section
       id="how-it-works"
+      className="section"
       style={{
         padding: '7rem 1rem',
         background: 'var(--background)',
@@ -83,6 +84,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
       >
         {/* Section Header */}
         <div
+        className="header"
           style={{
             textAlign: 'center',
             marginBottom: '4rem',
@@ -107,6 +109,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
 
         {/* Steps Container */}
         <div
+          className="steps-container"
           style={{
             display: 'flex',
             flexDirection: 'row',
@@ -118,6 +121,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
         >
           {/* Connecting Line */}
           <div
+            className="line"
             style={{
               position: 'absolute',
               top: '60px',
@@ -158,6 +162,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
           {steps.map((step, index) => (
             <div
               key={index}
+              className="step-wrapper"
               style={{
                 flex: 1,
                 textAlign: 'center',
@@ -185,6 +190,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
 
               {/* Step Card */}
               <div
+                className="step-card"
                 style={{
                   background: 'var(--surface)',
                   border: '1px solid var(--border)',
@@ -225,6 +231,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
 
                 {/* Icon Container */}
                 <div
+                  className="icon-box"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -246,6 +253,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
 
                 {/* Title */}
                 <h3
+                  className="step-title"
                   style={{
                     fontSize: '1.25rem',
                     fontWeight: 700,
@@ -261,6 +269,7 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
 
                 {/* Description */}
                 <p
+                  className="step-desc"
                   style={{
                     fontSize: '0.9rem',
                     lineHeight: 1.6,
@@ -280,22 +289,95 @@ export function HowItWorksSection({ title, steps }: HowItWorksSectionProps) {
 
         {/* Mobile Responsive Styles */}
         <style jsx>{`
-          @media (max-width: 768px) {
-            div[style*="flex-direction: row"] {
-              flex-direction: column;
-              align-items: center;
-            }
+  /* Tablet */
+  @media (max-width: 1024px) {
+    .steps-container {
+      gap: 1.5rem !important;
+    }
 
-            div[style*="position: absolute; top: 60px; left: 10%; right: 10%"] {
-              display: none;
-            }
+    .step-card {
+      padding: 1.75rem !important;
+    }
+  }
 
-            div[style*="flex: 1"] {
-              width: 100%;
-              max-width: 400px;
-            }
-          }
-        `}</style>
+  /* Mobile */
+  @media (max-width: 768px) {
+    .section {
+      padding: 5rem 1rem !important;
+    }
+
+    .header {
+      margin-bottom: 3rem !important;
+    }
+
+    .steps-container {
+      flex-direction: column !important;
+      align-items: center !important;
+      gap: 2rem !important;
+    }
+
+    .line {
+      display: none !important;
+    }
+
+    .step-wrapper {
+      width: 100% !important;
+      max-width: 420px;
+    }
+
+    .step-card {
+      padding: 1.5rem !important;
+    }
+
+    .step-title {
+      font-size: 1.1rem !important;
+    }
+
+    .step-desc {
+      font-size: 0.875rem !important;
+    }
+  }
+
+  /* Small Mobile */
+  @media (max-width: 480px) {
+    .section {
+      padding: 4rem 0.75rem !important;
+    }
+
+    .header {
+      margin-bottom: 2.5rem !important;
+    }
+
+    .steps-container {
+      gap: 1.5rem !important;
+    }
+
+    .step-wrapper {
+      max-width: 100%;
+    }
+
+    .step-card {
+      padding: 1.25rem !important;
+    }
+
+    .icon-box {
+      width: 48px !important;
+      height: 48px !important;
+    }
+
+    .step-title {
+      font-size: 1rem !important;
+    }
+
+    .step-desc {
+      font-size: 0.85rem !important;
+    }
+
+    .step-number {
+      font-size: 2.5rem !important;
+    }
+  }
+`}</style>
       </div>
     </section>
   );
