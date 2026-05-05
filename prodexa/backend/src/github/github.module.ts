@@ -5,11 +5,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
-  imports: [
-    HttpModule,
-    PrismaModule,
-    RedisModule,
-  ],
+  imports: [HttpModule, PrismaModule, RedisModule],
   providers: [GithubService],
   exports: [GithubService],
 })

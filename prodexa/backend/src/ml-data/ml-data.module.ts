@@ -6,6 +6,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 @Module({
   imports: [PrismaModule],
   providers: [MLDataService],
-  controllers: [MLDataController]
+  controllers: [MLDataController],
 })
-export class MLDataModule { }
+export class MLDataModule {}

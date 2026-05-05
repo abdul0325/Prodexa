@@ -7,6 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 @Module({
   imports: [HttpModule, PrismaModule],
   providers: [MLService],
-  controllers: [MLController]
+  controllers: [MLController],
 })
-export class MLModule { }
+export class MLModule {}

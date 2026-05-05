@@ -12,7 +12,7 @@ export class GithubService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
-  ) { }
+  ) {}
 
   // ─────────────────────────────────────────────
   // CORE: Paginated fetcher with retry + rate limit
@@ -40,9 +40,13 @@ export class GithubService {
           });
 
           // Check remaining rate limit
-          const remaining = parseInt(response.headers['x-ratelimit-remaining'] || '100');
+          const remaining = parseInt(
+            response.headers['x-ratelimit-remaining'] || '100',
+          );
           if (remaining < 10) {
-            this.logger.warn(`GitHub rate limit low: ${remaining} requests remaining`);
+            this.logger.warn(
+              `GitHub rate limit low: ${remaining} requests remaining`,
+            );
           }
 
           results.push(...response.data);
@@ -51,23 +55,27 @@ export class GithubService {
           page++;
           lastError = null;
           break; // success — exit retry loop
-
         } catch (error: any) {
           lastError = error;
 
           if (error.response?.status === 403) {
             const resetTime = error.response.headers['x-ratelimit-reset'];
             const waitMs = resetTime
-              ? (parseInt(resetTime) * 1000 - Date.now()) + 1000
+              ? parseInt(resetTime) * 1000 - Date.now() + 1000
               : Math.pow(2, attempt) * 1000; // exponential backoff
 
-            this.logger.warn(`Rate limited. Waiting ${Math.round(waitMs / 1000)}s before retry ${attempt}/${retries}`);
+            this.logger.warn(
+              `Rate limited. Waiting ${Math.round(waitMs / 1000)}s before retry ${attempt}/${retries}`,
+            );
             await this.sleep(waitMs);
             continue;
           }
 
           if (error.response?.status === 404) {
-            throw new HttpException('Repository not found or is private', HttpStatus.NOT_FOUND);
+            throw new HttpException(
+              'Repository not found or is private',
+              HttpStatus.NOT_FOUND,
+            );
           }
 
           // Exponential backoff for other errors
@@ -121,7 +129,7 @@ export class GithubService {
       this.getCacheKey('issues', owner, repo),
       this.getCacheKey('contributors', owner, repo),
     ];
-    keys.forEach(k => this.cache.delete(k));
+    keys.forEach((k) => this.cache.delete(k));
     this.logger.log(`Cache invalidated for ${owner}/${repo}`);
   }
 
@@ -135,21 +143,27 @@ export class GithubService {
     if (cached) return cached;
 
     try {
-      this.logger.log(`Fetching contributors for ${owner}/${repo} with token: ${!!process.env.GITHUB_TOKEN}`);
+      this.logger.log(
+        `Fetching contributors for ${owner}/${repo} with token: ${!!process.env.GITHUB_TOKEN}`,
+      );
 
       const response = await this.httpService.axiosRef.get(
         `https://api.github.com/repos/${owner}/${repo}/contributors`,
         { headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } },
       );
       await this.setCache(cacheKey, response.data);
-      this.logger.log(`Fetched ${response.data.length} contributors for ${owner}/${repo}`);
+      this.logger.log(
+        `Fetched ${response.data.length} contributors for ${owner}/${repo}`,
+      );
       return response.data;
     } catch (error: any) {
       // LOG THE REAL ERROR
       this.logger.error(`Contributors fetch failed for ${owner}/${repo}`);
       this.logger.error(`Status: ${error.response?.status}`);
       this.logger.error(`Message: ${error.response?.data?.message}`);
-      this.logger.error(`URL tried: https://api.github.com/repos/${owner}/${repo}/contributors`);
+      this.logger.error(
+        `URL tried: https://api.github.com/repos/${owner}/${repo}/contributors`,
+      );
 
       if (error.response?.status === 404) {
         throw new HttpException('Repository not found', HttpStatus.NOT_FOUND);
@@ -211,7 +225,12 @@ export class GithubService {
     return realIssues;
   }
 
-  async getCommitsFromProject(owner: string, repo: string, token: string, since: string) {
+  async getCommitsFromProject(
+    owner: string,
+    repo: string,
+    token: string,
+    since: string,
+  ) {
     return this.fetchPaginated<GitHubCommit>(
       `https://api.github.com/repos/${owner}/${repo}/commits`,
       token,
@@ -237,7 +256,11 @@ export class GithubService {
 
   async getUserRepos(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user?.githubToken) throw new HttpException('GitHub token not found', HttpStatus.UNAUTHORIZED);
+    if (!user?.githubToken)
+      throw new HttpException(
+        'GitHub token not found',
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const response = await this.httpService.axiosRef.get(
       'https://api.github.com/user/repos',
@@ -260,6 +283,6 @@ export class GithubService {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

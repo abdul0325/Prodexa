@@ -18,7 +18,8 @@ export class MLService {
       include: { developerActivities: true },
     });
 
-    if (!project) throw new HttpException('Project not found', HttpStatus.NOT_FOUND);
+    if (!project)
+      throw new HttpException('Project not found', HttpStatus.NOT_FOUND);
 
     // Build payload from real DB data
     const payload = {
@@ -35,7 +36,10 @@ export class MLService {
 
     try {
       // Call FastAPI ML service
-      const response$ = this.httpService.post(`${this.mlServiceUrl}/predict`, payload);
+      const response$ = this.httpService.post(
+        `${this.mlServiceUrl}/predict`,
+        payload,
+      );
       const response = await lastValueFrom(response$);
       const predictions = response.data;
 
@@ -63,7 +67,6 @@ export class MLService {
       });
 
       return predictions;
-
     } catch (error) {
       throw new HttpException(
         'ML service request failed — make sure FastAPI is running on port 5000',

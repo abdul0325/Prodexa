@@ -49,14 +49,17 @@ export class ProjectController {
     @Param('id') projectId: string,
     @Query('since') since?: string,
   ) {
-    const user = await this.prisma.user.findUnique({ where: { id: req.user.userId } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: req.user.userId },
+    });
 
     // FIX: use githubToken field instead of passwordHash
     if (!user || !user.githubToken) {
       throw new BadRequestException('GitHub token not found for this user');
     }
 
-    const sinceDate = since || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const sinceDate =
+      since || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     await this.analyticsQueue.add('analyzeProject', {
       projectId,

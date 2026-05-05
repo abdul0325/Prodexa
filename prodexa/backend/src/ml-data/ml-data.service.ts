@@ -17,10 +17,16 @@ export class MLDataService {
     const devActivities = project.developerActivities;
 
     const totalCommits = devActivities.reduce((sum, d) => sum + d.commits, 0);
-    const totalPRs = devActivities.reduce((sum, d) => sum + d.pullRequestCount, 0);
+    const totalPRs = devActivities.reduce(
+      (sum, d) => sum + d.pullRequestCount,
+      0,
+    );
     const totalIssues = devActivities.reduce((sum, d) => sum + d.issueCount, 0);
     const avgProductivity = devActivities.length
-      ? Math.round(devActivities.reduce((sum, d) => sum + d.productivityScore, 0) / devActivities.length)
+      ? Math.round(
+          devActivities.reduce((sum, d) => sum + d.productivityScore, 0) /
+            devActivities.length,
+        )
       : 0;
 
     return {
@@ -41,7 +47,7 @@ export class MLDataService {
       orderBy: { activityTimestamp: 'asc' },
     });
 
-    return devActivities.map(d => ({
+    return devActivities.map((d) => ({
       developerLogin: d.developerLogin,
       commits: d.commits,
       pullRequestCount: d.pullRequestCount,

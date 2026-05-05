@@ -38,7 +38,7 @@ export function CTASection({ title, subtitle, buttonText, note }: CTASectionProp
   }, [visible]);
 
   const handleGitHubAuth = () => {
-    window.location.href = 'http://localhost:3001/auth/github';
+    window.location.href = '/login';
   };
 
   return (

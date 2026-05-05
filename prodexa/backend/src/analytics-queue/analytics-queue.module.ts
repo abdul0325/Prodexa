@@ -13,9 +13,13 @@ import { GatewayModule } from 'src/gateway/gateway.module';
     BullModule.registerQueue({
       name: 'analytics',
     }),
-    PrismaModule, DeveloperAnalyticsModule,IntelligenceModule, NotificationsModule,GatewayModule
+    PrismaModule,
+    DeveloperAnalyticsModule,
+    IntelligenceModule,
+    NotificationsModule,
+    GatewayModule,
   ],
   providers: [AnalyticsQueueService, AnalyticsProcessor],
   exports: [AnalyticsQueueService, BullModule],
 })
-export class AnalyticsQueueModule { }
+export class AnalyticsQueueModule {}

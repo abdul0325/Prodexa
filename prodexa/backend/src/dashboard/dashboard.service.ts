@@ -20,7 +20,10 @@ export class DashboardService {
     const leaderboard = await this.getProjectLeaderboard(projectId);
 
     // 3️⃣ Developer Risk
-    const developerRisk = await this.devService.getDeveloperRisk(projectId, daysThreshold);
+    const developerRisk = await this.devService.getDeveloperRisk(
+      projectId,
+      daysThreshold,
+    );
 
     return {
       projectId,

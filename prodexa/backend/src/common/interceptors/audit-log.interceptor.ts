@@ -33,7 +33,10 @@ export class AuditLogInterceptor implements NestInterceptor {
         try {
           // Parse action from URL pattern
           const action = this.parseAction(method, url);
-          const { targetType, targetId } = this.parseTarget(url, request.params);
+          const { targetType, targetId } = this.parseTarget(
+            url,
+            request.params,
+          );
 
           await this.prisma.auditLog.create({
             data: {
@@ -68,7 +71,10 @@ export class AuditLogInterceptor implements NestInterceptor {
     return `${resource}_${methodMap[method] || method}`;
   }
 
-  private parseTarget(url: string, params: any): { targetType: string; targetId: string } {
+  private parseTarget(
+    url: string,
+    params: any,
+  ): { targetType: string; targetId: string } {
     const parts = url.split('/').filter(Boolean);
     return {
       targetType: parts[1] || 'unknown',

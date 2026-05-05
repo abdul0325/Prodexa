@@ -57,7 +57,10 @@ export class AdminController {
 
   /** PATCH /admin/users/:id/status — Activate or deactivate user */
   @Patch('users/:id/status')
-  updateUserStatus(@Param('id') userId: string, @Body() dto: UpdateUserStatusDto) {
+  updateUserStatus(
+    @Param('id') userId: string,
+    @Body() dto: UpdateUserStatusDto,
+  ) {
     return this.adminService.updateUserStatus(userId, dto);
   }
 

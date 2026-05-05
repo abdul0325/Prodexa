@@ -7,8 +7,15 @@ import { AnalyticsQueueService } from 'src/analytics-queue/analytics-queue.servi
 import { CreateProjectDto } from './dto/create-project.dto';
 
 // Shared scoring formula — single source of truth
-export function calcProductivityScore(commits: number, prs: number, issues: number): number {
-  return Math.max(0, Math.min(100, Math.round(commits * 0.5 + prs * 0.3 + issues * 0.2)));
+export function calcProductivityScore(
+  commits: number,
+  prs: number,
+  issues: number,
+): number {
+  return Math.max(
+    0,
+    Math.min(100, Math.round(commits * 0.5 + prs * 0.3 + issues * 0.2)),
+  );
 }
 
 @Injectable()
@@ -45,25 +52,46 @@ export class ProjectService {
 
   // 3️⃣ Analyze project & store project-level activity
   async analyzeProject(userId: string, projectId: string, since: string) {
-    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
-    if (!project || project.userId !== userId) throw new NotFoundException('Project not found');
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project || project.userId !== userId)
+      throw new NotFoundException('Project not found');
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     // FIX: use githubToken instead of passwordHash
-    if (!user?.githubToken) throw new NotFoundException('GitHub token not found');
+    if (!user?.githubToken)
+      throw new NotFoundException('GitHub token not found');
 
     const [owner, repo] = project.repoUrl.split('github.com/')[1].split('/');
 
-    const commits = (await this.githubService.getCommitsFromProject(owner, repo, user.githubToken, since)) as GitHubCommit[];
-    const pulls = (await this.githubService.getPullRequestsFromProject(owner, repo, user.githubToken)) as GitHubPull[];
-    const issues = (await this.githubService.getIssuesFromProject(owner, repo, user.githubToken)) as GitHubIssue[];
+    const commits = (await this.githubService.getCommitsFromProject(
+      owner,
+      repo,
+      user.githubToken,
+      since,
+    )) as GitHubCommit[];
+    const pulls = (await this.githubService.getPullRequestsFromProject(
+      owner,
+      repo,
+      user.githubToken,
+    )) as GitHubPull[];
+    const issues = (await this.githubService.getIssuesFromProject(
+      owner,
+      repo,
+      user.githubToken,
+    )) as GitHubIssue[];
 
     const contributors = Array.from(
       new Set(commits.map((c) => c.author?.login).filter(Boolean) as string[]),
     );
 
     // FIX: use shared scoring formula
-    const productivityScore = calcProductivityScore(commits.length, pulls.length, issues.length);
+    const productivityScore = calcProductivityScore(
+      commits.length,
+      pulls.length,
+      issues.length,
+    );
 
     const activity = await this.prisma.projectActivity.create({
       data: {
@@ -78,7 +106,9 @@ export class ProjectService {
     });
 
     const devAnalytics = contributors.map((login) => {
-      const userCommits = commits.filter((c) => c.author?.login === login).length;
+      const userCommits = commits.filter(
+        (c) => c.author?.login === login,
+      ).length;
       const userPRs = pulls.filter((p) => p.user?.login === login).length;
       const userIssues = issues.filter((i) => i.user?.login === login).length;
 
@@ -89,7 +119,11 @@ export class ProjectService {
         pullRequestCount: userPRs,
         issueCount: userIssues,
         // FIX: use shared scoring formula
-        productivityScore: calcProductivityScore(userCommits, userPRs, userIssues),
+        productivityScore: calcProductivityScore(
+          userCommits,
+          userPRs,
+          userIssues,
+        ),
         activityTimestamp: new Date(),
         projectId,
       };
@@ -105,8 +139,11 @@ export class ProjectService {
 
   // 4️⃣ Get project analytics
   async getProjectAnalytics(userId: string, projectId: string) {
-    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
-    if (!project || project.userId !== userId) throw new NotFoundException('Project not found');
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project || project.userId !== userId)
+      throw new NotFoundException('Project not found');
 
     return this.prisma.projectActivity.findMany({
       where: { projectId },
@@ -116,8 +153,11 @@ export class ProjectService {
 
   // 5️⃣ Get project summary (trend + risk)
   async getProjectSummary(userId: string, projectId: string) {
-    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
-    if (!project || project.userId !== userId) throw new NotFoundException('Project not found');
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project || project.userId !== userId)
+      throw new NotFoundException('Project not found');
 
     const activities = await this.prisma.projectActivity.findMany({
       where: { projectId },
@@ -140,7 +180,8 @@ export class ProjectService {
           : 'stable'
       : 'stable';
 
-    const riskLevel = latestScore < 30 ? 'High' : latestScore < 60 ? 'Medium' : 'Low';
+    const riskLevel =
+      latestScore < 30 ? 'High' : latestScore < 60 ? 'Medium' : 'Low';
 
     return { latestMetrics: latest, trend, riskLevel };
   }

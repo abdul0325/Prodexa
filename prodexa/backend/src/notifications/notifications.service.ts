@@ -74,7 +74,8 @@ export class NotificationsService {
     const now = new Date();
     const inactiveDevelopers = devActivities.filter((dev) => {
       const daysSince = Math.floor(
-        (now.getTime() - dev.activityTimestamp.getTime()) / (1000 * 60 * 60 * 24),
+        (now.getTime() - dev.activityTimestamp.getTime()) /
+          (1000 * 60 * 60 * 24),
       );
       return daysSince >= 7;
     });
@@ -104,7 +105,9 @@ export class NotificationsService {
     );
 
     await Promise.allSettled(notifications);
-    this.logger.log(`Sent ${notifications.length} notifications for project ${projectId}`);
+    this.logger.log(
+      `Sent ${notifications.length} notifications for project ${projectId}`,
+    );
   }
 
   // ─────────────────────────────────────────────

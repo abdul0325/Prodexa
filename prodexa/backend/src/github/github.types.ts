@@ -32,7 +32,8 @@ export interface GitHubIssue {
   user?: {
     login: string;
   };
-  pull_request?: {       // ← this field exists on issues that are PRs
+  pull_request?: {
+    // ← this field exists on issues that are PRs
     url: string;
     merged_at?: string;
   };

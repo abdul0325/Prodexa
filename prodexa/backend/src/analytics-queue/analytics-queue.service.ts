@@ -27,7 +27,9 @@ export class AnalyticsQueueService {
 
     const githubToken = project.user?.githubToken;
     if (!githubToken) {
-      this.logger.warn(`No GitHub token found for project ${projectId}, skipping analysis`);
+      this.logger.warn(
+        `No GitHub token found for project ${projectId}, skipping analysis`,
+      );
       return { message: 'No GitHub token available, analysis skipped' };
     }
 

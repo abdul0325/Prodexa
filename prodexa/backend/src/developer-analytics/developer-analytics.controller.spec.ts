@@ -9,7 +9,9 @@ describe('DeveloperAnalyticsController', () => {
       controllers: [DeveloperAnalyticsController],
     }).compile();
 
-    controller = module.get<DeveloperAnalyticsController>(DeveloperAnalyticsController);
+    controller = module.get<DeveloperAnalyticsController>(
+      DeveloperAnalyticsController,
+    );
   });
 
   it('should be defined', () => {

@@ -28,11 +28,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       error = exception.name;
     } else if (exception instanceof Error) {
       // Map known error messages to proper HTTP codes
-      if (exception.message.includes('not found') || exception.message.includes('Not found')) {
+      if (
+        exception.message.includes('not found') ||
+        exception.message.includes('Not found')
+      ) {
         status = HttpStatus.NOT_FOUND;
         message = exception.message;
         error = 'NotFound';
-      } else if (exception.message.includes('Unauthorized') || exception.message.includes('token')) {
+      } else if (
+        exception.message.includes('Unauthorized') ||
+        exception.message.includes('token')
+      ) {
         status = HttpStatus.UNAUTHORIZED;
         message = exception.message;
         error = 'Unauthorized';
@@ -47,9 +53,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Log server errors
     if (status >= 500) {
-      this.logger.error(`${request.method} ${request.url} → ${status}: ${message}`, (exception as any)?.stack);
+      this.logger.error(
+        `${request.method} ${request.url} → ${status}: ${message}`,
+        (exception as any)?.stack,
+      );
     } else {
-      this.logger.warn(`${request.method} ${request.url} → ${status}: ${message}`);
+      this.logger.warn(
+        `${request.method} ${request.url} → ${status}: ${message}`,
+      );
     }
 
     response.status(status).json({

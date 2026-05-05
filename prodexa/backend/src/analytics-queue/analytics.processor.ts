@@ -36,17 +36,30 @@ export class AnalyticsProcessor extends WorkerHost {
       try {
         // ── Step 1: Mark as ANALYZING ──────────────────────────
         await this.updateStatus(projectId, 'ANALYZING');
-        this.gateway.emitAnalysisStatus(projectId, 'ANALYZING', 'Fetching GitHub data...');
+        this.gateway.emitAnalysisStatus(
+          projectId,
+          'ANALYZING',
+          'Fetching GitHub data...',
+        );
         this.logger.log(`[${projectId}] Analysis started`);
 
         // ── Step 2: Fetch & analyze contributors ───────────────
-        this.gateway.emitAnalysisStatus(projectId, 'ANALYZING', 'Analyzing developer activity...');
+        this.gateway.emitAnalysisStatus(
+          projectId,
+          'ANALYZING',
+          'Analyzing developer activity...',
+        );
 
         let devActivities;
         if (githubToken) {
-          devActivities = await this.devService.analyzeDevelopers(projectId, githubToken, since);
+          devActivities = await this.devService.analyzeDevelopers(
+            projectId,
+            githubToken,
+            since,
+          );
         } else {
-          devActivities = await this.devService.analyzeProjectContributors(projectId);
+          devActivities =
+            await this.devService.analyzeProjectContributors(projectId);
         }
 
         // Emit live developer activity as each dev is processed
@@ -60,14 +73,23 @@ export class AnalyticsProcessor extends WorkerHost {
         }
 
         // ── Step 3: Generate intelligence ──────────────────────
-        this.gateway.emitAnalysisStatus(projectId, 'ANALYZING', 'Generating intelligence...');
+        this.gateway.emitAnalysisStatus(
+          projectId,
+          'ANALYZING',
+          'Generating intelligence...',
+        );
         await this.intelligenceService.getProjectIntelligence(projectId);
 
         // ── Step 4: Predict per-developer scores ───────────────
-        this.gateway.emitAnalysisStatus(projectId, 'ANALYZING', 'Running predictions...');
-        const developerActivities = await this.prisma.developerActivity.findMany({
-          where: { projectId },
-        });
+        this.gateway.emitAnalysisStatus(
+          projectId,
+          'ANALYZING',
+          'Running predictions...',
+        );
+        const developerActivities =
+          await this.prisma.developerActivity.findMany({
+            where: { projectId },
+          });
 
         for (const dev of developerActivities) {
           await this.devService.predictDeveloper(dev.developerLogin, projectId);
@@ -91,24 +113,39 @@ export class AnalyticsProcessor extends WorkerHost {
         });
 
         // ── Step 7: Fire notifications ─────────────────────────
-        await this.notificationsService.checkAndNotify(projectId, project.userId);
+        await this.notificationsService.checkAndNotify(
+          projectId,
+          project.userId,
+        );
 
         // ── Step 8: Emit completion events ─────────────────────
-        this.gateway.emitAnalysisStatus(projectId, 'DONE', 'Analysis complete!');
+        this.gateway.emitAnalysisStatus(
+          projectId,
+          'DONE',
+          'Analysis complete!',
+        );
         const healthScore = health.healthScore ?? 0;
-const healthStatus = health.status ?? 'Unknown';
-this.gateway.emitHealthUpdate(projectId, healthScore, healthStatus);
-this.gateway.emitDashboardUpdate(projectId, { healthScore, status: healthStatus });
+        const healthStatus = health.status ?? 'Unknown';
+        this.gateway.emitHealthUpdate(projectId, healthScore, healthStatus);
+        this.gateway.emitDashboardUpdate(projectId, {
+          healthScore,
+          status: healthStatus,
+        });
         this.gateway.emitNotification(project.userId, {
           type: 'ANALYSIS_COMPLETE',
           title: '✅ Analysis Complete',
           message: `${project.name} analysis finished. Health: ${health.healthScore}/100`,
         });
 
-        this.logger.log(`[${projectId}] Analysis complete — Health: ${health.healthScore}`);
+        this.logger.log(
+          `[${projectId}] Analysis complete — Health: ${health.healthScore}`,
+        );
 
-        return { message: 'Analysis complete', projectId, healthScore: health.healthScore };
-
+        return {
+          message: 'Analysis complete',
+          projectId,
+          healthScore: health.healthScore,
+        };
       } catch (error: any) {
         // ── Handle failure ─────────────────────────────────────
         this.logger.error(`[${projectId}] Analysis failed: ${error.message}`);

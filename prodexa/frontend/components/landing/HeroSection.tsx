@@ -33,7 +33,7 @@ export function HeroSection() {
   }, []);
 
   const handleGitHubAuth = () => {
-    window.location.href = 'http://localhost:3001/auth/github';
+    window.location.href = '/login';
   };
 
   const scrollToHowItWorks = () => {

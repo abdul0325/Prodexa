@@ -18,7 +18,9 @@ import { JwtService } from '@nestjs/jwt';
   },
   namespace: '/realtime',
 })
-export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RealtimeGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -55,8 +57,9 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       // Join user-specific room
       client.join(`user:${payload.sub}`);
 
-      this.logger.log(`Client connected: ${client.id} (user: ${payload.email})`);
-
+      this.logger.log(
+        `Client connected: ${client.id} (user: ${payload.email})`,
+      );
     } catch (e) {
       this.logger.warn(`Unauthorized connection attempt: ${client.id}`);
       client.disconnect();
@@ -67,7 +70,10 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     const userId = client.data?.userId;
     if (userId) {
       const sockets = this.userSockets.get(userId) || [];
-      this.userSockets.set(userId, sockets.filter(id => id !== client.id));
+      this.userSockets.set(
+        userId,
+        sockets.filter((id) => id !== client.id),
+      );
     }
     this.logger.log(`Client disconnected: ${client.id}`);
   }
@@ -82,7 +88,9 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     @MessageBody() data: { projectId: string },
   ) {
     client.join(`project:${data.projectId}`);
-    this.logger.log(`Socket ${client.id} subscribed to project:${data.projectId}`);
+    this.logger.log(
+      `Socket ${client.id} subscribed to project:${data.projectId}`,
+    );
     return { event: 'subscribed', projectId: data.projectId };
   }
 
@@ -103,11 +111,13 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   emitAnalysisStatus(projectId: string, status: string, message?: string) {
     this.server.to(`project:${projectId}`).emit('analysis:status', {
       projectId,
-      status,        // QUEUED | ANALYZING | DONE | FAILED
+      status, // QUEUED | ANALYZING | DONE | FAILED
       message,
       timestamp: new Date().toISOString(),
     });
-    this.logger.log(`Emitted analysis:status → project:${projectId} [${status}]`);
+    this.logger.log(
+      `Emitted analysis:status → project:${projectId} [${status}]`,
+    );
   }
 
   /** Emit dashboard update when analysis completes */

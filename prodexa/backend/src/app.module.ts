@@ -49,7 +49,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     MLModule,
     AdminModule,
     NotificationsModule,
-    GatewayModule,   // NEW: WebSocket real-time
+    GatewayModule, // NEW: WebSocket real-time
   ],
   controllers: [AppController],
   providers: [AppService],

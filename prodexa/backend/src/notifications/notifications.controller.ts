@@ -16,7 +16,7 @@ import { NotificationsService } from './notifications.service';
 export class NotificationsController {
   constructor(private notificationsService: NotificationsService) {}
 
-  /** GET /notifications — Get all notifications for current user */
+  /** GET /notifications — Get all notifications  for current user */
   @Get()
   getUserNotifications(@Req() req, @Query('unread') unread?: string) {
     return this.notificationsService.getUserNotifications(

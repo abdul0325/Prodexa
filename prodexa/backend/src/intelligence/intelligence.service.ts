@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class IntelligenceService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // Predict project-level metrics
   async predictProject(projectId: string) {
@@ -15,14 +15,20 @@ export class IntelligenceService {
     if (!activities.length) return null;
 
     // Simple linear regression over time
-    const prediction = this.simpleLinearForecast(activities.map(a => a.productivityScore ?? 0));
+    const prediction = this.simpleLinearForecast(
+      activities.map((a) => a.productivityScore ?? 0),
+    );
 
     // Compute risk level
     const risk = prediction < 30 ? 'High' : prediction < 60 ? 'Medium' : 'Low';
 
     // Workload forecast = based on past commits + PRs (simplified)
-    const avgCommits = activities.reduce((sum, a) => sum + a.commitFrequency, 0) / activities.length;
-    const avgPRs = activities.reduce((sum, a) => sum + a.pullRequestCount, 0) / activities.length;
+    const avgCommits =
+      activities.reduce((sum, a) => sum + a.commitFrequency, 0) /
+      activities.length;
+    const avgPRs =
+      activities.reduce((sum, a) => sum + a.pullRequestCount, 0) /
+      activities.length;
     const workloadForecast = avgCommits + avgPRs;
 
     // Save predictions
@@ -47,7 +53,9 @@ export class IntelligenceService {
 
     if (!devActivities.length) return null;
 
-    const predictedScore = this.simpleLinearForecast(devActivities.map(d => d.productivityScore));
+    const predictedScore = this.simpleLinearForecast(
+      devActivities.map((d) => d.productivityScore),
+    );
 
     return { developerLogin, predictedScore };
   }
@@ -93,15 +101,9 @@ export class IntelligenceService {
       0,
     );
 
-    const totalPRs = activities.reduce(
-      (sum, a) => sum + a.pullRequestCount,
-      0,
-    );
+    const totalPRs = activities.reduce((sum, a) => sum + a.pullRequestCount, 0);
 
-    const totalIssues = activities.reduce(
-      (sum, a) => sum + a.issueCount,
-      0,
-    );
+    const totalIssues = activities.reduce((sum, a) => sum + a.issueCount, 0);
 
     return {
       projectId,
@@ -148,47 +150,40 @@ export class IntelligenceService {
   }
 
   async getProjectIntelligence(projectId: string) {
-
     const activities = await this.prisma.developerActivity.findMany({
       where: {
         projectId: projectId,
       },
     });
 
-    const totalCommits = activities.reduce(
-      (sum, dev) => sum + dev.commits,
-      0
-    );
+    const totalCommits = activities.reduce((sum, dev) => sum + dev.commits, 0);
 
     const totalPRs = activities.reduce(
       (sum, dev) => sum + dev.pullRequestCount,
-      0
+      0,
     );
 
     const totalIssues = activities.reduce(
       (sum, dev) => sum + dev.issueCount,
-      0
+      0,
     );
 
     const activeDevelopers = activities.filter(
-      (dev) => dev.commits > 0 || dev.pullRequestCount > 0
+      (dev) => dev.commits > 0 || dev.pullRequestCount > 0,
     ).length;
 
-    const healthScore =
-      totalCommits * 0.4 +
-      totalPRs * 0.4 -
-      totalIssues * 0.2;
+    const healthScore = totalCommits * 0.4 + totalPRs * 0.4 - totalIssues * 0.2;
 
-    let projectHealth = "LOW";
+    let projectHealth = 'LOW';
 
-    if (healthScore > 200) projectHealth = "EXCELLENT";
-    else if (healthScore > 100) projectHealth = "GOOD";
-    else if (healthScore > 50) projectHealth = "MODERATE";
+    if (healthScore > 200) projectHealth = 'EXCELLENT';
+    else if (healthScore > 100) projectHealth = 'GOOD';
+    else if (healthScore > 50) projectHealth = 'MODERATE';
 
-    let riskLevel = "HIGH";
+    let riskLevel = 'HIGH';
 
-    if (activeDevelopers > 10) riskLevel = "LOW";
-    else if (activeDevelopers > 5) riskLevel = "MEDIUM";
+    if (activeDevelopers > 10) riskLevel = 'LOW';
+    else if (activeDevelopers > 5) riskLevel = 'MEDIUM';
 
     return {
       projectHealth,
@@ -215,10 +210,16 @@ export class IntelligenceService {
 
     // Aggregate metrics
     const totalCommits = devActivities.reduce((sum, d) => sum + d.commits, 0);
-    const totalPRs = devActivities.reduce((sum, d) => sum + d.pullRequestCount, 0);
+    const totalPRs = devActivities.reduce(
+      (sum, d) => sum + d.pullRequestCount,
+      0,
+    );
     const totalIssues = devActivities.reduce((sum, d) => sum + d.issueCount, 0);
     const avgProductivity = devActivities.length
-      ? Math.round(devActivities.reduce((sum, d) => sum + d.productivityScore, 0) / devActivities.length)
+      ? Math.round(
+          devActivities.reduce((sum, d) => sum + d.productivityScore, 0) /
+            devActivities.length,
+        )
       : 0;
     const activityPoints = devActivities.length;
 

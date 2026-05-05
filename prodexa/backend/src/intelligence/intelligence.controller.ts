@@ -3,7 +3,7 @@ import { IntelligenceService } from './intelligence.service';
 
 @Controller('intelligence')
 export class IntelligenceController {
-  constructor(private intelligenceService: IntelligenceService) { }
+  constructor(private intelligenceService: IntelligenceService) {}
 
   @Get('project/:projectId')
   async predictProject(@Param('projectId') projectId: string) {
@@ -18,8 +18,8 @@ export class IntelligenceController {
     return this.intelligenceService.predictDeveloper(login, projectId);
   }
 
-  @Get("project/:id/health")
-  getProjectHealth(@Param("id") projectId: string) {
+  @Get('project/:id/health')
+  getProjectHealth(@Param('id') projectId: string) {
     return this.intelligenceService.getProjectIntelligence(projectId);
   }
 }

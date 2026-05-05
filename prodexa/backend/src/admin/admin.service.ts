@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
-import { UpdateUserRoleDto, UpdateUserStatusDto, UpdateProjectStatusDto, CreateUserByAdminDto } from './dto/admin.dto';
+import {
+  UpdateUserRoleDto,
+  UpdateUserStatusDto,
+  UpdateProjectStatusDto,
+  CreateUserByAdminDto,
+} from './dto/admin.dto';
 
 @Injectable()
 export class AdminService {
@@ -102,7 +107,9 @@ export class AdminService {
   }
 
   async updateProjectStatus(projectId: string, dto: UpdateProjectStatusDto) {
-    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
     if (!project) throw new NotFoundException(`Project ${projectId} not found`);
 
     return this.prisma.project.update({
@@ -113,7 +120,9 @@ export class AdminService {
   }
 
   async deleteProject(projectId: string) {
-    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
     if (!project) throw new NotFoundException(`Project ${projectId} not found`);
 
     // Cascade delete all related data
@@ -161,18 +170,31 @@ export class AdminService {
   // ─────────────────────────────────────────────
 
   async getPlatformStats() {
-    const [totalUsers, activeUsers, totalProjects, activeProjects, totalAnalyses] =
-      await Promise.all([
-        this.prisma.user.count(),
-        this.prisma.user.count({ where: { isActive: true } }),
-        this.prisma.project.count(),
-        this.prisma.project.count({ where: { status: 'ACTIVE' } }),
-        this.prisma.developerActivity.count(),
-      ]);
+    const [
+      totalUsers,
+      activeUsers,
+      totalProjects,
+      activeProjects,
+      totalAnalyses,
+    ] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { isActive: true } }),
+      this.prisma.project.count(),
+      this.prisma.project.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.developerActivity.count(),
+    ]);
 
     return {
-      users: { total: totalUsers, active: activeUsers, inactive: totalUsers - activeUsers },
-      projects: { total: totalProjects, active: activeProjects, inactive: totalProjects - activeProjects },
+      users: {
+        total: totalUsers,
+        active: activeUsers,
+        inactive: totalUsers - activeUsers,
+      },
+      projects: {
+        total: totalProjects,
+        active: activeProjects,
+        inactive: totalProjects - activeProjects,
+      },
       totalAnalyses,
     };
   }

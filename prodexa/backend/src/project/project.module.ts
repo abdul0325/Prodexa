@@ -7,8 +7,13 @@ import { DeveloperAnalyticsModule } from 'src/developer-analytics/developer-anal
 import { AnalyticsQueueModule } from 'src/analytics-queue/analytics-queue.module';
 
 @Module({
-  imports: [DeveloperAnalyticsModule,GithubModule, PrismaModule, AnalyticsQueueModule], 
+  imports: [
+    DeveloperAnalyticsModule,
+    GithubModule,
+    PrismaModule,
+    AnalyticsQueueModule,
+  ],
   providers: [ProjectService],
-  controllers: [ProjectController]
+  controllers: [ProjectController],
 })
 export class ProjectModule {}

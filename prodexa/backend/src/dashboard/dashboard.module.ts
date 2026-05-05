@@ -7,6 +7,6 @@ import { DeveloperAnalyticsModule } from 'src/developer-analytics/developer-anal
 @Module({
   imports: [PrismaModule, DeveloperAnalyticsModule],
   providers: [DashboardService],
-  controllers: [DashboardController]
+  controllers: [DashboardController],
 })
 export class DashboardModule {}
