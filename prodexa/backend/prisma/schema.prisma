@@ -8,15 +8,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ─────────────────────────────────────────────
-// USER
-// ─────────────────────────────────────────────
 model User {
   id           String   @id @default(uuid())
   name         String
   email        String   @unique
-  githubLogin  String?  // NEW: GitHub username for avatars
-  avatarUrl    String?  // NEW: GitHub avatar URL
+  githubLogin  String?
+  avatarUrl    String?
   passwordHash String?
   githubToken  String?
   role         Role     @default(MANAGER)
@@ -28,27 +25,24 @@ model User {
   auditLogs     AuditLog[]
   notifications Notification[]
 
-  @@index([email])       // fast email lookup
-  @@index([role])        // fast admin queries
+  @@index([email])
+  @@index([role])
 }
 
-// ─────────────────────────────────────────────
-// PROJECT
-// ─────────────────────────────────────────────
 model Project {
-  id              String          @id @default(uuid())
-  name            String
-  repoUrl         String
-  ownerName       String
-  repoOwner       String?         // NEW: parsed GitHub owner from URL
-  repoName        String?         // NEW: parsed GitHub repo name from URL
-  status          ProjectStatus   @default(ACTIVE)
-  analysisStatus  AnalysisStatus  @default(IDLE)  // NEW: track analysis state
-  lastSyncedAt    DateTime?       // NEW: when GitHub data was last fetched
-  cacheExpiresAt  DateTime?       // NEW: when cache becomes stale
-  lastError       String?         // NEW: store last analysis error message
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @default(now()) @updatedAt
+  id             String         @id @default(uuid())
+  name           String
+  repoUrl        String
+  ownerName      String
+  repoOwner      String?
+  repoName       String?
+  status         ProjectStatus  @default(ACTIVE)
+  analysisStatus AnalysisStatus @default(IDLE)
+  lastSyncedAt   DateTime?
+  cacheExpiresAt DateTime?
+  lastError      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -58,15 +52,12 @@ model Project {
   developerActivities DeveloperActivity[]
   notifications       Notification[]
 
-  @@index([userId])             // fast user project queries
-  @@index([status])             // fast active project queries
-  @@index([analysisStatus])     // fast queue status checks
-  @@index([lastSyncedAt])       // fast cache invalidation
+  @@index([userId])
+  @@index([status])
+  @@index([analysisStatus])
+  @@index([lastSyncedAt])
 }
 
-// ─────────────────────────────────────────────
-// PROJECT ACTIVITY
-// ─────────────────────────────────────────────
 model ProjectActivity {
   id                String   @id @default(uuid())
   projectId         String
@@ -80,55 +71,46 @@ model ProjectActivity {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
-  @@index([activityTimestamp])  // fast timeline queries
+  @@index([activityTimestamp])
 }
 
-// ─────────────────────────────────────────────
-// PREDICTION
-// ─────────────────────────────────────────────
 model Prediction {
   id                String   @id @default(uuid())
   projectId         String
   productivityScore Float
   deliveryRisk      String
   workloadForecast  Float
-  teamHealthStatus  String?  // NEW: Excellent/Good/Moderate/Risky
+  teamHealthStatus  String?
   generatedAt       DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
-  @@index([generatedAt])        // fast latest prediction query
+  @@index([generatedAt])
 }
 
-// ─────────────────────────────────────────────
-// DEVELOPER ACTIVITY
-// ─────────────────────────────────────────────
 model DeveloperActivity {
   id                String   @id @default(uuid())
   projectId         String
   developerLogin    String
-  avatarUrl         String?  // NEW: GitHub avatar URL
+  avatarUrl         String?
   commits           Int      @default(0)
   pullRequestCount  Int      @default(0)
   issueCount        Int      @default(0)
   productivityScore Int      @default(0)
   predictedScore    Int?
-  trend             String?  // NEW: improving/stable/declining (from ML)
-  riskLevel         String?  // NEW: Low/Medium/High (from ML)
+  trend             String?
+  riskLevel         String?
   activityTimestamp DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([developerLogin, projectId])
   @@index([projectId])
-  @@index([productivityScore]) // fast leaderboard sorting
-  @@index([developerLogin])    // fast developer lookup
+  @@index([productivityScore])
+  @@index([developerLogin])
 }
 
-// ─────────────────────────────────────────────
-// AUDIT LOG
-// ─────────────────────────────────────────────
 model AuditLog {
   id         String   @id @default(uuid())
   userId     String
@@ -141,13 +123,10 @@ model AuditLog {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
-  @@index([createdAt])          // fast recent logs query
-  @@index([action])             // fast action filtering
+  @@index([createdAt])
+  @@index([action])
 }
 
-// ─────────────────────────────────────────────
-// NOTIFICATION
-// ─────────────────────────────────────────────
 model Notification {
   id        String           @id @default(uuid())
   userId    String
@@ -162,14 +141,11 @@ model Notification {
   project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([userId])
-  @@index([isRead])             // fast unread count query
-  @@index([userId, isRead])     // composite: user's unread notifications
+  @@index([isRead])
+  @@index([userId, isRead])
   @@index([createdAt])
 }
 
-// ─────────────────────────────────────────────
-// ENUMS
-// ─────────────────────────────────────────────
 enum Role {
   ADMIN
   MANAGER
@@ -180,13 +156,12 @@ enum ProjectStatus {
   INACTIVE
 }
 
-// NEW: Track analysis job lifecycle
 enum AnalysisStatus {
-  IDLE        // no analysis running
-  QUEUED      // job added to BullMQ
-  ANALYZING   // actively fetching GitHub data
-  DONE        // analysis complete
-  FAILED      // analysis failed — check lastError
+  IDLE
+  QUEUED
+  ANALYZING
+  DONE
+  FAILED
 }
 
 enum NotificationType {
@@ -195,4 +170,163 @@ enum NotificationType {
   INACTIVE_DEVELOPER
   ANALYSIS_COMPLETE
   SYSTEM_ALERT
+}
+
+model DailyMetricsSnapshot {
+  id String @id @default(cuid())
+
+  projectId String
+
+  date DateTime
+
+  totalCommits Int @default(0)
+
+  activeContributors Int @default(0)
+
+  totalPullRequests Int @default(0)
+
+  mergedPullRequests Int @default(0)
+
+  totalIssues Int @default(0)
+
+  closedIssues Int @default(0)
+
+  averagePRMergeTime Float?
+
+  commitVelocity Float?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, date])
+  @@index([projectId])
+  @@index([date])
+}
+
+model CommitEvent {
+  id String @id @default(cuid())
+
+  sha String @unique
+
+  repositoryId String
+
+  repositoryName String
+
+  authorLogin String
+
+  message String
+
+  branch String
+
+  commitUrl String
+
+  committedAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([repositoryId])
+  @@index([authorLogin])
+  @@index([committedAt])
+  @@index([branch])
+}
+
+model PullRequestEvent {
+  id String @id @default(cuid())
+
+  githubPrId Int @unique
+
+  repositoryId String
+
+  repositoryName String
+
+  authorLogin String
+
+  title String
+
+  state String
+
+  action String
+
+  branch String
+
+  baseBranch String
+
+  isDraft Boolean @default(false)
+
+  additions Int @default(0)
+
+  deletions Int @default(0)
+
+  changedFiles Int @default(0)
+
+  commitsCount Int @default(0)
+
+  createdAtGithub DateTime
+
+  mergedAtGithub DateTime?
+
+  closedAtGithub DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([repositoryId])
+  @@index([authorLogin])
+  @@index([state])
+  @@index([createdAtGithub])
+}
+
+model EngineeringKPI {
+  id String @id @default(cuid())
+
+  repositoryId String
+
+  developerLogin String?
+
+  metricName String
+
+  metricValue Float
+
+  metricDate DateTime
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([repositoryId])
+  @@index([developerLogin])
+  @@index([metricName])
+  @@index([metricDate])
+}
+
+model CommitFileChange {
+  id String @id @default(cuid())
+
+  commitSha String
+
+  filename String
+
+  status String
+
+  additions Int @default(0)
+
+  deletions Int @default(0)
+
+  changes Int @default(0)
+
+  patch String?
+
+  fileExtension String?
+
+  isTestFile Boolean @default(false)
+
+  isDocumentation Boolean @default(false)
+
+  isConfigFile Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([commitSha])
+  @@index([filename])
+  @@index([fileExtension])
 }
