@@ -1,3 +1,4 @@
+//frontend/hooks/useSocket.ts
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -66,6 +67,7 @@ export function useProjectRealtime(projectId: string) {
   const [healthStatus, setHealthStatus] = useState<string>('');
   const [liveDevs, setLiveDevs] = useState<Record<string, any>>({});
   const [dashboardUpdated, setDashboardUpdated] = useState(false);
+  const [intelligenceUpdated, setIntelligenceUpdated] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -100,6 +102,17 @@ export function useProjectRealtime(projectId: string) {
         if (data.projectId !== projectId) return;
         setDashboardUpdated(true);
       }),
+
+      on('intelligence:update', (
+        data: any,
+      ) => {
+
+        if (
+          data.projectId !== projectId
+        ) return;
+
+        setIntelligenceUpdated(true);
+      }),
     ];
 
     return () => {
@@ -116,6 +129,11 @@ export function useProjectRealtime(projectId: string) {
     liveDevs: Object.values(liveDevs),
     dashboardUpdated,
     resetDashboardUpdated: () => setDashboardUpdated(false),
+    intelligenceUpdated,
+
+    resetIntelligenceUpdated:
+      () =>
+        setIntelligenceUpdated(false),
   };
 }
 
