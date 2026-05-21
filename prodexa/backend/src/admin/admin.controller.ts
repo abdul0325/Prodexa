@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/prisma/auth/jwt-auth.guard';
 import { AdminGuard } from '../common/guards/admin.guard';
 import {
   UpdateUserRoleDto,
