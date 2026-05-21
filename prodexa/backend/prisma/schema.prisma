@@ -225,6 +225,8 @@ model CommitEvent {
 
   createdAt DateTime @default(now())
 
+  impactAnalysis CommitImpactAnalysis?
+
   @@index([repositoryId])
   @@index([authorLogin])
   @@index([committedAt])
@@ -329,4 +331,32 @@ model CommitFileChange {
   @@index([commitSha])
   @@index([filename])
   @@index([fileExtension])
+}
+
+model CommitImpactAnalysis {
+  id String @id @default(cuid())
+
+  commitSha String @unique
+
+  impactScore Float @default(0)
+
+  riskScore Float @default(0)
+
+  meaningfulnessScore Float @default(0)
+
+  impactLevel String
+
+  riskLevel String
+
+  summary String?
+
+  reasons Json?
+
+  createdAt DateTime @default(now())
+
+  commit CommitEvent @relation(fields: [commitSha], references: [sha], onDelete: Cascade)
+
+  @@index([impactScore])
+  @@index([riskScore])
+  @@index([impactLevel])
 }
