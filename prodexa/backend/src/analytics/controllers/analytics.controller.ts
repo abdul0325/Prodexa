@@ -112,4 +112,32 @@ export class AnalyticsController {
                 projectId,
             );
     }
+
+    @Get('hotspots')
+    async getHotspots() {
+
+        return this.analyticsRead
+            .getHotspots();
+    }
+
+    @Get('risk-propagation')
+    async getRiskPropagation() {
+
+        return this.analyticsRead
+            .getRiskPropagation();
+    }
+
+    @Get('engineering-health-v2')
+    async getEngineeringHealthV2() {
+
+        return this.analyticsRead
+            .getEngineeringHealthV2();
+    }
+
+    @Get('delivery-forecast')
+    async getDeliveryForecast() {
+
+        return this.analyticsRead
+            .getDeliveryForecast();
+    }
 }

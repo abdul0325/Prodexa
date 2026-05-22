@@ -79,7 +79,7 @@ model Prediction {
   projectId         String
   productivityScore Float
   deliveryRisk      String
-  workloadForecast  Float
+  workloadForecast  Json
   teamHealthStatus  String?
   generatedAt       DateTime @default(now())
 
@@ -225,6 +225,9 @@ model CommitEvent {
 
   createdAt DateTime @default(now())
 
+  // RELATIONS
+  fileChanges CommitFileChange[]
+
   impactAnalysis CommitImpactAnalysis?
 
   @@index([repositoryId])
@@ -306,6 +309,9 @@ model CommitFileChange {
 
   commitSha String
 
+  // RELATION
+  commit CommitEvent @relation(fields: [commitSha], references: [sha])
+
   filename String
 
   status String
@@ -338,11 +344,14 @@ model CommitImpactAnalysis {
 
   commitSha String @unique
 
-  impactScore Float @default(0)
+  // RELATION
+  commit CommitEvent @relation(fields: [commitSha], references: [sha])
 
-  riskScore Float @default(0)
+  impactScore Int
 
-  meaningfulnessScore Float @default(0)
+  riskScore Int
+
+  meaningfulnessScore Int
 
   impactLevel String
 
@@ -350,13 +359,11 @@ model CommitImpactAnalysis {
 
   summary String?
 
-  reasons Json?
+  reasons Json
 
   createdAt DateTime @default(now())
 
-  commit CommitEvent @relation(fields: [commitSha], references: [sha], onDelete: Cascade)
-
+  @@index([commitSha])
   @@index([impactScore])
   @@index([riskScore])
-  @@index([impactLevel])
 }
