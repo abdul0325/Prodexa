@@ -1,26 +1,155 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import ChartCard
     from '@/components/project-detail/shared/ChartCard';
 
+import EngineeringTrendChart
+    from '@/components/project-detail/charts/EngineeringTrendChart';
+
+import { fetchProjectTrends, fetchProjectLeaderboard, fetchProjectRisk } from '@/lib/api';
+
 interface Props {
 
-    activity?: any[];
-
-    developers?: any[];
-
-    riskDevs?: any[];
+    projectId: string;
 }
 
 export default function ChartsTab({
 
-    activity = [],
-
-    developers = [],
-
-    riskDevs = [],
+    projectId,
 
 }: Props) {
+
+    const [trendsData, setTrendsData] = useState<any>(null);
+    const [leaderboardData, setLeaderboardData] = useState<any>(null);
+    const [riskData, setRiskData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+
+        const fetchData = async () => {
+
+            try {
+
+                setLoading(true);
+
+                const [trends, leaderboard, risk] = await Promise.all([
+
+                    fetchProjectTrends(projectId),
+
+                    fetchProjectLeaderboard(projectId),
+
+                    fetchProjectRisk(projectId),
+
+                ]);
+
+                setTrendsData(trends);
+
+                setLeaderboardData(leaderboard);
+
+                setRiskData(risk);
+
+            } catch (error) {
+
+                console.error('Error fetching chart data:', error);
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        };
+
+        fetchData();
+
+    }, [projectId]);
+
+    if (loading) {
+
+        return (
+
+            <div
+                className="
+                    grid
+                    grid-cols-1
+                    xl:grid-cols-2
+                    gap-6
+                    w-full
+                    auto-rows-min
+                "
+            >
+
+                <div
+                    className="
+                        xl:col-span-2
+                    "
+                >
+
+                    <ChartCard
+                        title="Engineering Trend"
+                    >
+
+                        <div
+                            className="
+                                min-h-[400px]
+                                flex
+                                items-center
+                                justify-center
+                                text-slate-400
+                                text-sm
+                            "
+                        >
+                            Loading chart data...
+                        </div>
+
+                    </ChartCard>
+
+                </div>
+
+                <ChartCard
+                    title="Developer Contributions"
+                >
+
+                    <div
+                        className="
+                            h-48
+                            flex
+                            items-center
+                            justify-center
+                            text-slate-400
+                            text-sm
+                        "
+                    >
+                        Loading developer data...
+                    </div>
+
+                </ChartCard>
+
+                <ChartCard
+                    title="Engineering Risk Distribution"
+                >
+
+                    <div
+                        className="
+                            h-48
+                            flex
+                            items-center
+                            justify-center
+                            text-slate-400
+                            text-sm
+                        "
+                    >
+                        Loading risk data...
+                    </div>
+
+                </ChartCard>
+
+            </div>
+
+        );
+    }
 
     return (
 
@@ -31,60 +160,37 @@ export default function ChartsTab({
                 xl:grid-cols-2
                 gap-6
                 w-full
+                auto-rows-min
             "
         >
 
-            {/* ENGINEERING TREND */}
+            {/* ENGINEERING TREND - Full width for better chart visibility */}
 
-            <ChartCard
-                title="Engineering Trend"
+            <div
+                className="
+                    xl:col-span-2
+                "
             >
 
-                <div
-                    className="
-                        h-[320px]
-                        flex
-                        items-center
-                        justify-center
-                        text-slate-400
-                        text-sm
-                        rounded-xl
-                    "
+                <ChartCard
+                    title="Engineering Trend"
                 >
 
-                    {activity.length > 0
-                        ? 'Engineering trend visualization'
-                        : 'No engineering trend data available'}
+                    <div
+                        className="
+                            min-h-[400px]
+                        "
+                    >
 
-                </div>
+                        <EngineeringTrendChart
+                            trends={trendsData?.healthTrend || []}
+                        />
 
-            </ChartCard>
+                    </div>
 
-            {/* RISK TREND */}
+                </ChartCard>
 
-            <ChartCard
-                title="Risk Trend"
-            >
-
-                <div
-                    className="
-                        h-[320px]
-                        flex
-                        items-center
-                        justify-center
-                        text-slate-400
-                        text-sm
-                        rounded-xl
-                    "
-                >
-
-                    {riskDevs.length > 0
-                        ? 'Risk analytics visualization'
-                        : 'No risk telemetry available'}
-
-                </div>
-
-            </ChartCard>
+            </div>
 
             {/* DEVELOPER CONTRIBUTIONS */}
 
@@ -94,7 +200,7 @@ export default function ChartsTab({
 
                 <div
                     className="
-                        h-[320px]
+                        max-h-[400px]
                         flex
                         flex-col
                         gap-3
@@ -103,14 +209,14 @@ export default function ChartsTab({
                     "
                 >
 
-                    {developers.length === 0 ? (
+                    {!leaderboardData?.leaderboard || leaderboardData.leaderboard.length === 0 ? (
 
                         <div
                             className="
                                 flex
                                 items-center
                                 justify-center
-                                h-full
+                                h-48
                                 text-slate-400
                                 text-sm
                             "
@@ -120,8 +226,8 @@ export default function ChartsTab({
 
                     ) : (
 
-                        developers
-                            .slice(0, 8)
+                        leaderboardData.leaderboard
+                            .slice(0, 10)
                             .map(
 
                                 (
@@ -141,13 +247,16 @@ export default function ChartsTab({
                                             border-white/5
                                             bg-white/[0.03]
                                             px-4
-                                            py-4
+                                            py-3
+                                            hover:bg-white/[0.05]
+                                            transition-colors
                                         "
                                     >
 
                                         <div
                                             className="
                                                 min-w-0
+                                                flex-1
                                             "
                                         >
 
@@ -155,9 +264,10 @@ export default function ChartsTab({
                                                 className="
                                                     font-semibold
                                                     truncate
+                                                    text-sm
                                                 "
                                             >
-                                                {dev?.login ||
+                                                {dev?.developer ||
                                                     'Unknown'}
                                             </div>
 
@@ -165,7 +275,7 @@ export default function ChartsTab({
                                                 className="
                                                     text-xs
                                                     text-slate-400
-                                                    mt-1
+                                                    mt-0.5
                                                 "
                                             >
                                                 Contributor
@@ -175,12 +285,64 @@ export default function ChartsTab({
 
                                         <div
                                             className="
-                                                font-bold
-                                                text-base
-                                                shrink-0
+                                                flex
+                                                gap-4
+                                                items-center
                                             "
                                         >
-                                            {dev?.commits || 0}
+
+                                            <div
+                                                className="
+                                                    text-right
+                                                "
+                                            >
+
+                                                <div
+                                                    className="
+                                                        font-bold
+                                                        text-base
+                                                    "
+                                                >
+                                                    {dev?.commits || 0}
+                                                </div>
+
+                                                <div
+                                                    className="
+                                                        text-xs
+                                                        text-slate-400
+                                                    "
+                                                >
+                                                    Commits
+                                                </div>
+
+                                            </div>
+
+                                            <div
+                                                className="
+                                                    text-right
+                                                "
+                                            >
+
+                                                <div
+                                                    className="
+                                                        font-bold
+                                                        text-base
+                                                    "
+                                                >
+                                                    {dev?.prs || 0}
+                                                </div>
+
+                                                <div
+                                                    className="
+                                                        text-xs
+                                                        text-slate-400
+                                                    "
+                                                >
+                                                    PRs
+                                                </div>
+
+                                            </div>
+
                                         </div>
 
                                     </div>
@@ -202,7 +364,7 @@ export default function ChartsTab({
 
                 <div
                     className="
-                        h-[320px]
+                        max-h-[400px]
                         flex
                         flex-col
                         gap-3
@@ -211,14 +373,14 @@ export default function ChartsTab({
                     "
                 >
 
-                    {riskDevs.length === 0 ? (
+                    {!riskData?.riskDevelopers || riskData.riskDevelopers.length === 0 ? (
 
                         <div
                             className="
                                 flex
                                 items-center
                                 justify-center
-                                h-full
+                                h-48
                                 text-slate-400
                                 text-sm
                             "
@@ -228,8 +390,8 @@ export default function ChartsTab({
 
                     ) : (
 
-                        riskDevs
-                            .slice(0, 8)
+                        riskData.riskDevelopers
+                            .slice(0, 10)
                             .map(
 
                                 (
@@ -249,13 +411,16 @@ export default function ChartsTab({
                                             border-red-500/15
                                             bg-red-500/5
                                             px-4
-                                            py-4
+                                            py-3
+                                            hover:bg-red-500/10
+                                            transition-colors
                                         "
                                     >
 
                                         <div
                                             className="
                                                 min-w-0
+                                                flex-1
                                             "
                                         >
 
@@ -263,6 +428,7 @@ export default function ChartsTab({
                                                 className="
                                                     font-semibold
                                                     truncate
+                                                    text-sm
                                                 "
                                             >
                                                 {dev?.developer ||
@@ -273,10 +439,12 @@ export default function ChartsTab({
                                                 className="
                                                     text-xs
                                                     text-red-300
-                                                    mt-1
+                                                    mt-0.5
                                                 "
                                             >
-                                                Risk contributor
+                                                {dev?.risk === 'Inactive'
+                                                    ? 'Inactive contributor'
+                                                    : 'Active contributor'}
                                             </div>
 
                                         </div>
@@ -285,10 +453,10 @@ export default function ChartsTab({
                                             className="
                                                 font-bold
                                                 text-red-300
-                                                shrink-0
+                                                text-base
                                             "
                                         >
-                                            {dev?.riskScore || 0}
+                                            {dev?.daysSinceLastCommit || 0}d
                                         </div>
 
                                     </div>
@@ -303,5 +471,6 @@ export default function ChartsTab({
             </ChartCard>
 
         </div>
+
     );
 }

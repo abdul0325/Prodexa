@@ -19,6 +19,7 @@ import { RiskDetectionService } from 'src/analytics/services/risk-detection.serv
 import { TrendsService } from 'src/analytics/services/trends.service';
 import { DeltaAnalyticsService } from 'src/analytics/services/delta-analytics.service';
 import { CommitFileChangeService } from './services/commit-file-change.service';
+import { HealthCalculationService } from './services/health-calculation.service';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { CommitFileChangeService } from './services/commit-file-change.service';
     AnalyticsController,
   ],
 
-  providers: [AnalyticsQueueService, AnalyticsProcessor, MetricsAggregationService, CommitService, PullRequestService, KPIService, AnalyticsReadService, EngineeringHealthService, RiskDetectionService, TrendsService, DeltaAnalyticsService,CommitFileChangeService],
+  providers: [AnalyticsQueueService, AnalyticsProcessor, MetricsAggregationService, CommitService, PullRequestService, KPIService, AnalyticsReadService, EngineeringHealthService, RiskDetectionService, TrendsService, DeltaAnalyticsService,CommitFileChangeService,HealthCalculationService],
   exports: [AnalyticsQueueService, MetricsAggregationService, BullModule, CommitService, PullRequestService, KPIService, EngineeringHealthService, RiskDetectionService,CommitFileChangeService],
 })
 export class AnalyticsQueueModule { }

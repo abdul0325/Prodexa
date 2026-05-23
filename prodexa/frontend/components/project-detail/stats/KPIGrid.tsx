@@ -44,7 +44,7 @@ export default function KPIGrid({
         metrics?.hotspotCount || 0;
 
     const forecastConfidence =
-        metrics?.forecastConfidence || 95;
+        metrics?.forecastConfidence || 0;
 
     return (
 

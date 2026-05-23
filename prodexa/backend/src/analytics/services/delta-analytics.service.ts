@@ -56,8 +56,8 @@ export class DeltaAnalyticsService {
 
             healthDelta:
                 this.calculateDelta(
-                    current.commitVelocity || 0,
-                    previous.commitVelocity || 0,
+                    current.healthScore || 0,
+                    previous.healthScore || 0,
                 ),
 
             commitDelta:

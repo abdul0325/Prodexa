@@ -73,7 +73,7 @@ export class GithubEventsWorker extends WorkerHost {
         );
 
         const normalized =
-            this.normalizer.normalizePushEvent(
+            await this.normalizer.normalizePushEvent(
                 payload,
             );
 
@@ -126,7 +126,7 @@ export class GithubEventsWorker extends WorkerHost {
         );
 
         this.gateway.emitIntelligenceUpdate(
-            normalized.repository.id.toString(),
+            normalized.repositoryId,
         );
     }
 
@@ -135,7 +135,7 @@ export class GithubEventsWorker extends WorkerHost {
     ) {
 
         const normalized =
-            this.normalizer
+            await this.normalizer
                 .normalizePullRequestEvent(
                     payload,
                 );

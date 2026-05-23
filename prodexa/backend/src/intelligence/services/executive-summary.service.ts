@@ -86,19 +86,28 @@ export class ExecutiveSummaryService {
             }
 
             if (
-                (current.commitVelocity || 0)
+                (current.healthScore || 0)
                 >
-                (previous.commitVelocity || 0)
+                (previous.healthScore || 0)
             ) {
 
                 summary.push(
-                    'Commit velocity is trending upward.',
+                    'Engineering health is improving.',
                 );
 
+            } else if (
+                (current.healthScore || 0)
+                <
+                (previous.healthScore || 0)
+            ) {
+
+                summary.push(
+                    'Engineering health declined compared to the previous period.',
+                );
             } else {
 
                 summary.push(
-                    'Commit velocity remains stable.',
+                    'Engineering health remains stable.',
                 );
             }
         }

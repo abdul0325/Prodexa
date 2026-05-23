@@ -333,7 +333,7 @@ export default function MLTab({
 
                     </div>
 
-                    {/* RAW JSON */}
+                    {/* SIGNALS */}
 
                     <div className="card">
 
@@ -342,34 +342,232 @@ export default function MLTab({
                                 marginBottom: '1rem',
                             }}
                         >
-                            Raw ML Output
+                            ML Signals
                         </h3>
 
-                        <pre
+                        <div
                             style={{
-                                overflowX: 'auto',
+                                display: 'grid',
 
-                                padding: '1rem',
+                                gridTemplateColumns:
+                                    'repeat(auto-fit, minmax(200px, 1fr))',
 
-                                borderRadius: 14,
-
-                                background:
-                                    'rgba(255,255,255,0.03)',
-
-                                fontSize: '0.8rem',
-
-                                lineHeight: 1.6,
-
-                                color:
-                                    '#cbd5e1',
+                                gap: '1rem',
                             }}
                         >
-                            {JSON.stringify(
-                                mlData,
-                                null,
-                                2,
-                            )}
-                        </pre>
+
+                            <div
+                                style={{
+                                    padding: '1rem',
+
+                                    borderRadius: 12,
+
+                                    background:
+                                        'rgba(255,255,255,0.03)',
+
+                                    border:
+                                        '1px solid rgba(255,255,255,0.05)',
+                                }}
+                            >
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '0.8rem',
+
+                                        color:
+                                            'var(--text-muted)',
+
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    Average Impact Score
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '1.5rem',
+
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {mlData?.signals?.avgImpactScore || 0}
+                                </div>
+
+                            </div>
+
+                            <div
+                                style={{
+                                    padding: '1rem',
+
+                                    borderRadius: 12,
+
+                                    background:
+                                        'rgba(255,255,255,0.03)',
+
+                                    border:
+                                        '1px solid rgba(255,255,255,0.05)',
+                                }}
+                            >
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '0.8rem',
+
+                                        color:
+                                            'var(--text-muted)',
+
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    Average Risk Score
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '1.5rem',
+
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {mlData?.signals?.avgRiskScore || 0}
+                                </div>
+
+                            </div>
+
+                            <div
+                                style={{
+                                    padding: '1rem',
+
+                                    borderRadius: 12,
+
+                                    background:
+                                        'rgba(255,255,255,0.03)',
+
+                                    border:
+                                        '1px solid rgba(255,255,255,0.05)',
+                                }}
+                            >
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '0.8rem',
+
+                                        color:
+                                            'var(--text-muted)',
+
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    Noise Ratio
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '1.5rem',
+
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {Math.round(
+                                        (mlData?.signals?.noiseRatio || 0) * 100,
+                                    )}
+                                    %
+                                </div>
+
+                            </div>
+
+                            <div
+                                style={{
+                                    padding: '1rem',
+
+                                    borderRadius: 12,
+
+                                    background:
+                                        'rgba(255,255,255,0.03)',
+
+                                    border:
+                                        '1px solid rgba(255,255,255,0.05)',
+                                }}
+                            >
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '0.8rem',
+
+                                        color:
+                                            'var(--text-muted)',
+
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    Testing Ratio
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '1.5rem',
+
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {Math.round(
+                                        (mlData?.signals?.testingRatio || 0) * 100,
+                                    )}
+                                    %
+                                </div>
+
+                            </div>
+
+                            <div
+                                style={{
+                                    padding: '1rem',
+
+                                    borderRadius: 12,
+
+                                    background:
+                                        'rgba(255,255,255,0.03)',
+
+                                    border:
+                                        '1px solid rgba(255,255,255,0.05)',
+                                }}
+                            >
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '0.8rem',
+
+                                        color:
+                                            'var(--text-muted)',
+
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    Hotspot Count
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize:
+                                            '1.5rem',
+
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {mlData?.signals?.hotspotCount || 0}
+                                </div>
+
+                            </div>
+
+                        </div>
 
                     </div>
 

@@ -8,6 +8,7 @@ function getToken(): string | null {
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`${API_BASE}${endpoint}`, {
+    cache: 'no-store',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -17,8 +18,24 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(err.message || `HTTP ${res.status}`);
+
+    if (res.status === 401) {
+
+      clearToken();
+
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    }
+
+    const err =
+      await res.json().catch(() => ({
+        message: 'Request failed',
+      }));
+
+    throw new Error(
+      err.message || `HTTP ${res.status}`
+    );
   }
 
   return res.json();
@@ -92,200 +109,127 @@ export function isAuthenticated(): boolean {
 export const getAnalyticsOverview =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/overview'
+    return request(
+      '/analytics/overview'
     );
-
-    return response.json();
   };
 
 export const getPRInsights =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/pr-insights'
+    return request(
+      '/analytics/pr-insights'
     );
-
-    return response.json();
   };
 
 export const getCommitActivity =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/commit-activity'
+    return request(
+      '/analytics/commit-activity'
     );
-
-    return response.json();
   };
 
 export const getKPIs =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/kpis'
+    return request(
+      '/analytics/kpis'
     );
-
-    return response.json();
   };
 
 export const getEngineeringHealth =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/engineering-health'
+    return request(
+      '/analytics/engineering-health'
     );
-
-    return response.json();
   };
 
 export const getRiskDetection =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/risk-detection'
+    return request(
+      '/analytics/risk-detection'
     );
-
-    return response.json();
   };
 
 export const getAIInsights =
   async () => {
 
-    const response = await fetch(
-      'http://localhost:3001/analytics/ai-insights'
+    return request(
+      '/analytics/ai-insights'
     );
-
-    return response.json();
   };
 
 export async function fetchAIInsights(
   projectId: string,
 ) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/ai-insights`,
-    {
-      cache: 'no-store',
-    }
+  return request(
+    `/analytics/${projectId}/ai-insights`
   );
-
-  return response.json();
 }
 
-export async function fetchRiskDetection(projectId: string) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/risk-detection`,
-    {
-      cache: 'no-store',
-    }
+export async function fetchRiskDetection(
+  projectId: string,
+) {
+  return request(
+    `/analytics/${projectId}/risk-detection`
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch risk detection');
-  }
-
-  return response.json();
 }
 
-export async function fetchEngineeringHealth(projectId: string,) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/engineering-health`,
-    {
-      cache: 'no-store',
-    }
+export async function fetchEngineeringHealth(
+  projectId: string,
+) {
+  return request(
+    `/analytics/${projectId}/engineering-health`
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch engineering health');
-  }
-
-  return response.json();
 }
-
 
 export async function fetchProjectTrends(
   projectId: string,
 ) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/trends`,
-    {
-      cache: 'no-store',
-    },
+  return request(
+    `/analytics/${projectId}/trends`
   );
-
-  if (!response.ok) {
-
-    throw new Error(
-      'Failed to fetch trends',
-    );
-  }
-
-  return response.json();
 }
 
 export async function fetchProjectDeltas(
   projectId: string,
 ) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/deltas`,
-    {
-      cache: 'no-store',
-    },
+  return request(
+    `/analytics/${projectId}/deltas`
   );
-
-  if (!response.ok) {
-
-    throw new Error(
-      'Failed to fetch deltas',
-    );
-  }
-
-  return response.json();
 }
 
 export async function fetchForecast(
   projectId: string,
 ) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/forecast`,
-    {
-      cache: 'no-store',
-    },
+  return request(
+    `/analytics/${projectId}/forecast`
   );
-
-  if (!response.ok) {
-
-    throw new Error(
-      'Failed to fetch forecast',
-    );
-  }
-
-  return response.json();
 }
 
 export async function fetchExecutiveSummary(
   projectId: string,
 ) {
-
-  const response = await fetch(
-    `http://localhost:3001/analytics/${projectId}/executive-summary`,
-    {
-      cache: 'no-store',
-    },
+  return request(
+    `/analytics/${projectId}/executive-summary`
   );
+}
 
-  if (!response.ok) {
+export async function fetchProjectLeaderboard(
+  projectId: string,
+) {
+  return request(
+    `/projects/${projectId}/leaderboard`
+  );
+}
 
-    throw new Error(
-      'Failed to fetch executive summary',
-    );
-  }
-
-  return response.json();
+export async function fetchProjectRisk(
+  projectId: string,
+) {
+  return request(
+    `/projects/${projectId}/risk`
+  );
 }

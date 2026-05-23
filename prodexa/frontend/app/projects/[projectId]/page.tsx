@@ -7,24 +7,15 @@ import {
   useCallback,
 } from 'react';
 
-import { useRouter }
-  from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-import Sidebar
-  from '@/components/layout/Sidebar';
+import Sidebar from '@/components/layout/Sidebar';
 
-import {
-  AnalysisStatusBar,
-} from '@/components/ui/AnalysisStatus';
+import { AnalysisStatusBar } from '@/components/ui/AnalysisStatus';
 
-import {
-  ToastContainer,
-  toast,
-} from '@/components/ui/Toast';
+import { ToastContainer, toast } from '@/components/ui/Toast';
 
-import {
-  useProjectRealtime,
-} from '@/hooks/useSocket';
+import { useProjectRealtime } from '@/hooks/useSocket';
 
 import {
   api,
@@ -38,42 +29,17 @@ import {
   fetchProjectTrends,
 } from '@/lib/api';
 
-import {
-  NexusPulse,
-} from '@/components/loader/NexusPulse';
+import { NexusPulse } from '@/components/loader/NexusPulse';
 
-import ProjectHeader
-  from '@/components/project-detail/header/ProjectHeader';
-
-import KPIGrid
-  from '@/components/project-detail/stats/KPIGrid';
-
-import ExecutiveSummary
-  from '@/components/project-detail/intelligence/ExecutiveSummary';
-
-import AIInsightsPanel
-  from '@/components/project-detail/intelligence/AIInsightsPanel';
-
-import PredictiveForecast
-  from '@/components/project-detail/intelligence/PredictiveForecast';
-
-import RiskDetectionPanel
-  from '@/components/project-detail/intelligence/RiskDetectionPanel';
-
-import EngineeringTrendChart
-  from '@/components/project-detail/charts/EngineeringTrendChart';
-
-import ChartsTab
-  from '@/components/project-detail/tabs/ChartsTab';
-
-import DevelopersTab
-  from '@/components/project-detail/tabs/DevelopersTab';
-
-import MLTab
-  from '@/components/project-detail/tabs/MLTab';
-
-import LiveTab
-  from '@/components/project-detail/tabs/LiveTab';
+import ProjectHeader from '@/components/project-detail/header/ProjectHeader';
+import KPIGrid from '@/components/project-detail/stats/KPIGrid';
+import ExecutiveSummary from '@/components/project-detail/intelligence/ExecutiveSummary';
+import AIInsightsPanel from '@/components/project-detail/intelligence/AIInsightsPanel';
+import PredictiveForecast from '@/components/project-detail/intelligence/PredictiveForecast';
+import RiskDetectionPanel from '@/components/project-detail/intelligence/RiskDetectionPanel';
+import EngineeringTrendChart from '@/components/project-detail/charts/EngineeringTrendChart';
+import DevelopersTab from '@/components/project-detail/tabs/DevelopersTab';
+import MLTab from '@/components/project-detail/tabs/MLTab';
 
 import {
   AIInsightsResponse,
@@ -81,605 +47,394 @@ import {
   EngineeringHealthResponse,
 } from '@/types/intelligence';
 
-import {
-  BarChart3,
-  TrendingUp,
-  Users,
-  Bot,
-  Zap,
-} from 'lucide-react';
+import { Users, Bot } from 'lucide-react';
 
+interface DashboardData {
+  projectId: string;
+  healthScore: number;
+  healthStatus: string;
+  metrics: {
+    totalCommits: number;
+    totalPRs: number;
+    totalIssues: number;
+  };
+  leaderboard: {
+    totals: {
+      totalCommits: number;
+      totalPRs: number;
+      totalIssues: number;
+    };
+    developers: Developer[];
+  };
+  developerRisk: DeveloperRiskEntry[];
+}
+
+interface Developer {
+  developerLogin: string;
+  commits: number;
+  prs: number;
+  issues: number;
+  productivityScore: number;
+}
+
+interface DeveloperRiskEntry {
+  developer: string;
+  lastActive: string;
+  daysSinceLastCommit: number;
+  risk: string;
+}
+
+interface ForecastData {
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  forecast: string[];
+}
+
+interface ExecutiveSummaryData {
+  generatedAt: string;
+  totalInsights: number;
+  summary: string[];
+}
+
+interface TrendsData {
+  healthTrend: { date: string; health: number; commits: number; prs: number }[];
+  commitTrend: { date: string; commits: number }[];
+  prTrend: { date: string; prs: number }[];
+  velocityTrend: { date: string; velocity: number }[];
+}
+
+interface DeltaData {
+  healthDelta: number;
+  commitDelta: number;
+  prDelta: number;
+  velocityDelta: number;
+}
+
+interface MLPrediction {
+  projectId: string;
+  projectName: string;
+  projectScore: number;
+  deliveryRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+  teamHealthStatus: 'EXCELLENT' | 'GOOD' | 'MODERATE' | 'RISKY';
+  forecastConfidence: number; // 0–1 float from Python (e.g. 0.87)
+  reasons: string[];
+  signals: {
+    avgImpactScore: number;
+    avgRiskScore: number;
+    noiseRatio: number;
+    testingRatio: number;
+    hotspotCount: number;
+  };
+  generatedAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProjectDetailPage({
   params,
 }: {
-  params: Promise<{
-    projectId: string;
-  }>;
+  params: Promise<{ projectId: string }>;
 }) {
+  const { projectId } = use(params);
+  const router = useRouter();
 
-  const { projectId } =
-    use(params);
+  // ── Core dashboard data (GET /dashboard/project/:id)
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
 
-  const router =
-    useRouter();
+  // ── Activity timeline (GET /dashboard/project/:id/activity)
+  const [activity, setActivity] = useState<any[]>([]);
 
-  const [
-    dashboard,
-    setDashboard,
-  ] = useState<any>(null);
+  // ── ML prediction result (POST /ml/project/:id/analyze)
+  const [mlData, setMlData] = useState<MLPrediction | null>(null);
 
-  const [
-    activity,
-    setActivity,
-  ] = useState<any[]>([]);
-
-  const [
-    mlData,
-    setMlData,
-  ] = useState<any>(null);
-
-  const [
-    projectName,
-    setProjectName,
-  ] = useState('');
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
-
-  const [
-    analyzing,
-    setAnalyzing,
-  ] = useState(false);
-
-  const [
-    runningML,
-    setRunningML,
-  ] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [runningML, setRunningML] = useState(false);
 
   const [
     activeTab,
     setActiveTab,
-  ] = useState<
-    'charts' |
-    'developers' |
-    'ml' |
-    'live'
-  >('charts');
+  ] = useState<'developers' | 'ml'
+  >('developers');
 
-  const [
-    aiInsights,
-    setAIInsights,
-  ] = useState<AIInsightsResponse | null>(null);
+  // ── Intelligence endpoints
+  const [aiInsights, setAIInsights] = useState<AIInsightsResponse | null>(null);
 
-  const [
-    riskDetection,
-    setRiskDetection,
-  ] = useState<RiskDetectionResponse | null>(null);
+  // riskDetection: { totalRisks: number; risks: RiskItem[] }
+  const [riskDetection, setRiskDetection] = useState<RiskDetectionResponse | null>(null);
 
-  const [
-    engineeringHealth,
-    setEngineeringHealth,
-  ] = useState<EngineeringHealthResponse | null>(null);
+  // engineeringHealth: { score, status, metrics, signals }
+  const [engineeringHealth, setEngineeringHealth] = useState<EngineeringHealthResponse | null>(null);
 
-  const [
-    trends,
-    setTrends,
-  ] = useState<any>(null);
+  // trends: { healthTrend[], commitTrend[], prTrend[], velocityTrend[] }
+  const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
 
-  const [
-    deltas,
-    setDeltas,
-  ] = useState<any>(null);
+  // deltas: { healthDelta, commitDelta, prDelta, velocityDelta }
+  const [deltas, setDeltas] = useState<DeltaData | null>(null);
 
-  const [
-    forecast,
-    setForecast,
-  ] = useState<any>(null);
+  // forecast: { riskLevel, forecast: string[] }
+  const [forecast, setForecast] = useState<ForecastData | null>(null);
 
-  const [
-    executiveSummary,
-    setExecutiveSummary,
-  ] = useState<any>(null);
+  // executiveSummary: { generatedAt, totalInsights, summary: string[] }
+  const [executiveSummary, setExecutiveSummary] = useState<ExecutiveSummaryData | null>(null);
 
   const {
-
     analysisStatus,
     analysisMessage,
-
-    healthScore:
-    liveHealthScore,
-
-    healthStatus:
-    liveHealthStatus,
-
+    healthScore: liveHealthScore,
+    healthStatus: liveHealthStatus,
     liveDevs,
-
     dashboardUpdated,
     resetDashboardUpdated,
-
     intelligenceUpdated,
     resetIntelligenceUpdated,
-
   } = useProjectRealtime(projectId);
 
-  const loadIntelligence =
-    useCallback(async () => {
-
-      try {
-
-        const [
-
-          insights,
-
-          risks,
-
-          deltasData,
-
-          health,
-
-          forecastData,
-
-          executiveData,
-
-          trendData,
-
-        ] = await Promise.all([
-
-          fetchAIInsights(projectId),
-
-          fetchRiskDetection(projectId),
-
-          fetchProjectDeltas(projectId),
-
-          fetchEngineeringHealth(projectId),
-
-          fetchForecast(projectId),
-
-          fetchExecutiveSummary(projectId),
-
-          fetchProjectTrends(projectId),
-        ]);
-
-        setAIInsights(insights);
-
-        setRiskDetection(risks);
-
-        setEngineeringHealth(health);
-
-        setDeltas(deltasData);
-
-        setForecast(forecastData);
-
-        setExecutiveSummary(executiveData);
-
-        setTrends(
-          trendData?.healthTrend || [],
-        );
-
-      } catch (error) {
-
-        console.error(
-          'Failed loading intelligence',
-          error,
-        );
-      }
-
-    }, [projectId]);
-
-  const loadAll =
-    useCallback(async () => {
-
-      try {
-
-        const [
-          dash,
-          act,
-          projects,
-        ] = await Promise.all([
-
-          api.dashboard.get(projectId),
-
-          api.dashboard.activity(projectId),
-
-          api.projects.list(),
-        ]);
-
-        setDashboard(dash);
-
-        setActivity(
-          act || [],
-        );
-
-        const currentProject =
-          projects.find(
-            (p: any) =>
-              p.id === projectId,
-          );
-
-        if (
-          currentProject?.name
-        ) {
-
-          setProjectName(
-            currentProject.name,
-          );
-        }
-
-      } catch (e: any) {
-
-        toast(
-          'error',
-          'Failed to load dashboard',
-          e.message,
-        );
-
-      } finally {
-
-        setLoading(false);
-      }
-
-    }, [projectId]);
-
-  useEffect(() => {
-
-    if (
-      !isAuthenticated()
-    ) {
-
-      router.push('/');
-
-      return;
-    }
-
-    loadAll();
-
-    loadIntelligence();
-
-  }, [
-    projectId,
-    router,
-    loadAll,
-    loadIntelligence,
-  ]);
-
-  useEffect(() => {
-
-    if (
-      dashboardUpdated
-    ) {
-
-      toast(
-        'success',
-        'Analysis Complete',
-        'Dashboard updated successfully',
-      );
-
-      loadAll();
-
-      resetDashboardUpdated();
-
-      setAnalyzing(false);
-    }
-
-  }, [
-    dashboardUpdated,
-    loadAll,
-    resetDashboardUpdated,
-  ]);
-
-  useEffect(() => {
-
-    if (
-      intelligenceUpdated
-    ) {
-
-      loadIntelligence();
-
-      resetIntelligenceUpdated();
-    }
-
-  }, [
-    intelligenceUpdated,
-    loadIntelligence,
-    resetIntelligenceUpdated,
-  ]);
-
-  useEffect(() => {
-
-    if (
-      analysisStatus ===
-      'ANALYZING' &&
-      liveDevs.length > 0
-    ) {
-
-      setActiveTab('live');
-    }
-
-  }, [
-    analysisStatus,
-    liveDevs.length,
-  ]);
-
-  useEffect(() => {
-
-    if (
-      analysisStatus ===
-      'FAILED'
-    ) {
-
-      toast(
-        'error',
-        'Analysis Failed',
-        analysisMessage,
-      );
-
-      setAnalyzing(false);
-    }
-
-  }, [
-    analysisStatus,
-    analysisMessage,
-  ]);
-
-  async function handleAnalyze() {
-
-    setAnalyzing(true);
-
-    setActiveTab('live');
-
+  // ── Load all intelligence endpoints in parallel
+  const loadIntelligence = useCallback(async () => {
     try {
+      const [
+        insights,
+        risks,
+        deltasData,
+        health,
+        forecastData,
+        executiveData,
+        trendData,
+      ] = await Promise.all([
+        fetchAIInsights(projectId),       // { totalInsights, insights: string[] }
+        fetchRiskDetection(projectId),    // { totalRisks, risks: RiskItem[] }
+        fetchProjectDeltas(projectId),    // { healthDelta, commitDelta, prDelta, velocityDelta }
+        fetchEngineeringHealth(projectId),// { score, status, metrics, signals }
+        fetchForecast(projectId),         // { riskLevel, forecast: string[] }
+        fetchExecutiveSummary(projectId), // { generatedAt, totalInsights, summary: string[] }
+        fetchProjectTrends(projectId),    // { healthTrend[], commitTrend[], prTrend[], velocityTrend[] }
+      ]);
 
-      await api.projects
-        .analyze(projectId);
+      setAIInsights(insights as AIInsightsResponse);
+      setRiskDetection(risks as RiskDetectionResponse);
+      setEngineeringHealth(health as EngineeringHealthResponse);
+      setDeltas(deltasData as DeltaData);
+      setForecast(forecastData as ForecastData);
+      setExecutiveSummary(executiveData as ExecutiveSummaryData);
+      // trendData is the full TrendsData object — keep the whole thing
+      setTrendsData(trendData as TrendsData);
 
-      toast(
-        'info',
-        'Analysis Started',
-        'Live feed activated',
+    } catch (error) {
+      console.error('Failed loading intelligence', error);
+    }
+  }, [projectId]);
+
+  // ── Load dashboard + activity + project name
+  const loadAll = useCallback(async () => {
+    try {
+      const [dash, act, projects] = await Promise.all([
+        api.dashboard.get(projectId),      // DashboardData
+        api.dashboard.activity(projectId), // ActivityPoint[]
+        api.projects.list(),               // Project[]
+      ]);
+
+      setDashboard(dash as DashboardData);
+      setActivity(act || []);
+
+      const currentProject = (projects as any[]).find(
+        (p: any) => p.id === projectId,
       );
+      if (currentProject?.name) {
+        setProjectName(currentProject.name);
+      }
 
     } catch (e: any) {
+      toast('error', 'Failed to load dashboard', e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
 
-      toast(
-        'error',
-        'Failed to analyze',
-        e.message,
-      );
+  // ── Bootstrap
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/');
+      return;
+    }
+    loadAll();
+    loadIntelligence();
+  }, [projectId, router, loadAll, loadIntelligence]);
 
+  // ── WebSocket: dashboard updated
+  useEffect(() => {
+    if (dashboardUpdated) {
+      toast('success', 'Analysis Complete', 'Dashboard updated successfully');
+      loadAll();
+      resetDashboardUpdated();
+      setAnalyzing(false);
+    }
+  }, [dashboardUpdated, loadAll, resetDashboardUpdated]);
+
+  // ── WebSocket: intelligence updated
+  useEffect(() => {
+    if (intelligenceUpdated) {
+      loadIntelligence();
+      resetIntelligenceUpdated();
+    }
+  }, [intelligenceUpdated, loadIntelligence, resetIntelligenceUpdated]);
+
+  // ── WebSocket: analysis failed
+  useEffect(() => {
+    if (analysisStatus === 'FAILED') {
+      toast('error', 'Analysis Failed', analysisMessage);
+      setAnalyzing(false);
+    }
+  }, [analysisStatus, analysisMessage]);
+
+  // ─────────────────────────────────────────────
+  // ACTION HANDLERS
+  // ─────────────────────────────────────────────
+
+  async function handleAnalyze() {
+    setAnalyzing(true);
+    setActiveTab('live');
+    try {
+      await api.projects.analyze(projectId);
+      toast('info', 'Analysis Started', 'Live feed activated');
+    } catch (e: any) {
+      toast('error', 'Failed to analyze', e.message);
       setAnalyzing(false);
     }
   }
 
   async function handleMLAnalyze() {
-
     setRunningML(true);
-
     try {
-
-      const result =
-        await api.ml
-          .analyze(projectId);
-
+      const result = await api.ml.analyze(projectId) as MLPrediction;
       setMlData(result);
-
       setActiveTab('ml');
-
+      // projectScore is a number 0–100
       toast(
         'success',
         'ML Analysis Complete',
-        `Score ${result.projectScore}`,
+        `Score: ${Math.round(result.projectScore)}`,
       );
-
     } catch (e: any) {
-
-      toast(
-        'error',
-        'ML Error',
-        e.message,
-      );
-
+      toast('error', 'ML Error', e.message);
     } finally {
-
       setRunningML(false);
     }
   }
 
+  // ─────────────────────────────────────────────
+  // DERIVED DISPLAY VALUES
+  // ─────────────────────────────────────────────
+
+  /**
+   * Health score priority:
+   * 1. engineeringHealth.score  (GET /analytics/:id/engineering-health → { score, status, ... })
+   * 2. liveHealthScore          (WebSocket realtime)
+   * 3. dashboard.healthScore    (GET /dashboard/project/:id)
+   */
   const displayHealth =
-    engineeringHealth?.score ??
+    (engineeringHealth as any)?.score ??
     liveHealthScore ??
     dashboard?.healthScore ??
     0;
 
+  /**
+   * Health status priority mirrors above
+   */
   const displayStatus =
-    engineeringHealth?.status ||
+    (engineeringHealth as any)?.status ||
     liveHealthStatus ||
     dashboard?.healthStatus ||
     'UNKNOWN';
 
-  const isLive =
-    liveHealthScore !== null;
+  const isLive = liveHealthScore !== null;
 
-  const devs =
-    dashboard?.leaderboard?.developers || [];
+  // Developers from the leaderboard
+  const devs = dashboard?.leaderboard?.developers || [];
 
-  const riskDevs =
-    dashboard?.developerRisk || [];
+  // Developer risk entries
+  const riskDevs = dashboard?.developerRisk || [];
 
   const metrics = {
-
     commits:
       dashboard?.metrics?.totalCommits ||
-
       dashboard?.leaderboard?.totals?.totalCommits ||
-
-      activity?.length ||
-
       0,
 
     totalPRs:
       dashboard?.metrics?.totalPRs ||
-
       dashboard?.leaderboard?.totals?.totalPRs ||
-
       0,
 
     totalIssues:
       dashboard?.metrics?.totalIssues ||
-
       dashboard?.leaderboard?.totals?.totalIssues ||
-
       0,
 
-    avgImpactScore:
-      mlData?.signals?.avgImpactScore ||
+    // avgImpactScore is ML-specific, keep using mlData
+    avgImpactScore: mlData?.signals?.avgImpactScore ?? 0,
 
-      forecast?.signals?.avgImpactScore ||
+    // Use real risk detection data for these metrics
+    avgRiskScore: (riskDetection as any)?.signals?.avgRiskScore ?? 0,
+    hotspotCount: (riskDetection as any)?.signals?.hotspotCount ?? 0,
 
-      riskDetection?.signals?.avgImpactScore ||
-
-      Math.round(
-        (
-          dashboard?.metrics?.totalCommits || 0
-        ) * 0.35,
-      ),
-
-    avgRiskScore:
-      mlData?.signals?.avgRiskScore ||
-
-      forecast?.signals?.avgRiskScore ||
-
-      riskDetection?.signals?.avgRiskScore ||
-
-      Math.round(
-        (
-          dashboard?.metrics?.totalIssues || 0
-        ) * 0.5,
-      ),
-
-    hotspotCount:
-      mlData?.signals?.hotspotCount ||
-
-      forecast?.signals?.hotspotCount ||
-
-      riskDetection?.signals?.hotspotCount ||
-
-      Math.max(
-        0,
-        Math.round(
-          (
-            dashboard?.metrics?.totalPRs || 0
-          ) / 5,
-        ),
-      ),
-
-    forecastConfidence:
-      mlData?.forecastConfidence ||
-
-      forecast?.forecastConfidence ||
-
-      95,
-  };
-
-  const tabs = [
-
-    {
-      key: 'charts',
-      label: 'Charts',
-      icon: TrendingUp,
-    },
-
-    {
-      key: 'developers',
-      label: 'Developers',
-      icon: Users,
-    },
-
-    {
-      key: 'ml',
-      label: 'ML',
-      icon: Bot,
-    },
-
-    {
-      key: 'live',
-      label: 'Live',
-      icon: Zap,
-    },
-
-  ];
-
-  if (loading) {
-
-    return (
-
-      <div className="page-shell">
-
-        <Sidebar />
-
-        <main className="main-content page-main">
-
-          <NexusPulse
-            size="small"
-            showText
-            text="Loading Dashboard..."
-          />
-
-        </main>
-
-      </div>
-    );
-  }
-  const latestPrediction =
-    dashboard?.predictions?.[0];
-
-  const previousPrediction =
-    dashboard?.predictions?.[1];
-
-  const calculateDelta = (
-    current?: number,
-    previous?: number,
-  ) => {
-
-    if (
-      current === undefined ||
-      previous === undefined ||
-      previous === 0
-    ) {
-      return undefined;
-    }
-
-    return Math.round(
-      ((current - previous) / previous) * 100,
-    );
+    // forecastConfidence: Python float 0–1, multiply by 100 for display
+    // This is ML-only, keep as is
+    forecastConfidence: mlData?.forecastConfidence
+      ? Math.round(mlData.forecastConfidence * 100)
+      : 0,
   };
 
   const calculatedDeltas = {
-
-    health:
-      deltas?.healthDelta,
-
-    delivery:
-      deltas?.velocityDelta,
-
-    forecast:
-      deltas?.velocityDelta,
-
-    hotspots:
-      deltas?.prDelta,
-
-    impact:
-      deltas?.commitDelta,
-
-    risk:
-      deltas?.healthDelta,
+    health: deltas?.healthDelta ?? undefined,
+    delivery: deltas?.velocityDelta ?? undefined,
+    forecast: deltas?.velocityDelta ?? undefined,
+    hotspots: deltas?.prDelta ?? undefined,
+    impact: deltas?.commitDelta ?? undefined,
+    risk: deltas?.healthDelta ?? undefined,
   };
+
+  const forecastPanelData = mlData ?? null;
+  const riskPanelData = riskDetection ?? null;
+  const trendChartData = trendsData?.healthTrend ?? [];
+
+  // ─────────────────────────────────────────────
+  // LOADING STATE
+  // ─────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="page-shell">
+        <Sidebar />
+        <main className="main-content page-main">
+          <NexusPulse size="small" showText text="Loading Dashboard..." />
+        </main>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // TABS
+  // ─────────────────────────────────────────────
+
+  const tabs = [
+    { key: 'developers', label: 'Developers', icon: Users },
+    { key: 'ml', label: 'ML', icon: Bot },
+  ];
+
+  // ─────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────
 
   return (
 
-    <div className="page-shell">
+    <div
+      className="page-shell"
+      style={{
+        width: '100%',
+        overflowX: 'hidden',
+      }}
+    >
 
       <Sidebar />
 
@@ -690,8 +445,15 @@ export default function ProjectDetailPage({
         project-detail-main
       "
         style={{
+
           width: '100%',
+
           minWidth: 0,
+
+          overflowX: 'hidden',
+
+          padding:
+            'clamp(0.75rem, 2vw, 1.5rem)',
         }}
       >
 
@@ -700,7 +462,7 @@ export default function ProjectDetailPage({
         <ProjectHeader
           projectName={projectName}
           projectId={projectId}
-          repoUrl={dashboard?.repoUrl}
+          repoUrl={dashboard?.repoUrl as string | undefined}
           analysisStatus={analysisStatus}
           analyzing={analyzing}
           runningML={runningML}
@@ -710,46 +472,80 @@ export default function ProjectDetailPage({
 
         {/* STATUS */}
 
-        <AnalysisStatusBar
-          status={analysisStatus}
-          message={analysisMessage}
-        />
+        <div
+          style={{
+            marginBottom: '1rem',
+          }}
+        >
 
-        {/* KPI */}
+          <AnalysisStatusBar
+            status={analysisStatus}
+            message={analysisMessage}
+          />
 
-        <KPIGrid
-          displayHealth={displayHealth}
-          displayStatus={displayStatus}
-          isLive={isLive}
-          metrics={metrics}
-          deltas={calculatedDeltas}
-          developersCount={devs.length}
-          totalCommits={
-            dashboard?.analytics?.totalCommits ||
-            0
-          }
-        />
+        </div>
 
-        {/* EXECUTIVE */}
+        {/* KPI GRID */}
 
-        <ExecutiveSummary
-          summary={
-            executiveSummary?.summary || []
-          }
-        />
+        <div
+          style={{
+            width: '100%',
+            overflowX: 'hidden',
+            marginBottom: '1.5rem',
+          }}
+        >
+
+          <KPIGrid
+            displayHealth={displayHealth}
+            displayStatus={displayStatus}
+            isLive={isLive}
+            metrics={metrics}
+            deltas={calculatedDeltas}
+            developersCount={devs.length}
+          />
+
+        </div>
+
+        {/* EXECUTIVE SUMMARY */}
+
+        <div
+          style={{
+            marginBottom: '1.5rem',
+          }}
+        >
+
+          <ExecutiveSummary
+            summary={
+              executiveSummary?.summary || []
+            }
+            generatedAt={executiveSummary?.generatedAt}
+          />
+
+        </div>
 
         {/* TREND CHART */}
 
         <div
           style={{
+
             width: '100%',
+
             minWidth: 0,
+
+            overflowX: 'hidden',
+
             marginBottom: '1.5rem',
           }}
         >
 
           <EngineeringTrendChart
-            trends={trends}
+            trends={
+              Array.isArray(
+                trendChartData,
+              )
+                ? trendChartData
+                : []
+            }
           />
 
         </div>
@@ -758,34 +554,59 @@ export default function ProjectDetailPage({
 
         <div
           style={{
+
             display: 'grid',
 
             gridTemplateColumns:
-              'repeat(auto-fit, minmax(320px, 1fr))',
+              'repeat(auto-fit,minmax(320px,1fr))',
 
-            gap: '1.5rem',
-
-            marginBottom: '1.5rem',
+            gap: '1.25rem',
 
             width: '100%',
+
+            alignItems: 'stretch',
+
+            marginBottom: '1.5rem',
           }}
         >
 
-          <AIInsightsPanel
-            insights={
-              aiInsights?.insights ||
-              aiInsights ||
-              []
-            }
-          />
+          <div
+            style={{
+              minWidth: 0,
+            }}
+          >
 
-          <PredictiveForecast
-            mlData={mlData || forecast}
-          />
+            <AIInsightsPanel
+              insights={
+                aiInsights?.insights || []
+              }
+            />
 
-          <RiskDetectionPanel
-            mlData={mlData || riskDetection}
-          />
+          </div>
+
+          <div
+            style={{
+              minWidth: 0,
+            }}
+          >
+
+            <PredictiveForecast
+              mlData={forecastPanelData}
+            />
+
+          </div>
+
+          <div
+            style={{
+              minWidth: 0,
+            }}
+          >
+
+            <RiskDetectionPanel
+              mlData={riskPanelData}
+            />
+
+          </div>
 
         </div>
 
@@ -794,8 +615,16 @@ export default function ProjectDetailPage({
         <div
           className="tabs-container"
           style={{
+
             width: '100%',
+
+            overflowX: 'auto',
+
             marginBottom: '1.5rem',
+
+            scrollbarWidth: 'none',
+
+            msOverflowStyle: 'none',
           }}
         >
 
@@ -809,17 +638,9 @@ export default function ProjectDetailPage({
 
               gap: '0.75rem',
 
-              width: '100%',
-
-              overflowX: 'auto',
-
-              overflowY: 'hidden',
+              minWidth: 'max-content',
 
               paddingBottom: 4,
-
-              scrollbarWidth: 'none',
-
-              msOverflowStyle: 'none',
             }}
           >
 
@@ -837,13 +658,8 @@ export default function ProjectDetailPage({
                   key={tab.key}
                   onClick={() =>
                     setActiveTab(
-                      tab.key as any,
+                      tab.key as typeof activeTab,
                     )
-                  }
-                  className={
-                    active
-                      ? 'tab-active'
-                      : 'tab-button'
                   }
                   style={{
 
@@ -859,23 +675,57 @@ export default function ProjectDetailPage({
 
                     flexShrink: 0,
 
-                    minHeight: 46,
+                    minHeight: 48,
+
+                    minWidth: 130,
 
                     padding:
-                      '0.75rem 1rem',
+                      '0.8rem 1.15rem',
 
                     borderRadius: 14,
 
-                    fontSize: '0.9rem',
+                    fontSize: '0.92rem',
 
-                    fontWeight: 600,
+                    fontWeight: 700,
+
+                    cursor: 'pointer',
 
                     transition:
-                      'all 0.2s ease',
+                      'all 0.25s ease',
+
+                    border: active
+
+                      ? '1px solid rgba(37,99,235,0.4)'
+
+                      : '1px solid rgba(148,163,184,0.18)',
+
+                    background: active
+
+                      ? 'linear-gradient(135deg,#2563eb,#1d4ed8)'
+
+                      : 'var(--surface-secondary)',
+
+                    color: active
+
+                      ? '#ffffff'
+
+                      : 'var(--text-primary)',
+
+                    boxShadow: active
+
+                      ? '0 10px 25px rgba(37,99,235,0.35)'
+
+                      : 'none',
+
+                    transform: active
+
+                      ? 'translateY(-1px)'
+
+                      : 'translateY(0)',
                   }}
                 >
 
-                  <Icon size={16} />
+                  <Icon size={17} />
 
                   <span>
                     {tab.label}
@@ -893,53 +743,52 @@ export default function ProjectDetailPage({
 
         <div
           className="
-    dashboard-grid
-    dashboard-grid-1
-  "
+          dashboard-grid
+          dashboard-grid-1
+        "
           style={{
+
             width: '100%',
+
             minWidth: 0,
+
+            overflowX: 'hidden',
           }}
         >
 
-          {activeTab ===
-            'charts' && (
+          {activeTab === 'developers' && (
 
-              <ChartsTab
-                activity={activity}
-                developers={devs}
-                riskDevs={riskDevs}
-              />
-            )}
-
-          {activeTab ===
-            'developers' && (
+            <div
+              style={{
+                width: '100%',
+                minWidth: 0,
+              }}
+            >
 
               <DevelopersTab
-                developers={devs}
+                projectId={projectId}
               />
-            )}
 
-          {activeTab ===
-            'ml' && (
+            </div>
+          )}
+
+          {activeTab === 'ml' && (
+
+            <div
+              style={{
+                width: '100%',
+                minWidth: 0,
+              }}
+            >
 
               <MLTab
                 mlData={mlData}
                 runningML={runningML}
-                onRunML={
-                  handleMLAnalyze
-                }
+                onRunML={handleMLAnalyze}
               />
-            )}
 
-          {activeTab ===
-            'live' && (
-
-              <LiveTab
-                liveDevs={liveDevs}
-                analysisStatus={analysisStatus}
-              />
-            )}
+            </div>
+          )}
 
         </div>
 

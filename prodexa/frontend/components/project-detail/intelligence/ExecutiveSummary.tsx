@@ -19,22 +19,13 @@ export default function ExecutiveSummary({
 
 }: Props) {
 
-    const fallbackSummary = `
-Engineering systems remain stable with
-low delivery risk and healthy subsystem
-activity. Current telemetry indicates
-stable architecture behavior with no
-significant hotspot propagation detected.
-`;
-
     const normalizedSummary =
         Array.isArray(summary)
             ? summary.join(' ')
             : summary;
 
     const displaySummary =
-        normalizedSummary ||
-        fallbackSummary;
+        normalizedSummary;
 
     return (
 
@@ -101,6 +92,22 @@ significant hotspot propagation detected.
                     }}
                 >
                     Generating executive summary...
+                </div>
+
+            ) : !displaySummary ? (
+
+                <div
+                    style={{
+                        padding: '1rem',
+                        borderRadius: 14,
+                        background:
+                            'rgba(255,255,255,0.03)',
+                        color:
+                            'var(--text-muted)',
+                        fontSize: '0.9rem',
+                    }}
+                >
+                    No executive summary available. Run analysis to generate insights.
                 </div>
 
             ) : (

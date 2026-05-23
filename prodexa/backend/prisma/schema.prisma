@@ -29,6 +29,22 @@ model User {
   @@index([role])
 }
 
+model Repository {
+  id        String   @id @default(cuid())
+  githubId  String   @unique
+  owner     String
+  repoName  String
+  fullName  String   @unique
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+
+  @@index([githubId])
+  @@index([fullName])
+}
+
 model Project {
   id             String         @id @default(uuid())
   name           String
@@ -47,6 +63,9 @@ model Project {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
+  repositoryId String?
+  repository   Repository? @relation(fields: [repositoryId], references: [id])
+
   metrics             ProjectActivity[]
   predictions         Prediction[]
   developerActivities DeveloperActivity[]
@@ -56,6 +75,7 @@ model Project {
   @@index([status])
   @@index([analysisStatus])
   @@index([lastSyncedAt])
+  @@index([repositoryId])
 }
 
 model ProjectActivity {
@@ -194,6 +214,10 @@ model DailyMetricsSnapshot {
   averagePRMergeTime Float?
 
   commitVelocity Float?
+
+  healthScore Float @default(0)
+
+  daysSinceStart Int @default(0)
 
   createdAt DateTime @default(now())
 

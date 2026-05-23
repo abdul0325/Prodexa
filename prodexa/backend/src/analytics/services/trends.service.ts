@@ -39,12 +39,7 @@ export class TrendsService {
 
                     date: s.date,
 
-                    health:
-                        s.commitVelocity ||
-
-                        s.totalCommits ||
-
-                        0,
+                    health: s.healthScore || 0,
 
                     commits:
                         s.totalCommits || 0,
