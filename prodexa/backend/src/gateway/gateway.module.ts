@@ -1,3 +1,4 @@
+//backend/src/gateway/gateway.module.ts
 import { Module } from '@nestjs/common';
 import { RealtimeGateway } from './realtime.gateway';
 import { JwtModule } from '@nestjs/jwt';

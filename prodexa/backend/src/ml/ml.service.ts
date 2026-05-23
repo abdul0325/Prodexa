@@ -1,88 +1,175 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { lastValueFrom } from 'rxjs';
-import { PrismaService } from '../prisma/prisma.service';
+/* eslint-disable prettier/prettier */
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+
+import { HttpService }
+  from '@nestjs/axios';
+
+import { lastValueFrom }
+  from 'rxjs';
+
+import { PrismaService }
+  from '../prisma/prisma.service';
+
+import { FeatureEngineeringService }
+  from './feature-engineering.service';
 
 @Injectable()
 export class MLService {
+
   constructor(
-    private httpService: HttpService,
-    private prisma: PrismaService,
-  ) {}
 
-  private mlServiceUrl = process.env.ML_SERVICE_URL || 'http://localhost:5000';
+    private readonly httpService:
+      HttpService,
 
-  async analyzeProject(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-      include: { developerActivities: true },
-    });
+    private readonly prisma:
+      PrismaService,
 
-    if (!project)
-      throw new HttpException('Project not found', HttpStatus.NOT_FOUND);
+    private readonly featureEngineering:
+      FeatureEngineeringService,
+  ) { }
 
-    // Build payload from real DB data
+  private mlServiceUrl =
+    process.env.ML_SERVICE_URL ||
+    'http://localhost:8000';
+
+  async analyzeProject(
+    projectId: string,
+  ) {
+
+    const project =
+      await this.prisma.project
+        .findUnique({
+
+          where: {
+            id: projectId,
+          },
+        });
+
+    if (!project) {
+
+      throw new HttpException(
+        'Project not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // ENGINEERING FEATURE VECTOR
+
+    const features =
+      await this.featureEngineering
+        .generateProjectFeatures(
+          projectId,
+        );
+
     const payload = {
-      projectId: project.id,
-      projectName: project.name,
-      developers: project.developerActivities.map((d) => ({
-        developerLogin: d.developerLogin,
-        commits: d.commits,
-        pullRequestCount: d.pullRequestCount,
-        issueCount: d.issueCount,
-        productivityScore: d.productivityScore,
-      })),
+
+      projectId:
+        project.id,
+
+      projectName:
+        project.name,
+
+      features,
     };
 
+    console.log(
+      'ML FEATURES:',
+      payload.features,
+    );
+
     try {
-      // Call FastAPI ML service
-      const response$ = this.httpService.post(
-        `${this.mlServiceUrl}/predict`,
-        payload,
-      );
-      const response = await lastValueFrom(response$);
-      const predictions = response.data;
 
-      // Save per-developer predicted scores back to DB
-      for (const dev of predictions.developers) {
-        await this.prisma.developerActivity.update({
-          where: {
-            developerLogin_projectId: {
-              developerLogin: dev.developerLogin,
-              projectId,
-            },
+      const response$ =
+        this.httpService.post(
+
+          `${this.mlServiceUrl}/predict`,
+
+          payload,
+
+          {
+            timeout: 15000,
           },
-          data: { predictedScore: Math.round(dev.predictedScore) },
-        });
-      }
+        );
 
-      // Save project-level prediction to DB
-      await this.prisma.prediction.create({
-        data: {
-          projectId,
-          productivityScore: predictions.projectScore,
-          deliveryRisk: predictions.deliveryRisk,
-          workloadForecast: predictions.workloadForecast,
-        },
-      });
+      const response =
+        await lastValueFrom(
+          response$,
+        );
+
+      const predictions =
+        response.data;
+
+      console.log(
+        'ML PREDICTION:',
+        predictions,
+      );
+
+      // SAVE PREDICTION
+
+      await this.prisma.prediction
+        .create({
+
+          data: {
+
+            projectId,
+
+            productivityScore:
+              predictions.projectScore,
+
+            deliveryRisk:
+              predictions.deliveryRisk,
+
+            workloadForecast:
+              predictions.forecastConfidence || 0,
+          },
+        });
 
       return predictions;
+
     } catch (error) {
+
+      console.error(
+        'ML SERVICE ERROR:',
+        error.message,
+      );
+
       throw new HttpException(
+
         'ML service request failed — make sure FastAPI is running on port 5000',
+
         HttpStatus.BAD_GATEWAY,
       );
     }
   }
 
-  // Health check — verify ML service is reachable
   async checkHealth() {
+
     try {
-      const response$ = this.httpService.get(`${this.mlServiceUrl}/health`);
-      const response = await lastValueFrom(response$);
+
+      const response$ =
+        this.httpService.get(
+          `${this.mlServiceUrl}/health`,
+        );
+
+      const response =
+        await lastValueFrom(
+          response$,
+        );
+
       return response.data;
+
     } catch {
-      return { status: 'unreachable', url: this.mlServiceUrl };
+
+      return {
+
+        status: 'unreachable',
+
+        url: this.mlServiceUrl,
+      };
     }
   }
 }

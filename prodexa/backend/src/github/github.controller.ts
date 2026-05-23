@@ -1,5 +1,5 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/prisma/auth/jwt-auth.guard';
 import { GithubService } from './github.service';
 
 @Controller('github')

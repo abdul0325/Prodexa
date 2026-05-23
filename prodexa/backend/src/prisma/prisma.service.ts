@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { Injectable, OnModuleInit } from '@nestjs/common';
@@ -20,12 +21,33 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     await this.$connect();
 
     // 👇 Listen to query events
-    this.$on('query', (e) => {
-      console.log('--- Prisma Query ---');
-      console.log('Query:', e.query); // SQL
-      console.log('Params:', e.params); // Values
-      console.log('Duration:', e.duration + 'ms'); // Execution time
-      console.log('--------------------');
-    });
+    if (
+      process.env.PRISMA_DEBUG === 'true'
+    ) {
+
+      this.$on('query', (e) => {
+
+        if (e.duration > 200) {
+
+          console.log(
+            '🐢 Slow Query:',
+          );
+
+          console.log(
+            'Duration:',
+            e.duration + 'ms',
+          );
+
+          console.log(
+            'Query:',
+            e.query,
+          );
+
+          console.log(
+            '--------------------',
+          );
+        }
+      });
+    }
   }
 }

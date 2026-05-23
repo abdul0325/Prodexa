@@ -1,58 +1,94 @@
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
+from typing import List, Dict, Any
 
 
-# ─────────────────────────────────────────────
-# REQUEST SCHEMAS (what NestJS sends to us)
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
+# FEATURE VECTOR
+# ─────────────────────────────────────
 
-class DeveloperInput(BaseModel):
-    developerLogin: str
-    commits: int
-    pullRequestCount: int
-    issueCount: int
-    productivityScore: int
-    activityTimestamp: Optional[str] = None
+class ProjectFeatures(BaseModel):
 
+    totalCommits: int
+
+    totalPRs: int
+
+    avgImpactScore: float
+
+    avgRiskScore: float
+
+    avgMeaningfulness: float
+
+    riskyCommits: int
+
+    highImpactCommits: int
+
+    lowValueCommits: int
+
+    noiseRatio: float
+
+    testingRatio: float
+
+    backendChanges: int
+
+    frontendChanges: int
+
+    infraChanges: int
+
+    securityChanges: int
+
+    hotspotCount: int
+
+
+# ─────────────────────────────────────
+# REQUEST
+# ─────────────────────────────────────
 
 class PredictRequest(BaseModel):
+
     projectId: str
+
     projectName: str
-    developers: List[DeveloperInput]
+
+    features: ProjectFeatures
 
 
-# ─────────────────────────────────────────────
-# RESPONSE SCHEMAS (what we send back to NestJS)
-# ─────────────────────────────────────────────
-
-class DeveloperPrediction(BaseModel):
-    developerLogin: str
-    commits: int
-    pullRequestCount: int
-    issueCount: int
-    currentScore: int
-    predictedScore: float
-    trend: str          # "improving", "declining", "stable"
-    riskLevel: str      # "Low", "Medium", "High"
-
+# ─────────────────────────────────────
+# RESPONSE
+# ─────────────────────────────────────
 
 class PredictResponse(BaseModel):
+
     projectId: str
+
+    projectName: str
+
     projectScore: float
-    deliveryRisk: str       # "Low", "Medium", "High"
-    workloadForecast: float
-    teamHealthStatus: str   # "Excellent", "Good", "Moderate", "Risky"
-    developers: List[DeveloperPrediction]
+
+    deliveryRisk: str
+
+    teamHealthStatus: str
+
+    forecastConfidence: float
+
+    reasons: List[str]
+
+    signals: Dict[str, Any]
+
     generatedAt: str
 
 
-# ─────────────────────────────────────────────
-# TRAINING SCHEMAS
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────
+# TRAINING RESPONSE
+# ─────────────────────────────────────
 
 class TrainResponse(BaseModel):
+
     message: str
-    accuracy: float
+
+    risk_accuracy: float
+
+    engineering_health_mae: float
+
     samples_trained: int
+
     model_version: str

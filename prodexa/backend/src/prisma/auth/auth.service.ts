@@ -1,0 +1,45 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { JwtService } from '@nestjs/jwt';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
+
+  async validateGithubUser(profile: any, accessToken: string) {
+    const email = profile.emails?.[0]?.value;
+
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          name: profile.displayName || profile.username,
+          email,
+          // FIX: store GitHub OAuth token in githubToken field, NOT passwordHash
+          githubToken: accessToken,
+        },
+      });
+    } else {
+      user = await this.prisma.user.update({
+        where: { email },
+        data: {
+          // FIX: update githubToken on every login to keep it fresh
+          githubToken: accessToken,
+        },
+      });
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    const token = this.jwtService.sign(payload);
+
+    return { user, token };
+  }
+}

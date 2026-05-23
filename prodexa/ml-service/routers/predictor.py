@@ -1,136 +1,308 @@
 """
-Prodexa ML Predictor
-Uses trained Random Forest models to predict:
-- Developer productivity scores
-- Project delivery risk
-- Workload forecast
+Prodexa Engineering Intelligence
+Predictor
 """
 
 import numpy as np
 import pandas as pd
+
 from datetime import datetime
-from typing import List, Dict, Any
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from training.train import (
+    load_models,
+    engineer_features,
+)
 
-from training.train import load_models, engineer_features
-from schemas.predict import DeveloperInput, DeveloperPrediction, PredictResponse
+# ─────────────────────────────────────
+# LOAD MODELS
+# ─────────────────────────────────────
 
+health_model, risk_model, scaler = (
+    load_models()
+)
 
-# Load models once at startup
-score_model, risk_model, scaler = load_models()
+# ─────────────────────────────────────
+# RISK LABELS
+# ─────────────────────────────────────
 
+RISK_LABELS = {
 
-def predict_developer(dev: DeveloperInput) -> DeveloperPrediction:
-    """Predict productivity score and risk for a single developer."""
+    0: "LOW",
 
-    # Build feature dataframe
+    1: "MEDIUM",
+
+    2: "HIGH",
+}
+
+# ─────────────────────────────────────
+# PREDICT PROJECT
+# ─────────────────────────────────────
+
+def predict_project(
+    project_id: str,
+    project_name: str,
+    features,
+):
+
+    # BUILD DATAFRAME
+
     df = pd.DataFrame([{
-        'commits': dev.commits,
-        'pullRequestCount': dev.pullRequestCount,
-        'issueCount': dev.issueCount,
+
+        'totalCommits':
+            features.totalCommits,
+
+        'totalPRs':
+            features.totalPRs,
+
+        'avgImpactScore':
+            features.avgImpactScore,
+
+        'avgRiskScore':
+            features.avgRiskScore,
+
+        'avgMeaningfulness':
+            features.avgMeaningfulness,
+
+        'riskyCommits':
+            features.riskyCommits,
+
+        'highImpactCommits':
+            features.highImpactCommits,
+
+        'lowValueCommits':
+            features.lowValueCommits,
+
+        'noiseRatio':
+            features.noiseRatio,
+
+        'testingRatio':
+            features.testingRatio,
+
+        'backendChanges':
+            features.backendChanges,
+
+        'frontendChanges':
+            features.frontendChanges,
+
+        'infraChanges':
+            features.infraChanges,
+
+        'securityChanges':
+            features.securityChanges,
+
+        'hotspotCount':
+            features.hotspotCount,
     }])
 
-    # Engineer features
+    # FEATURE ENGINEERING
+
     df = engineer_features(df)
 
     feature_cols = [
-        'commits', 'pullRequestCount', 'issueCount',
-        'commit_pr_ratio', 'activity_density', 'collaboration_score'
+
+        'totalCommits',
+
+        'totalPRs',
+
+        'avgImpactScore',
+
+        'avgRiskScore',
+
+        'avgMeaningfulness',
+
+        'riskyCommits',
+
+        'highImpactCommits',
+
+        'lowValueCommits',
+
+        'noiseRatio',
+
+        'testingRatio',
+
+        'backendChanges',
+
+        'frontendChanges',
+
+        'infraChanges',
+
+        'securityChanges',
+
+        'hotspotCount',
+
+        'stability_score',
+
+        'engineering_discipline',
+
+        'risk_pressure',
+
+        'backend_volatility',
+
+        'infra_pressure',
     ]
 
-    X = scaler.transform(df[feature_cols])
+    # SCALE
 
-    # Predict score
-    predicted_score = float(np.clip(score_model.predict(X)[0], 0, 100))
-
-    # Predict risk
-    predicted_risk = risk_model.predict(X)[0]  # "Low", "Medium", "High"
-
-    # Calculate trend by comparing predicted vs current
-    diff = predicted_score - dev.productivityScore
-    if diff > 5:
-        trend = "improving"
-    elif diff < -5:
-        trend = "declining"
-    else:
-        trend = "stable"
-
-    return DeveloperPrediction(
-        developerLogin=dev.developerLogin,
-        commits=dev.commits,
-        pullRequestCount=dev.pullRequestCount,
-        issueCount=dev.issueCount,
-        currentScore=dev.productivityScore,
-        predictedScore=round(predicted_score, 2),
-        trend=trend,
-        riskLevel=predicted_risk,
+    X = scaler.transform(
+        df[feature_cols]
     )
 
+    # PREDICT
 
-def predict_project(project_id: str, project_name: str, developers: List[DeveloperInput]) -> PredictResponse:
-    """Predict overall project health from all developer activities."""
+    predicted_health = float(
 
-    if not developers:
-        return PredictResponse(
-            projectId=project_id,
-            projectScore=0.0,
-            deliveryRisk="High",
-            workloadForecast=0.0,
-            teamHealthStatus="Risky",
-            developers=[],
-            generatedAt=datetime.utcnow().isoformat(),
+        np.clip(
+
+            health_model.predict(X)[0],
+
+            0,
+
+            100,
+        )
+    )
+
+    predicted_risk = int(
+        risk_model.predict(X)[0]
+    )
+
+    # EXPLAINABILITY
+
+    reasons = []
+
+    if features.noiseRatio >= 0.4:
+
+        reasons.append(
+            (
+                "High low-value "
+                "engineering activity detected"
+            )
         )
 
-    # Predict per developer
-    dev_predictions = [predict_developer(dev) for dev in developers]
+    if features.hotspotCount >= 5:
 
-    # Aggregate project-level metrics
-    total_commits = sum(d.commits for d in developers)
-    total_prs = sum(d.pullRequestCount for d in developers)
-    total_issues = sum(d.issueCount for d in developers)
-    avg_predicted_score = np.mean([d.predictedScore for d in dev_predictions])
+        reasons.append(
+            (
+                "Subsystem instability "
+                "is increasing"
+            )
+        )
 
-    # Project-level feature vector (team aggregates)
-    project_df = pd.DataFrame([{
-        'commits': total_commits,
-        'pullRequestCount': total_prs,
-        'issueCount': total_issues,
-    }])
-    project_df = engineer_features(project_df)
+    if features.testingRatio <= 0.1:
 
-    feature_cols = [
-        'commits', 'pullRequestCount', 'issueCount',
-        'commit_pr_ratio', 'activity_density', 'collaboration_score'
-    ]
+        reasons.append(
+            (
+                "Testing activity remains low"
+            )
+        )
 
-    X_project = scaler.transform(project_df[feature_cols])
-    project_score = float(np.clip(score_model.predict(X_project)[0], 0, 100))
-    project_risk = risk_model.predict(X_project)[0]
+    if features.avgRiskScore >= 70:
 
-    # Workload forecast = weighted average of predicted scores
-    workload_forecast = float(
-        total_commits * 0.4 + total_prs * 0.4 + len(developers) * 0.2
-    )
+        reasons.append(
+            (
+                "High engineering "
+                "risk pressure detected"
+            )
+        )
 
-    # Team health status
-    if project_score >= 75:
-        health_status = "Excellent"
-    elif project_score >= 50:
-        health_status = "Good"
-    elif project_score >= 25:
-        health_status = "Moderate"
+    if features.backendChanges >= 20:
+
+        reasons.append(
+            (
+                "Heavy backend "
+                "modification activity"
+            )
+        )
+
+    # HEALTH STATUS
+
+    if predicted_health >= 80:
+
+        health_status = "EXCELLENT"
+
+    elif predicted_health >= 60:
+
+        health_status = "GOOD"
+
+    elif predicted_health >= 40:
+
+        health_status = "MODERATE"
+
     else:
-        health_status = "Risky"
 
-    return PredictResponse(
-        projectId=project_id,
-        projectScore=round(project_score, 2),
-        deliveryRisk=project_risk,
-        workloadForecast=round(workload_forecast, 2),
-        teamHealthStatus=health_status,
-        developers=dev_predictions,
-        generatedAt=datetime.utcnow().isoformat(),
+        health_status = "RISKY"
+
+    # CONFIDENCE
+
+    confidence = float(
+
+        min(
+
+            0.95,
+
+            max(
+                0.55,
+
+                1 -
+                (
+                    features.noiseRatio
+                    * 0.5
+                ),
+            ),
+        )
     )
+
+    # RESPONSE
+
+    return {
+
+        "projectId":
+            project_id,
+
+        "projectName":
+            project_name,
+
+        "projectScore":
+            round(
+                predicted_health,
+                2,
+            ),
+
+        "deliveryRisk":
+            RISK_LABELS[
+                predicted_risk
+            ],
+
+        "teamHealthStatus":
+            health_status,
+
+        "forecastConfidence":
+            round(
+                confidence,
+                2,
+            ),
+
+        "reasons":
+            reasons,
+
+        "signals": {
+
+            "avgImpactScore":
+                features.avgImpactScore,
+
+            "avgRiskScore":
+                features.avgRiskScore,
+
+            "noiseRatio":
+                features.noiseRatio,
+
+            "testingRatio":
+                features.testingRatio,
+
+            "hotspotCount":
+                features.hotspotCount,
+        },
+
+        "generatedAt":
+            datetime.utcnow()
+            .isoformat(),
+    }

@@ -1,17 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GithubService } from '../github/github.service';
-import { GitHubCommit, GitHubPull, GitHubIssue } from '../github/github.types';
-import { randomUUID } from 'crypto';
 import { parseRepoUrl } from 'src/github/utils/parse-repo.util';
-import { calcProductivityScore } from '../project/project.service';
+import { calcProductivityScore } from 'src/prisma/projects/project.service';
 
 @Injectable()
 export class DeveloperAnalyticsService {
   constructor(
     private prisma: PrismaService,
     private githubService: GithubService,
-  ) {}
+  ) { }
 
   async analyzeDevelopers(projectId: string, token: string, since: string) {
     const project = await this.prisma.project.findUnique({

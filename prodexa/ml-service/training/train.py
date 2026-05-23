@@ -1,174 +1,425 @@
 """
 Prodexa ML Training Module
-Trains a Random Forest model to predict developer productivity scores
-and project delivery risk based on GitHub activity data.
+
+Behavior-aware engineering intelligence training system.
+
+Trains:
+1. Engineering Health Regressor
+2. Delivery Risk Classifier
+
+Using REAL engineering telemetry from the NestJS backend.
 """
 
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error, accuracy_score
-import joblib
 import os
-from datetime import datetime
+import joblib
+import requests
+import pandas as pd
 
-# Paths
-MODEL_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
-SCORE_MODEL_PATH = os.path.join(MODEL_DIR, 'productivity_model.pkl')
-RISK_MODEL_PATH = os.path.join(MODEL_DIR, 'risk_model.pkl')
-SCALER_PATH = os.path.join(MODEL_DIR, 'scaler.pkl')
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    RandomForestClassifier,
+)
+
+from sklearn.model_selection import (
+    train_test_split,
+)
+
+from sklearn.preprocessing import (
+    StandardScaler,
+)
+
+from sklearn.metrics import (
+    mean_absolute_error,
+    accuracy_score,
+)
+
+# ─────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────
+
+MODEL_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "models",
+)
+
+ENGINEERING_MODEL_PATH = os.path.join(
+    MODEL_DIR,
+    "engineering_health_model.pkl",
+)
+
+RISK_MODEL_PATH = os.path.join(
+    MODEL_DIR,
+    "delivery_risk_model.pkl",
+)
+
+SCALER_PATH = os.path.join(
+    MODEL_DIR,
+    "scaler.pkl",
+)
+
+# ─────────────────────────────────────
+# DATASET SOURCE
+# ─────────────────────────────────────
+
+BACKEND_DATASET_URL = "http://localhost:3001/ml/dataset"
+
+# ─────────────────────────────────────
+# FETCH REAL DATASET
+# ─────────────────────────────────────
 
 
-def generate_training_data(n_samples: int = 1000) -> pd.DataFrame:
-    """
-    Generate realistic synthetic training data based on
-    real-world GitHub developer activity patterns.
-    """
-    np.random.seed(42)
+def fetch_real_dataset():
 
-    # Feature distributions based on real GitHub project patterns
-    commits = np.random.randint(0, 150, n_samples)
-    prs = np.random.randint(0, 50, n_samples)
-    issues = np.random.randint(0, 80, n_samples)
-
-    # Derived features
-    commit_pr_ratio = np.where(prs > 0, commits / (prs + 1), commits)
-    activity_density = commits + prs * 2 + issues * 0.5
-    collaboration_score = prs * 3 + issues * 1.5
-
-    # Productivity score formula — weighted, realistic
-    raw_score = (
-        commits * 0.5 +
-        prs * 3.0 +
-        issues * 0.8 +
-        np.random.normal(0, 5, n_samples)  # noise
+    print(
+        "📡 Fetching engineering dataset " "from backend...",
     )
-    productivity_score = np.clip(raw_score, 0, 100).astype(int)
 
-    # Delivery risk — based on activity levels
-    risk_labels = []
-    for i in range(n_samples):
-        score = productivity_score[i]
-        if score >= 60:
-            risk_labels.append('Low')
-        elif score >= 30:
-            risk_labels.append('Medium')
-        else:
-            risk_labels.append('High')
+    response = requests.get(
+        BACKEND_DATASET_URL,
+        timeout=30,
+    )
 
-    df = pd.DataFrame({
-        'commits': commits,
-        'pullRequestCount': prs,
-        'issueCount': issues,
-        'commit_pr_ratio': commit_pr_ratio,
-        'activity_density': activity_density,
-        'collaboration_score': collaboration_score,
-        'productivity_score': productivity_score,
-        'delivery_risk': risk_labels,
-    })
+    response.raise_for_status()
+
+    data = response.json()
+
+    df = pd.DataFrame(data)
+
+    print(
+        f"✅ Dataset loaded: " f"{len(df)} samples",
+    )
 
     return df
 
 
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Add engineered features to improve model accuracy."""
+# ─────────────────────────────────────
+# FEATURE ENGINEERING
+# ─────────────────────────────────────
+
+
+def engineer_features(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+
     df = df.copy()
-    df['commit_pr_ratio'] = df['commits'] / (df['pullRequestCount'] + 1)
-    df['activity_density'] = df['commits'] + df['pullRequestCount'] * 2 + df['issueCount'] * 0.5
-    df['collaboration_score'] = df['pullRequestCount'] * 3 + df['issueCount'] * 1.5
+
+    # Stability signal
+
+    df["stability_score"] = 100 - df["avgRiskScore"]
+
+    # Engineering discipline
+
+    df["engineering_discipline"] = (df["testingRatio"] * 100) - (df["noiseRatio"] * 100)
+
+    # Risk pressure
+
+    df["risk_pressure"] = df["hotspotCount"] * df["avgRiskScore"]
+
+    # Backend volatility
+
+    df["backend_volatility"] = df["backendChanges"] * df["avgRiskScore"]
+
+    # Infra criticality
+
+    df["infra_pressure"] = df["infraChanges"] * df["avgRiskScore"]
+
     return df
+
+
+# ─────────────────────────────────────
+# TRAIN MODELS
+# ─────────────────────────────────────
 
 
 def train_models():
-    """Train Random Forest models for productivity score and delivery risk."""
-    os.makedirs(MODEL_DIR, exist_ok=True)
 
-    print("📊 Generating training data...")
-    df = generate_training_data(n_samples=2000)
+    os.makedirs(
+        MODEL_DIR,
+        exist_ok=True,
+    )
+
+    print(
+        "📊 Loading real engineering " "telemetry...",
+    )
+
+    df = fetch_real_dataset()
+
+    df = engineer_features(df)
+
+    # ─────────────────────────────────
+    # FEATURES
+    # ─────────────────────────────────
 
     feature_cols = [
-        'commits', 'pullRequestCount', 'issueCount',
-        'commit_pr_ratio', 'activity_density', 'collaboration_score'
+        "totalCommits",
+        "totalPRs",
+        "avgImpactScore",
+        "avgRiskScore",
+        "avgMeaningfulness",
+        "riskyCommits",
+        "highImpactCommits",
+        "lowValueCommits",
+        "noiseRatio",
+        "testingRatio",
+        "backendChanges",
+        "frontendChanges",
+        "infraChanges",
+        "securityChanges",
+        "hotspotCount",
+        "stability_score",
+        "engineering_discipline",
+        "risk_pressure",
+        "backend_volatility",
+        "infra_pressure",
     ]
 
     X = df[feature_cols]
-    y_score = df['productivity_score']
-    y_risk = df['delivery_risk']
 
-    # Train/test split
-    X_train, X_test, y_score_train, y_score_test, y_risk_train, y_risk_test = train_test_split(
-        X, y_score, y_risk, test_size=0.2, random_state=42
+    # ─────────────────────────────────
+    # TARGETS
+    # ─────────────────────────────────
+
+    y_health = df["label_engineeringHealth"]
+
+    y_risk = df["label_deliveryRisk"]
+
+    # ─────────────────────────────────
+    # TRAIN / TEST SPLIT
+    # ─────────────────────────────────
+
+    if len(df) < 5:
+
+        print("⚠️ Small dataset detected. " "Using full dataset for training.")
+
+        X_train = X
+        X_test = X
+
+        y_health_train = y_health
+        y_health_test = y_health
+
+        y_risk_train = y_risk
+        y_risk_test = y_risk
+
+    else:
+
+        (
+            X_train,
+            X_test,
+            y_health_train,
+            y_health_test,
+            y_risk_train,
+            y_risk_test,
+        ) = train_test_split(
+            X,
+            y_health,
+            y_risk,
+            test_size=0.2,
+            random_state=42,
+        )
+        
+    # ─────────────────────────────────
+    # SCALE FEATURES
+    # ─────────────────────────────────
+
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(
+        X_train,
     )
 
-    # Scale features
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    X_test_scaled = scaler.transform(
+        X_test,
+    )
 
-    # ── Model 1: Random Forest Regressor (productivity score) ──
-    print("🌲 Training Random Forest Regressor (productivity score)...")
-    score_model = RandomForestRegressor(
-        n_estimators=100,
+    # ─────────────────────────────────
+    # MODEL 1
+    # Engineering Health Regressor
+    # ─────────────────────────────────
+
+    print(
+        "🌲 Training Engineering " "Health Model...",
+    )
+
+    health_model = RandomForestRegressor(
+        n_estimators=200,
+        max_depth=12,
+        min_samples_split=5,
+        random_state=42,
+        n_jobs=-1,
+    )
+
+    health_model.fit(
+        X_train_scaled,
+        y_health_train,
+    )
+
+    health_preds = health_model.predict(
+        X_test_scaled,
+    )
+
+    health_mae = mean_absolute_error(
+        y_health_test,
+        health_preds,
+    )
+
+    print(
+        f"✅ Engineering Health " f"MAE: {health_mae:.2f}",
+    )
+
+    # ─────────────────────────────────
+    # MODEL 2
+    # Delivery Risk Classifier
+    # ─────────────────────────────────
+
+    print(
+        "🌲 Training Delivery " "Risk Model...",
+    )
+
+    risk_model = RandomForestClassifier(
+        n_estimators=200,
         max_depth=10,
         min_samples_split=5,
         random_state=42,
-        n_jobs=-1
+        n_jobs=-1,
     )
-    score_model.fit(X_train_scaled, y_score_train)
-    score_preds = score_model.predict(X_test_scaled)
-    score_mae = mean_absolute_error(y_score_test, score_preds)
-    print(f"✅ Score Model MAE: {score_mae:.2f}")
 
-    # ── Model 2: Random Forest Classifier (delivery risk) ──
-    print("🌲 Training Random Forest Classifier (delivery risk)...")
-    risk_model = RandomForestClassifier(
-        n_estimators=100,
-        max_depth=8,
-        min_samples_split=5,
-        random_state=42,
-        n_jobs=-1
+    risk_model.fit(
+        X_train_scaled,
+        y_risk_train,
     )
-    risk_model.fit(X_train_scaled, y_risk_train)
-    risk_preds = risk_model.predict(X_test_scaled)
-    risk_acc = accuracy_score(y_risk_test, risk_preds)
-    print(f"✅ Risk Model Accuracy: {risk_acc * 100:.1f}%")
 
-    # Save models
-    joblib.dump(score_model, SCORE_MODEL_PATH)
-    joblib.dump(risk_model, RISK_MODEL_PATH)
-    joblib.dump(scaler, SCALER_PATH)
+    risk_preds = risk_model.predict(
+        X_test_scaled,
+    )
 
-    print(f"💾 Models saved to {MODEL_DIR}")
+    risk_accuracy = accuracy_score(
+        y_risk_test,
+        risk_preds,
+    )
+
+    print(
+        f"✅ Delivery Risk Accuracy: " f"{risk_accuracy * 100:.1f}%",
+    )
+
+    # ─────────────────────────────────
+    # SAVE MODELS
+    # ─────────────────────────────────
+
+    joblib.dump(
+        health_model,
+        ENGINEERING_MODEL_PATH,
+    )
+
+    joblib.dump(
+        risk_model,
+        RISK_MODEL_PATH,
+    )
+
+    joblib.dump(
+        scaler,
+        SCALER_PATH,
+    )
+
+    print(
+        f"💾 Models saved to " f"{MODEL_DIR}",
+    )
+
+    # ─────────────────────────────────
+    # FEATURE IMPORTANCE
+    # ─────────────────────────────────
+
+    importance_df = pd.DataFrame(
+        {
+            "feature": feature_cols,
+            "importance": health_model.feature_importances_,
+        }
+    )
+
+    importance_df = importance_df.sort_values(
+        by="importance",
+        ascending=False,
+    )
+
+    print(
+        "\n📈 TOP ENGINEERING " "SIGNALS:",
+    )
+
+    print(
+        importance_df.head(10),
+    )
 
     return {
-        "score_mae": score_mae,
-        "risk_accuracy": risk_acc,
-        "samples": len(df)
+        "engineering_health_mae": health_mae,
+        "risk_accuracy": risk_accuracy,
+        "samples": len(df),
     }
 
 
+# ─────────────────────────────────────
+# LOAD MODELS
+# ─────────────────────────────────────
+
+
 def load_models():
-    """Load trained models from disk. Train if not found."""
-    if not all([
-        os.path.exists(SCORE_MODEL_PATH),
-        os.path.exists(RISK_MODEL_PATH),
-        os.path.exists(SCALER_PATH),
-    ]):
-        print("⚠️  Models not found. Training now...")
+
+    if not all(
+        [
+            os.path.exists(
+                ENGINEERING_MODEL_PATH,
+            ),
+            os.path.exists(
+                RISK_MODEL_PATH,
+            ),
+            os.path.exists(
+                SCALER_PATH,
+            ),
+        ]
+    ):
+
+        print(
+            "⚠️ Models not found. " "Training now...",
+        )
+
         train_models()
 
-    score_model = joblib.load(SCORE_MODEL_PATH)
-    risk_model = joblib.load(RISK_MODEL_PATH)
-    scaler = joblib.load(SCALER_PATH)
+    health_model = joblib.load(
+        ENGINEERING_MODEL_PATH,
+    )
 
-    return score_model, risk_model, scaler
+    risk_model = joblib.load(
+        RISK_MODEL_PATH,
+    )
 
+    scaler = joblib.load(
+        SCALER_PATH,
+    )
+
+    return (
+        health_model,
+        risk_model,
+        scaler,
+    )
+
+
+# ─────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────
 
 if __name__ == "__main__":
+
     results = train_models()
-    print(f"\n🎯 Training complete!")
-    print(f"   Score MAE: {results['score_mae']:.2f}")
-    print(f"   Risk Accuracy: {results['risk_accuracy'] * 100:.1f}%")
-    print(f"   Samples: {results['samples']}")
+
+    print("\n🎯 Training complete!")
+
+    print(
+        f"   Engineering Health MAE: " f'{results["engineering_health_mae"]:.2f}',
+    )
+
+    print(
+        f"   Delivery Risk Accuracy: " f'{results["risk_accuracy"] * 100:.1f}%',
+    )
+
+    print(
+        f"   Samples: " f'{results["samples"]}',
+    )

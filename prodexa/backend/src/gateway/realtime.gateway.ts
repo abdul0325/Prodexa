@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+//backend/src/gateway/realtime.gateway.ts
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -19,8 +21,7 @@ import { JwtService } from '@nestjs/jwt';
   namespace: '/realtime',
 })
 export class RealtimeGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -29,7 +30,7 @@ export class RealtimeGateway
   // Track which user is on which socket
   private userSockets = new Map<string, string[]>(); // userId → socketIds[]
 
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
   // ─────────────────────────────────────────────
   // CONNECTION LIFECYCLE
@@ -156,5 +157,26 @@ export class RealtimeGateway
       status,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /** Emit intelligence layer refresh */
+  emitIntelligenceUpdate(
+    projectId: string,
+  ) {
+
+    this.server
+      .to(`project:${projectId}`)
+      .emit(
+        'intelligence:update',
+        {
+          projectId,
+          timestamp:
+            new Date().toISOString(),
+        },
+      );
+
+    this.logger.log(
+      `Emitted intelligence:update → project:${projectId}`,
+    );
   }
 }

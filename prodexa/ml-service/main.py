@@ -1,50 +1,213 @@
 """
 Prodexa ML Service
-FastAPI microservice for AI-powered project productivity analysis.
-Called by NestJS backend after GitHub data collection.
+
+Behavior-aware engineering intelligence
+ML microservice powered by FastAPI.
+
+Responsibilities:
+- model loading
+- inference
+- prediction serving
+- engineering intelligence forecasting
+
+Called by NestJS backend.
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from routers.routes import router
-import uvicorn
 import os
+import uvicorn
+
 from dotenv import load_dotenv
+
+from fastapi import FastAPI
+
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
+
+from routers.routes import router
+
+# ─────────────────────────────────────
+# ENV
+# ─────────────────────────────────────
 
 load_dotenv()
 
+# ─────────────────────────────────────
+# APP
+# ─────────────────────────────────────
+
 app = FastAPI(
-    title="Prodexa ML Service",
-    description="Random Forest-based productivity prediction for GitHub projects",
-    version="1.0.0",
+
+    title=
+        "Prodexa ML Service",
+
+    description=
+        (
+            "Behavior-aware engineering "
+            "intelligence prediction engine"
+        ),
+
+    version="2.0.0",
 )
 
-# CORS — allow NestJS backend to call this service
+# ─────────────────────────────────────
+# CORS
+# ─────────────────────────────────────
+
 app.add_middleware(
+
     CORSMiddleware,
+
     allow_origins=[
-        os.getenv("BACKEND_URL", "http://localhost:3001"),
+
+        os.getenv(
+            "BACKEND_URL",
+            "http://localhost:3001",
+        ),
+
         "http://localhost:3001",
     ],
+
     allow_credentials=True,
+
     allow_methods=["*"],
+
     allow_headers=["*"],
 )
 
-# Register routes
-app.include_router(router, prefix="")
+# ─────────────────────────────────────
+# ROUTES
+# ─────────────────────────────────────
+
+app.include_router(
+    router,
+    prefix="",
+)
+
+# ─────────────────────────────────────
+# STARTUP
+# ─────────────────────────────────────
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Auto-train models on startup if they don't exist."""
-    from training.train import load_models
-    print("🚀 Prodexa ML Service starting...")
-    load_models()  # trains if models don't exist
-    print("✅ Models ready")
-    print("📡 ML Service running on http://localhost:5000")
 
+    """
+    Initialize ML models on startup.
+    Auto-trains if models are missing.
+    """
+
+    print(
+        "\n🚀 Starting Prodexa "
+        "Engineering Intelligence ML Service...\n"
+    )
+
+    try:
+
+        from training.train import (
+            load_models,
+        )
+
+        (
+            health_model,
+            risk_model,
+            scaler,
+        ) = load_models()
+
+        print(
+            "✅ Engineering Health "
+            "Model loaded",
+        )
+
+        print(
+            "✅ Delivery Risk "
+            "Model loaded",
+        )
+
+        print(
+            "✅ Feature Scaler loaded",
+        )
+
+    except Exception as error:
+
+        print(
+            "❌ ML startup failed:",
+        )
+
+        print(error)
+
+        raise error
+
+    print(
+        "\n📡 ML Service running "
+        "on http://localhost:5000",
+    )
+
+    print(
+        "🧠 Behavior-aware engineering "
+        "intelligence active\n",
+    )
+
+# ─────────────────────────────────────
+# HEALTH CHECK
+# ─────────────────────────────────────
+
+
+@app.get("/health")
+async def health():
+
+    return {
+
+        "status": "healthy",
+
+        "service":
+            "prodexa-ml-service",
+
+        "version":
+            "2.0.0",
+
+        "models":
+            [
+                "engineering-health",
+                "delivery-risk",
+            ],
+
+        "capabilities": [
+
+            "engineering-health",
+
+            "delivery-risk",
+
+            "behavior-analysis",
+
+            "risk-forecasting",
+
+            "hotspot-analysis",
+
+            "engineering-intelligence",
+        ],
+    }
+
+# ─────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────
 
 if __name__ == "__main__":
-    port = int(os.getenv("ML_PORT", 5000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+
+    port = int(
+        os.getenv(
+            "ML_PORT",
+            5000,
+        )
+    )
+
+    uvicorn.run(
+
+        "main:app",
+
+        host="0.0.0.0",
+
+        port=port,
+
+        reload=True,
+    )
