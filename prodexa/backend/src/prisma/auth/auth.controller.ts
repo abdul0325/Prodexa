@@ -5,12 +5,14 @@ import { AuthGuard } from '@nestjs/passport';
 export class AuthController {
   @Get('github')
   @UseGuards(AuthGuard('github'))
-  async githubLogin() {}
+  async githubLogin() { }
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   githubCallback(@Req() req, @Res() res) {
     const { token } = req.user;
-    res.redirect(`http://localhost:3000/dashboard?token=${token}`);
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/dashboard?token=${token}`
+    );
   }
 }
