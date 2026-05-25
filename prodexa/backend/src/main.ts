@@ -1,3 +1,4 @@
+// eslint-disable-next-line prettier/prettier
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -17,9 +18,56 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.enableCors({
-    origin: ['http://localhost:3000', process.env.FRONTEND_URL],
+
+    origin: (
+
+      origin,
+      callback,
+    ) => {
+
+      const allowedOrigins = [
+
+        'http://localhost:3000',
+
+        'https://prodexa-mu.vercel.app',
+      ];
+
+      // Allow requests with no origin
+      // (mobile apps, postman, etc.)
+
+      if (
+        !origin ||
+        allowedOrigins.includes(origin)
+      ) {
+
+        callback(null, true);
+
+      } else {
+
+        callback(
+          new Error(
+            'Not allowed by CORS',
+          ),
+        );
+      }
+    },
+
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+
+    methods: [
+      'GET',
+      'HEAD',
+      'PUT',
+      'PATCH',
+      'POST',
+      'DELETE',
+      'OPTIONS',
+    ],
+
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+    ],
   });
 
   const port = process.env.BACKEND_PORT || 3001;
