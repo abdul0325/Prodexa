@@ -1,6 +1,7 @@
 import { ManagerOverview } from "@/types/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL!;
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;

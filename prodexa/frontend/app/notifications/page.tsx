@@ -67,7 +67,7 @@ export default function NotificationsPage() {
   function updateSidebarUnreadCount() {
     const token = localStorage.getItem('prodexa_token');
     if (!token) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications/unread-count`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/unread-count`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -75,7 +75,7 @@ export default function NotificationsPage() {
         // Dispatch custom event to update sidebar
         window.dispatchEvent(new CustomEvent('notificationCountUpdate', { detail: d.unreadCount || 0 }));
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   const unreadCount = notifications.filter(n => !n.isRead).length;

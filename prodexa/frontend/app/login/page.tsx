@@ -149,7 +149,7 @@ export default function LoginPage() {
         </div>
 
         {/* GitHub OAuth button */}
-        <a href="http://localhost:3001/auth/github" style={{ textDecoration: 'none' }}>
+        <a href={`${process.env.NEXT_PUBLIC_API_URL}/auth/github`} style={{ textDecoration: 'none' }}>
           <button className="btn-primary" style={{
             width: '100%',
             justifyContent: 'center',

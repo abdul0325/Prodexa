@@ -37,16 +37,8 @@ load_dotenv()
 # ─────────────────────────────────────
 
 app = FastAPI(
-
-    title=
-        "Prodexa ML Service",
-
-    description=
-        (
-            "Behavior-aware engineering "
-            "intelligence prediction engine"
-        ),
-
+    title="Prodexa ML Service",
+    description=("Behavior-aware engineering " "intelligence prediction engine"),
     version="2.0.0",
 )
 
@@ -55,23 +47,13 @@ app = FastAPI(
 # ─────────────────────────────────────
 
 app.add_middleware(
-
     CORSMiddleware,
-
     allow_origins=[
-
-        os.getenv(
-            "BACKEND_URL",
-            "http://localhost:3001",
-        ),
-
-        "http://localhost:3001",
+        os.getenv("BACKEND_URL"),
+        os.getenv("BACKEND_URL"),
     ],
-
     allow_credentials=True,
-
     allow_methods=["*"],
-
     allow_headers=["*"],
 )
 
@@ -91,16 +73,12 @@ app.include_router(
 
 @app.on_event("startup")
 async def startup_event():
-
     """
     Initialize ML models on startup.
     Auto-trains if models are missing.
     """
 
-    print(
-        "\n🚀 Starting Prodexa "
-        "Engineering Intelligence ML Service...\n"
-    )
+    print("\n🚀 Starting Prodexa " "Engineering Intelligence ML Service...\n")
 
     try:
 
@@ -115,13 +93,11 @@ async def startup_event():
         ) = load_models()
 
         print(
-            "✅ Engineering Health "
-            "Model loaded",
+            "✅ Engineering Health " "Model loaded",
         )
 
         print(
-            "✅ Delivery Risk "
-            "Model loaded",
+            "✅ Delivery Risk " "Model loaded",
         )
 
         print(
@@ -139,14 +115,13 @@ async def startup_event():
         raise error
 
     print(
-        "\n📡 ML Service running "
-        "on http://localhost:5000",
+        "\n📡 ML Service running " "on http://localhost:5000",
     )
 
     print(
-        "🧠 Behavior-aware engineering "
-        "intelligence active\n",
+        "🧠 Behavior-aware engineering " "intelligence active\n",
     )
+
 
 # ─────────────────────────────────────
 # HEALTH CHECK
@@ -157,36 +132,23 @@ async def startup_event():
 async def health():
 
     return {
-
         "status": "healthy",
-
-        "service":
-            "prodexa-ml-service",
-
-        "version":
-            "2.0.0",
-
-        "models":
-            [
-                "engineering-health",
-                "delivery-risk",
-            ],
-
-        "capabilities": [
-
+        "service": "prodexa-ml-service",
+        "version": "2.0.0",
+        "models": [
             "engineering-health",
-
             "delivery-risk",
-
+        ],
+        "capabilities": [
+            "engineering-health",
+            "delivery-risk",
             "behavior-analysis",
-
             "risk-forecasting",
-
             "hotspot-analysis",
-
             "engineering-intelligence",
         ],
     }
+
 
 # ─────────────────────────────────────
 # MAIN
@@ -202,12 +164,8 @@ if __name__ == "__main__":
     )
 
     uvicorn.run(
-
         "main:app",
-
         host="0.0.0.0",
-
         port=port,
-
         reload=True,
     )

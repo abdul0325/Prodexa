@@ -61,7 +61,7 @@ export default function Sidebar() {
   useEffect(() => {
     const token = localStorage.getItem('prodexa_token');
     if (!token) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications/unread-count`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/unread-count`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())

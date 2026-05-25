@@ -34,7 +34,7 @@ export function Footer({
     if (id === 'dashboard') {
 
       window.location.href =
-        'http://localhost:3001/auth/github';
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/github`;
 
       return;
     }

@@ -62,7 +62,7 @@ SCALER_PATH = os.path.join(
 # DATASET SOURCE
 # ─────────────────────────────────────
 
-BACKEND_DATASET_URL = "http://localhost:3001/ml/dataset"
+BACKEND_DATASET_URL = f"{os.getenv('BACKEND_URL')}/ml/dataset"
 
 # ─────────────────────────────────────
 # FETCH REAL DATASET
@@ -217,7 +217,7 @@ def train_models():
             test_size=0.2,
             random_state=42,
         )
-        
+
     # ─────────────────────────────────
     # SCALE FEATURES
     # ─────────────────────────────────
