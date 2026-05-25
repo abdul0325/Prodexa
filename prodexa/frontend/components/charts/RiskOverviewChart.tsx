@@ -25,28 +25,28 @@ export function RiskOverviewChart({ developers }: Props) {
   );
 
   // Proper risk level mapping
-  const low    = developers.filter(d => {
+  const low = developers.filter(d => {
     const risk = d.riskLevel || d.risk || '';
     return risk === 'Low' || risk === 'Active' || risk === 'Healthy';
   }).length;
-  
+
   const medium = developers.filter(d => {
     const risk = d.riskLevel || d.risk || '';
     return risk === 'Medium' || risk === 'Inactive' || risk === 'Moderate' || risk === 'Risky';
   }).length;
-  
-  const high   = developers.filter(d => {
+
+  const high = developers.filter(d => {
     const risk = d.riskLevel || d.risk || '';
     return risk === 'High' || risk === 'Critical' || risk === 'At Risk';
   }).length;
-  
-  const total  = developers.length;
+
+  const total = developers.length;
 
   // Calculate percentages properly
   const data = [
-    { name: 'Low Risk',    value: total > 0 ? Math.round((low    / total) * 100) : 0, fill: '#34d399' },
+    { name: 'Low Risk', value: total > 0 ? Math.round((low / total) * 100) : 0, fill: '#34d399' },
     { name: 'Medium Risk', value: total > 0 ? Math.round((medium / total) * 100) : 0, fill: '#fbbf24' },
-    { name: 'High Risk',   value: total > 0 ? Math.round((high   / total) * 100) : 0, fill: '#f87171' },
+    { name: 'High Risk', value: total > 0 ? Math.round((high / total) * 100) : 0, fill: '#f87171' },
   ].filter(d => d.value > 0);
 
   return (
@@ -57,18 +57,18 @@ export function RiskOverviewChart({ developers }: Props) {
           innerRadius="25%" outerRadius="85%"
           data={data} startAngle={180} endAngle={-180}
         >
-          <RadialBar 
-            dataKey="value" 
-            cornerRadius={8} 
+          <RadialBar
+            dataKey="value"
+            cornerRadius={8}
             background={{ fill: 'var(--bg-hover)' }}
             label={{ position: 'insideStart', fill: 'white', fontSize: 12, fontWeight: 600 }}
           />
           <Tooltip
             formatter={(value: any) => [`${value}%`, 'Risk Level']}
             contentStyle={{
-              background: 'var(--bg-card)', 
+              background: 'var(--bg-card)',
               border: '1px solid var(--border)',
-              borderRadius: 8, 
+              borderRadius: 8,
               fontSize: '0.8rem',
               color: 'var(--text-primary)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
@@ -82,9 +82,26 @@ export function RiskOverviewChart({ developers }: Props) {
       {/* Risk summary below chart */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginTop: '0.75rem' }}>
         {[
-          { label: 'Low', count: low, color: '#34d399'},
-          { label: 'Medium', count: medium, color: '#fbbf24' },
-          { label: 'High', count: high, color: '#f87171' },
+          {
+            label: 'Low',
+            count: low,
+            color: '#34d399',
+            icon: '🟢',
+          },
+
+          {
+            label: 'Medium',
+            count: medium,
+            color: '#fbbf24',
+            icon: '🟡',
+          },
+
+          {
+            label: 'High',
+            count: high,
+            color: '#f87171',
+            icon: '🔴',
+          },
         ].map(item => (
           <div key={item.label} style={{ textAlign: 'center', padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{item.icon}</div>

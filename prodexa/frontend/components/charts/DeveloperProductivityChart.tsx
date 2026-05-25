@@ -26,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   const d = payload[0]?.payload;
   return (
     <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
+      background: 'var(--bg-card)',
       borderRadius: 12, padding: '1rem',
       boxShadow: '0 12px 32px rgba(0,0,0,0.2)',
       backdropFilter: 'blur(10px)',
@@ -154,7 +154,6 @@ export function DeveloperProductivityChart({ developers }: Props) {
                   style={{
                     padding: '0.5rem 1rem',
                     borderRadius: type === 'bar' ? '8px 0 0 8px' : '0 8px 8px 0',
-                    border: 'none',
                     fontSize: '0.8rem',
                     fontWeight: 500,
                     cursor: 'pointer',
@@ -204,7 +203,6 @@ export function DeveloperProductivityChart({ developers }: Props) {
                   style={{
                     padding: '0.5rem 0.75rem',
                     borderRadius: '6px',
-                    border: 'none',
                     fontSize: '0.75rem',
                     fontWeight: 500,
                     cursor: 'pointer',

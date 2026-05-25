@@ -19,11 +19,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
-      borderRadius: 12, padding: '1rem',
-      boxShadow: '0 12px 32px rgba(0,0,0,0.2)',
-      backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(99,102,241,0.2)',
+
+      background:
+        'rgba(15,23,42,0.95)',
+
+      borderRadius: 16,
+
+      padding: '1rem',
+
+      boxShadow:
+        '0 12px 32px rgba(0,0,0,0.2)',
+
+      backdropFilter:
+        'blur(10px)',
+
+      border:
+        '1px solid rgba(99,102,241,0.2)',
     }}>
       <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 600 }}>{label}</p>
       {payload.map((p: any) => (
@@ -48,7 +59,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function CommitActivityChart({ data }: Props) {
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'commits' | 'prs' | 'issues'>('all');
-  
+
   if (!data?.length) return (
     <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexDirection: 'column', gap: '0.75rem' }}>
       <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📊</div>
@@ -69,17 +80,17 @@ export function CommitActivityChart({ data }: Props) {
 
   const filteredData = selectedMetric === 'all' ? formatted : formatted.map(d => ({
     date: d.date,
-    [selectedMetric === 'commits' ? 'Commits' : selectedMetric === 'prs' ? 'PRs' : 'Issues']: 
+    [selectedMetric === 'commits' ? 'Commits' : selectedMetric === 'prs' ? 'PRs' : 'Issues']:
       selectedMetric === 'commits' ? d.Commits : selectedMetric === 'prs' ? d.PRs : d.Issues
   }));
 
   return (
     <div style={{ width: '100%' }}>
       {/* Premium Controls */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: '1rem',
         padding: '0.75rem 1rem',
         background: 'var(--bg-card)',
@@ -93,33 +104,48 @@ export function CommitActivityChart({ data }: Props) {
               <button
                 onClick={() => setSelectedMetric(metric)}
                 style={{
+
                   padding: '0.5rem 1rem',
+
                   borderRadius: '8px',
-                  border: 'none',
+
                   fontSize: '0.8rem',
+
                   fontWeight: 500,
+
                   cursor: 'pointer',
+
                   transition: 'all 0.2s ease',
-                  background: selectedMetric === metric ? 'var(--accent)' : 'transparent',
-                  color: selectedMetric === metric ? 'white' : 'var(--text-secondary)',
-                  border: selectedMetric === metric ? '1px solid var(--accent)' : '1px solid var(--border)'
+
+                  background:
+                    selectedMetric === metric
+                      ? 'var(--accent)'
+                      : 'transparent',
+
+                  color:
+                    selectedMetric === metric
+                      ? '#fff'
+                      : 'var(--text-secondary)',
+
+                  border:
+                    selectedMetric === metric
+                      ? '1px solid var(--accent)'
+                      : '1px solid var(--border)',
                 }}
                 onMouseEnter={(e) => {
                   if (selectedMetric !== metric) {
                     e.currentTarget.style.background = 'var(--bg-hover)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedMetric !== metric) {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
                   }
                 }}
               >
-                {metric === 'all' ? '📊 All Metrics' : 
-                 metric === 'commits' ? '💻 Commits' : 
-                 metric === 'prs' ? '🔀 Pull Requests' : '🐛 Issues'}
+                {metric === 'all' ? '📊 All Metrics' :
+                  metric === 'commits' ? '💻 Commits' :
+                    metric === 'prs' ? '🔀 Pull Requests' : '🐛 Issues'}
               </button>
               {/* Professional Tooltip */}
               <div
@@ -160,8 +186,8 @@ export function CommitActivityChart({ data }: Props) {
 
       {/* Premium Chart */}
       <ResponsiveContainer width="100%" height={240}>
-        <AreaChart 
-          data={filteredData} 
+        <AreaChart
+          data={filteredData}
           margin={{ top: 15, right: 20, left: 10, bottom: 45 }}
         >
           <defs>
@@ -178,94 +204,94 @@ export function CommitActivityChart({ data }: Props) {
               <stop offset="100%" stopColor="#fbbf24" stopOpacity={0.1} />
             </linearGradient>
             <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
               <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="var(--border)" 
-            vertical={false} 
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            vertical={false}
             strokeOpacity={0.3}
           />
-          <XAxis 
-            dataKey="date" 
-            tick={{ fontSize: 12, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }} 
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 12, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
             axisLine={{ stroke: 'var(--border)', strokeWidth: 1 }}
             tickLine={{ stroke: 'var(--border)', strokeWidth: 1 }}
             angle={-45}
             textAnchor="end"
             height={60}
           />
-          <YAxis 
-            tick={{ fontSize: 12, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }} 
+          <YAxis
+            tick={{ fontSize: 12, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
             axisLine={{ stroke: 'var(--border)', strokeWidth: 1 }}
             tickLine={{ stroke: 'var(--border)', strokeWidth: 1 }}
           />
           <Tooltip content={<CustomTooltip />} />
           {selectedMetric === 'all' && (
             <Legend
-              wrapperStyle={{ 
-                fontSize: '0.85rem', 
-                color: 'var(--text-secondary)', 
+              wrapperStyle={{
+                fontSize: '0.85rem',
+                color: 'var(--text-secondary)',
                 paddingTop: '1.5rem',
                 background: 'rgba(255,255,255,0.9)',
                 borderRadius: '8px',
                 border: '1px solid var(--border)',
                 padding: '0.75rem'
               }}
-              iconType="circle" 
+              iconType="circle"
               iconSize={10}
             />
           )}
           {selectedMetric === 'all' ? (
             <>
-              <Area 
-                type="monotone" 
-                dataKey="Commits" 
-                stroke="#818cf8" 
-                strokeWidth={3} 
-                fill="url(#commitsGrad)" 
-                dot={{ r: 0, filter: 'url(#glow)' }} 
-                activeDot={{ r: 6, fill: '#818cf8', stroke: 'white', strokeWidth: 2 }} 
+              <Area
+                type="monotone"
+                dataKey="Commits"
+                stroke="#818cf8"
+                strokeWidth={3}
+                fill="url(#commitsGrad)"
+                dot={{ r: 0, filter: 'url(#glow)' }}
+                activeDot={{ r: 6, fill: '#818cf8', stroke: 'white', strokeWidth: 2 }}
                 animationDuration={1500}
                 animationEasing="ease-in-out"
               />
-              <Area 
-                type="monotone" 
-                dataKey="PRs" 
-                stroke="#34d399" 
-                strokeWidth={3} 
-                fill="url(#prsGrad)" 
-                dot={{ r: 0, filter: 'url(#glow)' }} 
-                activeDot={{ r: 6, fill: '#34d399', stroke: 'white', strokeWidth: 2 }} 
+              <Area
+                type="monotone"
+                dataKey="PRs"
+                stroke="#34d399"
+                strokeWidth={3}
+                fill="url(#prsGrad)"
+                dot={{ r: 0, filter: 'url(#glow)' }}
+                activeDot={{ r: 6, fill: '#34d399', stroke: 'white', strokeWidth: 2 }}
                 animationDuration={1500}
                 animationEasing="ease-in-out"
               />
-              <Area 
-                type="monotone" 
-                dataKey="Issues" 
-                stroke="#fbbf24" 
-                strokeWidth={3} 
-                fill="url(#issuesGrad)" 
-                dot={{ r: 0, filter: 'url(#glow)' }} 
-                activeDot={{ r: 6, fill: '#fbbf24', stroke: 'white', strokeWidth: 2 }} 
+              <Area
+                type="monotone"
+                dataKey="Issues"
+                stroke="#fbbf24"
+                strokeWidth={3}
+                fill="url(#issuesGrad)"
+                dot={{ r: 0, filter: 'url(#glow)' }}
+                activeDot={{ r: 6, fill: '#fbbf24', stroke: 'white', strokeWidth: 2 }}
                 animationDuration={1500}
                 animationEasing="ease-in-out"
               />
             </>
           ) : (
-            <Area 
-              type="monotone" 
+            <Area
+              type="monotone"
               dataKey={selectedMetric === 'commits' ? 'Commits' : selectedMetric === 'prs' ? 'PRs' : 'Issues'}
-              stroke={selectedMetric === 'commits' ? '#818cf8' : selectedMetric === 'prs' ? '#34d399' : '#fbbf24'} 
-              strokeWidth={3} 
-              fill={selectedMetric === 'commits' ? 'url(#commitsGrad)' : selectedMetric === 'prs' ? 'url(#prsGrad)' : 'url(#issuesGrad)'} 
-              dot={{ r: 4, filter: 'url(#glow)' }} 
-              activeDot={{ r: 8, fill: selectedMetric === 'commits' ? '#818cf8' : selectedMetric === 'prs' ? '#34d399' : '#fbbf24', stroke: 'white', strokeWidth: 2 }} 
+              stroke={selectedMetric === 'commits' ? '#818cf8' : selectedMetric === 'prs' ? '#34d399' : '#fbbf24'}
+              strokeWidth={3}
+              fill={selectedMetric === 'commits' ? 'url(#commitsGrad)' : selectedMetric === 'prs' ? 'url(#prsGrad)' : 'url(#issuesGrad)'}
+              dot={{ r: 4, filter: 'url(#glow)' }}
+              activeDot={{ r: 8, fill: selectedMetric === 'commits' ? '#818cf8' : selectedMetric === 'prs' ? '#34d399' : '#fbbf24', stroke: 'white', strokeWidth: 2 }}
               animationDuration={1500}
               animationEasing="ease-in-out"
             />

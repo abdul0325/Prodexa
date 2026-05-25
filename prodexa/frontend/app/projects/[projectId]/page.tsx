@@ -51,6 +51,7 @@ import { Users, Bot } from 'lucide-react';
 
 interface DashboardData {
   projectId: string;
+  repoUrl?: string;
   healthScore: number;
   healthStatus: string;
   metrics: {
@@ -183,7 +184,6 @@ export default function ProjectDetailPage({
     analysisMessage,
     healthScore: liveHealthScore,
     healthStatus: liveHealthStatus,
-    liveDevs,
     dashboardUpdated,
     resetDashboardUpdated,
     intelligenceUpdated,
@@ -293,7 +293,6 @@ export default function ProjectDetailPage({
 
   async function handleAnalyze() {
     setAnalyzing(true);
-    setActiveTab('live');
     try {
       await api.projects.analyze(projectId);
       toast('info', 'Analysis Started', 'Live feed activated');
