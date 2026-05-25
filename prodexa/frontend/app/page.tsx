@@ -3,18 +3,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/api';
-import { 
-  GitBranch, 
-  Activity, 
-  Brain, 
-  Trophy, 
-  ClipboardX, 
-  EyeOff, 
-  Layers, 
-  Zap, 
-  Monitor, 
-  Package, 
-  Server, 
+import {
+  GitBranch,
+  Activity,
+  Brain,
+  Trophy,
+  ClipboardX,
+  EyeOff,
+  Layers,
+  Zap,
+  Monitor,
+  Package,
+  Server,
   Database,
   Rocket
 } from 'lucide-react';
@@ -36,13 +36,9 @@ export default function LandingPage() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    if (isAuthenticated()) {
-      router.push('/projects');
-    }
-  }, [router]);
+  const authenticated =
+    isAuthenticated();
 
-  // Data for all sections
   const statsData = [
     { value: '98.8%', label: 'Model Accuracy' },
     { value: '<2s', label: 'Analysis Time' },
@@ -143,14 +139,14 @@ export default function LandingPage() {
     { developer: 'shahzaib', score: 41.2, trend: 'Falling', risk: 'High' },
     { developer: 'moiz-ur-rehman', score: 65.2, trend: 'Rising', risk: 'low' }
   ];
-const isDark = theme === 'dark';
+  const isDark = theme === 'dark';
 
   const techStackData = [
     {
       icon: <Package size={32} />,
       name: 'Next.js',
       role: 'Frontend Framework',
-        color: isDark ? '#ffffff' : '#000000'
+      color: isDark ? '#ffffff' : '#000000'
     },
     {
       icon: <Server size={32} />,
@@ -182,35 +178,35 @@ const isDark = theme === 'dark';
     <div style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--text-primary)' }}>
       {/* Navbar */}
       <Navbar onThemeToggle={toggleTheme} />
-      
+
       {/* Hero Section */}
       <HeroSection />
-      
+
       {/* Stats Bar */}
       <StatsBar stats={statsData} />
-      
+
       {/* Problem Section */}
-      <ProblemSection 
+      <ProblemSection
         title="Project management is broken"
         subtitle="Stop wasting time on outdated workflows that drain productivity and obscure real insights."
         problems={problemsData}
       />
-      
+
       {/* Features Section */}
-      <FeaturesSection 
+      <FeaturesSection
         title="Everything you need to run better projects"
         features={featuresData}
       />
-      
+
       {/* How It Works Section */}
-      <HowItWorksSection 
+      <HowItWorksSection
         title="Up and running in minutes"
         steps={stepsData}
       />
-      
+
       {/* ML Showcase Section */}
-      <MLShowcaseSection 
-        badge="Powered by Random Forest AI"
+      <MLShowcaseSection
+        badge="Powered by AI"
         title="Predict delivery risk before it happens"
         points={[
           "Productivity score per developer (0–100)",
@@ -221,35 +217,39 @@ const isDark = theme === 'dark';
         ]}
         demoData={mlDemoData}
       />
-      
+
       {/* Tech Stack Section */}
-      <TechStackSection 
+      <TechStackSection
         title="Built with production-grade technology"
         techs={techStackData}
       />
-      
+
       {/* CTA Section */}
-      <CTASection 
+      <CTASection
         title="Start tracking your team's productivity today"
         subtitle="Join thousands of developers who are already shipping faster with AI-powered project intelligence."
-        buttonText="Sign in with GitHub"
+        buttonText={
+          authenticated
+            ? 'Open Dashboard'
+            : 'Sign in with GitHub'
+        }
         note="Built by Abdul Rehman · CS Final Year Project 2026"
       />
-      
+
       {/* Footer */}
       <Footer
-  logo="Prodexa"
-  tagline="AI-powered project intelligence"
-  navLinks={[
-    { label: 'Features', id: 'features-section' },
-    { label: 'How it Works', id: 'how-it-works' },
-    { label: 'Tech Stack', id: 'tech-stack' },
-    { label: 'Dashboard', id: 'dashboard' },
-  ]}
-  techBadge="Next.js · NestJS · FastAPI · PostgreSQL · Redis"
-  copyright="© 2026 Prodexa · Abdul Rehman"
-  githubLink="https://github.com/abdul0325/Prodexa"
-/>
+        logo="Prodexa"
+        tagline="AI-powered project intelligence"
+        navLinks={[
+          { label: 'Features', id: 'features-section' },
+          { label: 'How it Works', id: 'how-it-works' },
+          { label: 'Tech Stack', id: 'tech-stack' },
+          { label: 'Dashboard', id: 'dashboard' },
+        ]}
+        techBadge="Next.js · NestJS · FastAPI · PostgreSQL · Redis"
+        copyright="© 2026 Prodexa"
+        githubLink="https://github.com/abdul0325/Prodexa"
+      />
     </div>
   );
 }

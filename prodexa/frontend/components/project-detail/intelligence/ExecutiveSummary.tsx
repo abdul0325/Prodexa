@@ -72,7 +72,27 @@ export default function ExecutiveSummary({
                                 'var(--text-muted)',
                         }}
                     >
-                        Updated {generatedAt}
+                        Updated {
+
+                            new Date(generatedAt)
+                                .toLocaleString(
+                                    'en-US',
+                                    {
+
+                                        year: 'numeric',
+
+                                        month: 'short',
+
+                                        day: 'numeric',
+
+                                        hour: 'numeric',
+
+                                        minute: '2-digit',
+
+                                        hour12: true,
+                                    },
+                                )
+                        }
                     </span>
 
                 )}

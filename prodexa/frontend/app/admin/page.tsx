@@ -86,7 +86,7 @@ export default function AdminPage() {
           <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Access Denied</h2>
           <p style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
-            Change your role to ADMIN in Supabase
+            Only access Manger view
           </p>
         </div>
       </main>

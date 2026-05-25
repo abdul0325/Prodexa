@@ -25,23 +25,43 @@ export function Footer({
   githubLink,
 }: FooterProps) {
 
-  const handleNavClick = (id: string) => {
-    // Route case (Dashboard)
+  const handleNavClick = (
+    id: string,
+  ) => {
+
+    /* DASHBOARD */
+
     if (id === 'dashboard') {
-      window.location.href = 'http://localhost:3001/auth/github';
+
+      window.location.href =
+        'http://localhost:3001/auth/github';
+
       return;
     }
 
-    // Scroll case
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* SCROLL */
 
-      // optional offset (for sticky navbar)
-      setTimeout(() => {
-        window.scrollBy({ top: -80, behavior: 'smooth' });
-      }, 300);
-    }
+    const element =
+      document.getElementById(id);
+
+    if (!element) return;
+
+    const navbarOffset = 90;
+
+    const elementPosition =
+      element.getBoundingClientRect().top;
+
+    const offsetPosition =
+      elementPosition +
+      window.pageYOffset -
+      navbarOffset;
+
+    window.scrollTo({
+
+      top: offsetPosition,
+
+      behavior: 'smooth',
+    });
   };
 
   return (

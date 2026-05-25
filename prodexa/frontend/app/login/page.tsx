@@ -3,12 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/api';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (isAuthenticated()) router.push('/projects');
@@ -26,31 +24,59 @@ export default function LoginPage() {
     }}>
       {/* Theme Toggle Button */}
       <button
-        onClick={toggleTheme}
+        onClick={() =>
+          window.location.href = '/'
+        }
         style={{
+
           position: 'absolute',
-          top: '2rem',
+
+          top: '4rem',
+
           right: '2rem',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
+
+          background:
+            'var(--surface)',
+
+          border:
+            '1px solid var(--border)',
+
           borderRadius: '50%',
+
           width: '48px',
+
           height: '48px',
+
           display: 'flex',
+
           alignItems: 'center',
+
           justifyContent: 'center',
+
           cursor: 'pointer',
+
           zIndex: 10,
-          transition: 'all 200ms ease',
+
+          transition:
+            'all 200ms ease',
+
+          color:
+            'var(--text-primary)',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
+
+          e.currentTarget.style.transform =
+            'scale(1.1)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
+
+          e.currentTarget.style.transform =
+            'scale(1)';
         }}
       >
-        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+
+        <ArrowLeft size={20} />
+
       </button>
       {/* Background grid */}
       <div style={{

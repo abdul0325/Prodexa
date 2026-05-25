@@ -489,8 +489,13 @@ export default function ProjectDetailPage({
 
         <div
           style={{
+
             width: '100%',
-            overflowX: 'hidden',
+
+            overflow: 'visible',
+
+            paddingTop: '0.5rem',
+
             marginBottom: '1.5rem',
           }}
         >
@@ -558,21 +563,35 @@ export default function ProjectDetailPage({
             display: 'grid',
 
             gridTemplateColumns:
-              'repeat(auto-fit,minmax(320px,1fr))',
+              'repeat(auto-fit,minmax(min(100%,340px),1fr))',
 
-            gap: '1.25rem',
+            gap:
+              'clamp(1rem,2vw,1.4rem)',
 
             width: '100%',
 
             alignItems: 'stretch',
 
-            marginBottom: '1.5rem',
+            marginBottom: '1.75rem',
+
+            overflow: 'hidden',
+
+            minWidth: 0,
           }}
         >
 
+          {/* AI INSIGHTS */}
+
           <div
             style={{
+
               minWidth: 0,
+
+              width: '100%',
+
+              display: 'flex',
+
+              height: 'screen',
             }}
           >
 
@@ -584,9 +603,16 @@ export default function ProjectDetailPage({
 
           </div>
 
+          {/* FORECAST */}
+
           <div
             style={{
+
               minWidth: 0,
+
+              width: '100%',
+
+              display: 'flex',
             }}
           >
 
@@ -596,9 +622,18 @@ export default function ProjectDetailPage({
 
           </div>
 
+          {/* RISK */}
+
           <div
             style={{
+
               minWidth: 0,
+
+              width: '100%',
+
+              display: 'flex',
+
+              flexDirection: 'column',
             }}
           >
 
@@ -635,6 +670,8 @@ export default function ProjectDetailPage({
               display: 'flex',
 
               alignItems: 'center',
+
+              justifyContent: 'center',
 
               gap: '0.75rem',
 
@@ -710,12 +747,6 @@ export default function ProjectDetailPage({
                       ? '#ffffff'
 
                       : 'var(--text-primary)',
-
-                    boxShadow: active
-
-                      ? '0 10px 25px rgba(37,99,235,0.35)'
-
-                      : 'none',
 
                     transform: active
 

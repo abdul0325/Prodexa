@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { GitBranch, Rocket } from 'lucide-react';
+import { isAuthenticated } from '@/lib/api';
 
 interface CTASectionProps {
   title: string;
@@ -37,8 +38,14 @@ export function CTASection({ title, subtitle, buttonText, note }: CTASectionProp
     };
   }, [visible]);
 
+  const authenticated =
+    isAuthenticated();
+
   const handleGitHubAuth = () => {
-    window.location.href = '/login';
+    window.location.href =
+      authenticated
+        ? '/projects'
+        : '/login';
   };
 
   return (

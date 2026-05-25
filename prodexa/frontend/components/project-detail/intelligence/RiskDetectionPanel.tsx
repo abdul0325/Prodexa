@@ -85,24 +85,58 @@ export default function RiskDetectionPanel({
 
     return (
 
-        <div className="card">
+        <div
+            className="card"
+            style={{
+
+                width: '100%',
+
+                minWidth: 0,
+
+                overflow: 'hidden',
+
+                border:
+                    '1px solid rgba(148,163,184,0.18)',
+            }}
+        >
+
+            {/* HEADER */}
 
             <div
                 style={{
+
                     display: 'flex',
-                    alignItems: 'center',
+
+                    alignItems: 'flex-start',
+
                     justifyContent: 'space-between',
-                    marginBottom: '1rem',
+
+                    marginBottom: '1.25rem',
+
                     gap: '1rem',
+
                     flexWrap: 'wrap',
                 }}
             >
 
-                <div>
+                <div
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                    }}
+                >
 
                     <h3
                         style={{
-                            marginBottom: 4,
+
+                            marginBottom: 6,
+
+                            fontSize:
+                                'clamp(1rem,2vw,1.15rem)',
+
+                            lineHeight: 1.2,
+
+                            wordBreak: 'break-word',
                         }}
                     >
                         Risk Detection
@@ -110,8 +144,13 @@ export default function RiskDetectionPanel({
 
                     <div
                         style={{
-                            fontSize: '0.8rem',
-                            color: 'var(--text-muted)',
+
+                            fontSize: '0.82rem',
+
+                            color:
+                                'var(--text-muted)',
+
+                            lineHeight: 1.5,
                         }}
                     >
                         Engineering instability analysis
@@ -119,22 +158,43 @@ export default function RiskDetectionPanel({
 
                 </div>
 
-                <RiskBadge
-                    risk={deliveryRisk}
-                />
+                <div
+                    style={{
+                        flexShrink: 0,
+                    }}
+                >
+
+                    <RiskBadge
+                        risk={deliveryRisk}
+                    />
+
+                </div>
 
             </div>
+
+            {/* LOADING */}
 
             {loading ? (
 
                 <div
                     style={{
+
                         padding: '1rem',
-                        borderRadius: 14,
+
+                        borderRadius: 16,
+
                         background:
                             'rgba(255,255,255,0.03)',
+
+                        border:
+                            '1px solid rgba(148,163,184,0.14)',
+
                         color:
                             'var(--text-muted)',
+
+                        fontSize: '0.92rem',
+
+                        lineHeight: 1.6,
                     }}
                 >
                     Running risk analysis...
@@ -144,14 +204,19 @@ export default function RiskDetectionPanel({
 
                 <>
 
+                    {/* SIGNAL GRID */}
+
                     <div
                         style={{
+
                             display: 'grid',
 
                             gridTemplateColumns:
-                                'repeat(auto-fit, minmax(180px, 1fr))',
+                                'repeat(auto-fit,minmax(180px,1fr))',
 
                             gap: '1rem',
+
+                            width: '100%',
                         }}
                     >
 
@@ -165,20 +230,32 @@ export default function RiskDetectionPanel({
                                 <div
                                     key={index}
                                     style={{
-                                        padding: '1rem',
 
-                                        borderRadius: 14,
+                                        padding:
+                                            '1rem clamp(1rem,2vw,1.1rem)',
+
+                                        borderRadius: 16,
 
                                         background:
                                             'rgba(255,255,255,0.03)',
 
                                         border:
-                                            '1px solid rgba(255,255,255,0.06)',
+                                            '1px solid rgba(148,163,184,0.16)',
+
+                                        transition:
+                                            'all 0.2s ease',
+
+                                        width: '100%',
+
+                                        minWidth: 0,
+
+                                        overflow: 'hidden',
                                     }}
                                 >
 
                                     <div
                                         style={{
+
                                             display: 'flex',
 
                                             alignItems:
@@ -187,17 +264,22 @@ export default function RiskDetectionPanel({
                                             justifyContent:
                                                 'space-between',
 
-                                            marginBottom: 10,
+                                            gap: '0.75rem',
+
+                                            marginBottom: 12,
                                         }}
                                     >
 
                                         <div
                                             style={{
+
                                                 fontSize:
-                                                    '0.8rem',
+                                                    '0.82rem',
 
                                                 color:
                                                     'var(--text-muted)',
+
+                                                lineHeight: 1.4,
                                             }}
                                         >
                                             {signal.label}
@@ -205,8 +287,10 @@ export default function RiskDetectionPanel({
 
                                         <div
                                             style={{
-                                                width: 8,
-                                                height: 8,
+
+                                                width: 10,
+
+                                                height: 10,
 
                                                 borderRadius:
                                                     '50%',
@@ -215,6 +299,13 @@ export default function RiskDetectionPanel({
                                                     getSeverityColor(
                                                         signal.severity,
                                                     ),
+
+                                                flexShrink: 0,
+
+                                                boxShadow:
+                                                    `0 0 10px ${getSeverityColor(
+                                                        signal.severity,
+                                                    )}`,
                                             }}
                                         />
 
@@ -222,13 +313,19 @@ export default function RiskDetectionPanel({
 
                                     <div
                                         style={{
-                                            fontSize:
-                                                '1.5rem',
 
-                                            fontWeight: 700,
+                                            fontSize:
+                                                'clamp(1.4rem,3vw,1.7rem)',
+
+                                            fontWeight: 800,
 
                                             color:
                                                 'var(--text-primary)',
+
+                                            lineHeight: 1.1,
+
+                                            wordBreak:
+                                                'break-word',
                                         }}
                                     >
                                         {signal.value}
@@ -241,18 +338,23 @@ export default function RiskDetectionPanel({
 
                     </div>
 
+                    {/* REASONS */}
+
                     {(mlData?.reasons || [])
                         .length > 0 && (
 
                             <div
                                 style={{
+
                                     marginTop: '1.5rem',
 
                                     display: 'flex',
 
                                     flexDirection: 'column',
 
-                                    gap: '0.8rem',
+                                    gap: '0.85rem',
+
+                                    width: '100%',
                                 }}
                             >
 
@@ -267,25 +369,34 @@ export default function RiskDetectionPanel({
                                             <div
                                                 key={index}
                                                 style={{
-                                                    padding:
-                                                        '0.9rem 1rem',
 
-                                                    borderRadius: 12,
+                                                    padding:
+                                                        '1rem clamp(1rem,2vw,1.1rem)',
+
+                                                    borderRadius: 16,
 
                                                     background:
                                                         'rgba(239,68,68,0.08)',
 
                                                     border:
-                                                        '1px solid rgba(239,68,68,0.15)',
+                                                        '1px solid rgba(239,68,68,0.18)',
 
                                                     color:
                                                         '#fca5a5',
 
                                                     fontSize:
-                                                        '0.88rem',
+                                                        '0.9rem',
 
                                                     lineHeight:
-                                                        1.6,
+                                                        1.75,
+
+                                                    wordBreak:
+                                                        'break-word',
+
+                                                    overflowWrap:
+                                                        'break-word',
+
+                                                    width: '100%',
                                                 }}
                                             >
                                                 {reason}

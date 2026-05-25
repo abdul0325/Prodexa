@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import { api, isAuthenticated } from '@/lib/api';
 import { Project } from '@/types';
-import { RefreshCw, FolderOpen } from 'lucide-react';
+import { RefreshCw, FolderOpen, Home } from 'lucide-react';
 import { NexusPulse } from '@/components/loader/NexusPulse';
 
 export default function ProjectsPage() {
@@ -19,9 +19,9 @@ export default function ProjectsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated()) { 
-      router.push('/'); 
-      return; 
+    if (!isAuthenticated()) {
+      router.push('/');
+      return;
     }
     loadProjects();
   }, [router]);
@@ -72,16 +72,114 @@ export default function ProjectsPage() {
       <Sidebar />
       <main className="main-content page-main">
         {/* Header */}
-        <div className="page-header" style={{ marginBottom: '2rem' }}>
+        <div
+          className="page-header"
+          style={{
+            marginBottom: '2rem',
+
+            display: 'flex',
+
+            justifyContent: 'space-between',
+
+            alignItems: 'center',
+
+            gap: '1rem',
+
+            flexWrap: 'wrap',
+          }}
+        >
+
+          {/* LEFT */}
+
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Projects</h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: 2 }}>
-              {projects.length} project{projects.length !== 1 ? 's' : ''} connected
+
+            <h1
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+              }}
+            >
+              Projects
+            </h1>
+
+            <p
+              style={{
+                color: 'var(--text-secondary)',
+                fontSize: '0.875rem',
+                marginTop: 2,
+              }}
+            >
+              {projects.length}
+              {' '}
+              project
+              {projects.length !== 1 ? 's' : ''}
+              {' '}
+              connected
             </p>
+
           </div>
-          <button className="btn-primary" onClick={() => setShowModal(true)} style={{ whiteSpace: 'nowrap' }}>
-            + New Project
-          </button>
+
+          {/* RIGHT ACTIONS */}
+
+          <div
+            style={{
+
+              display: 'flex',
+
+              alignItems: 'center',
+
+              gap: '0.75rem',
+
+              flexWrap: 'wrap',
+            }}
+          >
+
+            {/* HOME BUTTON */}
+
+            <button
+              className="btn-secondary"
+              style={{
+
+                display: 'flex',
+
+                alignItems: 'center',
+
+                gap: '0.5rem',
+
+                whiteSpace: 'nowrap',
+              }}
+              onClick={() =>
+                router.push('/')
+              }
+            >
+
+              <Home size={16} />
+
+              <span>
+                Home
+              </span>
+
+            </button>
+
+            {/* CREATE BUTTON */}
+
+            <button
+              className="btn-primary"
+              onClick={() =>
+                setShowModal(true)
+              }
+              style={{
+                whiteSpace: 'nowrap',
+              }}
+            >
+
+              + New Project
+
+            </button>
+
+          </div>
+
         </div>
 
         {error && (

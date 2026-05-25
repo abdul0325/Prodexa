@@ -1,3 +1,5 @@
+import { ManagerOverview } from "@/types/types";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 function getToken(): string | null {
@@ -43,6 +45,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 // ─── Projects ───────────────────────────────
 export const api = {
+  manager: {
+    overview: () =>
+      request<ManagerOverview>(
+        '/manager/overview',
+      ),
+  },
   projects: {
     list: () => request<any[]>('/projects'),
     create: (data: { name: string; repoUrl: string; ownerName: string }) =>
@@ -77,7 +85,7 @@ export const api = {
     delete: (id: string) => request(`/notifications/${id}`, { method: 'DELETE' }),
   },
 
-  // ─── Admin ──────────────────────────────────
+  // ─── Admin frontend/lib/api.ts ──────────────────────────────────
   admin: {
     stats: () => request<any>('/admin/stats'),
     users: () => request<any[]>('/admin/users'),
@@ -106,6 +114,42 @@ export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
+export function getUserRole() {
+
+  if (
+    typeof window === 'undefined'
+  ) {
+
+    return null;
+  }
+
+  const token =
+    localStorage.getItem(
+      'prodexa_token',
+    );
+
+  if (!token) {
+
+    return null;
+  }
+
+  try {
+
+    const payload =
+      JSON.parse(
+        atob(
+          token.split('.')[1],
+        ),
+      );
+
+    console.log(payload);
+    return payload.role;
+
+  } catch {
+
+    return null;
+  }
+}
 export const getAnalyticsOverview =
   async () => {
 

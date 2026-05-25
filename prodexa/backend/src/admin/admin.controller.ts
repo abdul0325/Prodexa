@@ -17,7 +17,6 @@ import {
   UpdateProjectStatusDto,
 } from './dto/admin.dto';
 
-// Both guards required: must be logged in AND must be ADMIN
 @UseGuards(JwtAuthGuard, AdminGuard)
 @Controller('admin')
 export class AdminController {

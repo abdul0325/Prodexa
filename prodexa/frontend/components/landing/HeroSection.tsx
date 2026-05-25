@@ -1,518 +1,986 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { GitBranch, ArrowRight, Activity, Brain, Trophy } from 'lucide-react';
+
+import {
+  GitBranch,
+  ArrowRight,
+  Activity,
+  Brain,
+  Trophy,
+} from 'lucide-react';
+
+import {
+  isAuthenticated,
+} from '@/lib/api';
 
 export function HeroSection() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
+
+  const [
+    mousePosition,
+    setMousePosition,
+  ] = useState({
+    x: 0,
+    y: 0,
+  });
+
+  const cardRef =
+    useRef<HTMLDivElement>(null);
+
+  const authenticated =
+    isAuthenticated();
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+
+    const handleMouseMove = (
+      e: MouseEvent,
+    ) => {
+
       if (cardRef.current) {
-        const rect = cardRef.current.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const x = (e.clientX - centerX) / (rect.width / 2);
-        const y = (e.clientY - centerY) / (rect.height / 2);
-        setMousePosition({ x: x * -10, y: y * -10 });
+
+        const rect =
+          cardRef.current
+            .getBoundingClientRect();
+
+        const centerX =
+          rect.left +
+          rect.width / 2;
+
+        const centerY =
+          rect.top +
+          rect.height / 2;
+
+        const x =
+          (
+            e.clientX -
+            centerX
+          ) /
+          (rect.width / 2);
+
+        const y =
+          (
+            e.clientY -
+            centerY
+          ) /
+          (rect.height / 2);
+
+        setMousePosition({
+          x: x * -6,
+          y: y * -6,
+        });
       }
     };
 
-    const handleMouseLeave = () => {
-      setMousePosition({ x: 0, y: 0 });
-    };
+    const handleMouseLeave =
+      () => {
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
+        setMousePosition({
+          x: 0,
+          y: 0,
+        });
+      };
+
+    window.addEventListener(
+      'mousemove',
+      handleMouseMove,
+    );
+
+    window.addEventListener(
+      'mouseleave',
+      handleMouseLeave,
+    );
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
+
+      window.removeEventListener(
+        'mousemove',
+        handleMouseMove,
+      );
+
+      window.removeEventListener(
+        'mouseleave',
+        handleMouseLeave,
+      );
     };
+
   }, []);
 
-  const handleGitHubAuth = () => {
-    window.location.href = '/login';
-  };
+  const handlePrimaryAction =
+    () => {
 
-  const scrollToHowItWorks = () => {
-    const element = document.getElementById('how-it-works');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+      if (authenticated) {
+
+        window.location.href =
+          '/projects';
+
+        return;
+      }
+
+      window.location.href =
+        '/login';
+    };
+
+  const scrollToHowItWorks =
+    () => {
+
+      const element =
+        document.getElementById(
+          'how-it-works',
+        );
+
+      if (element) {
+
+        element.scrollIntoView({
+          behavior: 'smooth',
+        });
+      }
+    };
 
   return (
+
     <section
+      className="hero-section"
       style={{
-        minHeight: '100vh',
-        padding: '7rem 1rem',
+
+        minHeight: '100dvh',
+
+        padding:
+          'clamp(5rem, 6vh, 6rem) 1rem 2rem',
+
         position: 'relative',
+
         display: 'flex',
+
         alignItems: 'center',
+
         justifyContent: 'center',
+
         overflow: 'hidden',
       }}
     >
-      {/* Animated Mesh Gradient Background */}
+
+      {/* BACKGROUND */}
+
       <div
         style={{
+
           position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+
+          inset: 0,
+
           background: `
-            radial-gradient(ellipse at 20% 30%, rgba(91, 127, 255, 0.15) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 70%, rgba(157, 91, 255, 0.12) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 10%, rgba(6, 214, 224, 0.08) 0%, transparent 50%),
-            radial-gradient(ellipse at 10% 90%, rgba(16, 232, 138, 0.1) 0%, transparent 50%)
+            radial-gradient(
+              ellipse at 20% 30%,
+              rgba(91, 127, 255, 0.15) 0%,
+              transparent 50%
+            ),
+            radial-gradient(
+              ellipse at 80% 70%,
+              rgba(157, 91, 255, 0.12) 0%,
+              transparent 50%
+            ),
+            radial-gradient(
+              ellipse at 50% 10%,
+              rgba(6, 214, 224, 0.08) 0%,
+              transparent 50%
+            ),
+            radial-gradient(
+              ellipse at 10% 90%,
+              rgba(16, 232, 138, 0.1) 0%,
+              transparent 50%
+            )
           `,
-          animation: 'stunningGradientShift 25s ease-in-out infinite',
+
+          animation:
+            'stunningGradientShift 25s ease-in-out infinite',
+
           zIndex: 0,
         }}
       />
 
-      {/* Dot Grid Pattern Overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `
-            radial-gradient(circle, var(--border) 1px, transparent 1px)
-          `,
-          backgroundSize: '30px 30px',
-          opacity: 0.1,
-          zIndex: 0,
-        }}
-      />
+      {/* GRID */}
 
-      {/* Floating Orbs */}
       <div
+        className="hero-grid"
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}
-      >
-        {[
-          { size: 200, left: 15, top: 20, color: 'rgba(91, 127, 255, 0.1)', delay: 0 },
-          { size: 150, left: 85, top: 75, color: 'rgba(157, 91, 255, 0.08)', delay: 5 },
-          { size: 250, left: 45, top: 10, color: 'rgba(6, 214, 224, 0.06)', delay: 10 },
-        ].map((orb, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              width: `${orb.size}px`,
-              height: `${orb.size}px`,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, ${orb.color} 0%, transparent 70%)`,
-              filter: 'blur(40px)',
-              animation: `orbFloat ${15 + orb.delay}s ease-in-out infinite`,
-              left: `${orb.left}%`,
-              top: `${orb.top}%`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        ))}
-      </div>
 
-      {/* Hero Content */}
-      <div
-        style={{
-          maxWidth: '1200px',
+          maxWidth: '1240px',
+
           width: '100%',
+
           margin: '0 auto',
+
           position: 'relative',
+
           zIndex: 2,
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 1fr',
-          gap: '4rem',
-          alignItems: 'center',
         }}
       >
-        {/* Left Column - Hero Text */}
-        <div>
-          {/* Badge */}
+
+        {/* LEFT */}
+
+        <div
+          className="hero-content"
+        >
+
+          {/* BADGE */}
+
           <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '16px',
-              padding: '0.75rem 1.5rem',
-              marginBottom: '2rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: 'var(--accent)',
-              backdropFilter: 'blur(10px)',
-              animation: 'fadeInUp 0.8s ease-out',
-            }}
+            className="hero-badge"
           >
-            <Trophy size={18} />
-            Final Year Project 2026
+
+            <Trophy size={16} />
+
+            <span>
+              Final Year Project 2026
+            </span>
+
           </div>
 
-          {/* Headline */}
+          {/* TITLE */}
+
           <h1
-            style={{
-              fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-              fontWeight: 800,
-              lineHeight: 1.05,
-              marginBottom: '2rem',
-              fontFamily: 'var(--font-display)',
-              background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 30%, var(--purple) 60%, var(--text-primary) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: '-0.03em',
-              animation: 'fadeInUp 1s ease-out',
-            }}
+            className="hero-title"
           >
-            Ship Faster.<br />
-            Track Smarter.<br />
+            Ship Faster.
+            <br />
+            Track Smarter.
+            <br />
             Predict Everything.
           </h1>
 
-          {/* Subtext */}
+          {/* DESCRIPTION */}
+
           <p
-            style={{
-              fontSize: '1.25rem',
-              color: 'var(--text-secondary)',
-              marginBottom: '3rem',
-              maxWidth: '500px',
-              lineHeight: 1.7,
-              fontFamily: 'var(--font-body)',
-              animation: 'fadeInUp 1.2s ease-out',
-            }}
+            className="hero-description"
           >
-            Prodexa connects to your GitHub and uses advanced AI to predict delivery risks, 
-            track developer productivity, and provide your team with real-time intelligence.
+
+            Prodexa connects to your GitHub
+            and uses advanced AI to predict
+            delivery risks, track developer
+            productivity, and provide
+            real-time engineering
+            intelligence.
+
           </p>
 
-          {/* CTA Buttons */}
+          {/* BUTTONS */}
+
           <div
-            style={{
-              display: 'flex',
-              gap: '1.5rem',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              animation: 'fadeInUp 1.4s ease-out',
-            }}
+            className="hero-buttons"
           >
+
             <button
-              onClick={handleGitHubAuth}
-              style={{
-                background: 'linear-gradient(135deg, var(--accent), var(--accent-bright))',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '0.75rem 1.75rem',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 0 24px var(--accent-glow)',
-                transition: 'all 200ms ease',
-                fontFamily: 'var(--font-body)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 32px var(--accent-glow)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 0 24px var(--accent-glow)';
-              }}
+              onClick={
+                handlePrimaryAction
+              }
+              className="hero-primary-btn"
             >
+
               <GitBranch size={18} />
-              Sign in with GitHub
+
+              <span>
+                {
+                  authenticated
+                    ? 'Open Dashboard'
+                    : 'Sign in with GitHub'
+                }
+              </span>
+
               <ArrowRight size={16} />
+
             </button>
 
             <button
-              onClick={scrollToHowItWorks}
-              style={{
-                background: 'transparent',
-                border: '1.5px solid var(--accent)',
-                color: 'var(--accent)',
-                borderRadius: '10px',
-                padding: '0.75rem 1.75rem',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 200ms ease',
-                fontFamily: 'var(--font-body)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--accent-glow)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              onClick={
+                scrollToHowItWorks
+              }
+              className="hero-secondary-btn"
             >
               See How It Works
             </button>
+
           </div>
 
-          {/* Trust Line */}
+          {/* TRUST */}
+
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              marginTop: '2rem',
-              fontSize: '0.875rem',
-              color: 'var(--text-dim)',
-              fontFamily: 'var(--font-body)',
-              animation: 'fadeInUp 1.6s ease-out',
-            }}
+            className="hero-trust"
           >
+
             <span>•</span>
             <span>No setup</span>
+
             <span>•</span>
             <span>GitHub OAuth</span>
+
             <span>•</span>
             <span>Free</span>
+
             <span>•</span>
             <span>ML-powered</span>
+
           </div>
+
         </div>
 
-        {/* Right Column - Hero Visual Card */}
+        {/* RIGHT */}
+
         <div
           ref={cardRef}
+          className="hero-dashboard-card"
           style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: '16px',
-            padding: '2rem',
-            boxShadow: '0 25px 50px rgba(0,0,0,0.15)',
-            transform: `perspective(1000px) rotateY(${mousePosition.x}deg) rotateX(${mousePosition.y}deg)`,
-            transition: 'transform 0.2s ease-out',
-            position: 'relative',
-            overflow: 'hidden',
-            backdropFilter: 'blur(20px)',
-            animation: 'slideInRight 1s ease-out',
+
+            transform:
+              `perspective(1000px)
+              rotateY(${mousePosition.x}deg)
+              rotateX(${mousePosition.y}deg)`,
           }}
         >
-          {/* Glow Effect */}
+
+          {/* GLOW */}
+
           <div
-            style={{
-              position: 'absolute',
-              top: '-50%',
-              left: '-50%',
-              right: '-50%',
-              bottom: '-50%',
-              background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)',
-              opacity: 0.5,
-              animation: 'pulse 2s ease-in-out infinite',
-            }}
+            className="hero-card-glow"
           />
 
-          {/* Dashboard Mockup */}
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            {/* Header */}
-            <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                gap: '0.5rem', 
-                marginBottom: '1rem' 
-              }}>
-                {['Alex Chen', 'Sarah Kim', 'Mike Johnson'].map((dev, i) => (
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
+
+            {/* TEAM */}
+
+            <div
+              style={{
+                marginBottom: '1.5rem',
+                textAlign: 'center',
+              }}
+            >
+
+              <div
+                className="hero-dev-list"
+              >
+
+                {[
+                  'Alex Chen',
+                  'Sarah Kim',
+                  'Mike Johnson',
+                ].map(
+                  (
+                    dev,
+                    i,
+                  ) => (
+
+                    <div
+                      key={i}
+                      className="hero-dev-chip"
+                    >
+                      {dev}
+                    </div>
+
+                  ),
+                )}
+
+              </div>
+
+            </div>
+
+            {/* STATS */}
+
+            <div
+              className="hero-stats-grid"
+            >
+
+              {[
+                {
+                  icon:
+                    <Activity size={18} />,
+                  label:
+                    'Active Devs',
+                  value: '3',
+                  color:
+                    'var(--green)',
+                },
+
+                {
+                  icon:
+                    <GitBranch size={18} />,
+                  label:
+                    'Commits',
+                  value: '47',
+                  color:
+                    'var(--accent)',
+                },
+
+                {
+                  icon:
+                    <Brain size={18} />,
+                  label:
+                    'AI Score',
+                  value: '73%',
+                  color:
+                    'var(--purple)',
+                },
+              ].map(
+                (
+                  stat,
+                  i,
+                ) => (
+
                   <div
                     key={i}
-                    style={{
-                      background: 'var(--surface-2)',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '12px',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-secondary)',
-                      border: '1px solid var(--border)',
-                      fontFamily: 'var(--font-body)',
-                      animation: `fadeInUp 1.2s ease-out ${i * 0.1}s both`,
-                    }}
+                    className="hero-stat-card"
                   >
-                    {dev}
+
+                    <div
+                      style={{
+                        color:
+                          stat.color,
+                        marginBottom:
+                          '0.5rem',
+                      }}
+                    >
+                      {stat.icon}
+                    </div>
+
+                    <div
+                      className="hero-stat-value"
+                    >
+                      {stat.value}
+                    </div>
+
+                    <div
+                      className="hero-stat-label"
+                    >
+                      {stat.label}
+                    </div>
+
                   </div>
-                ))}
-              </div>
+
+                ),
+              )}
+
+            </div>
+
+            {/* HEALTH */}
+
+            <div
+              style={{
+                textAlign: 'center',
+              }}
+            >
+
               <div
-                style={{
-                  width: '120px',
-                  height: '4px',
-                  background: 'linear-gradient(90deg, var(--border), var(--accent), var(--border))',
-                  borderRadius: '2px',
-                  margin: '0 auto',
-                  animation: 'slideInWidth 1.5s ease-out',
-                }}
-              />
-            </div>
-
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-              {[
-                { icon: <Activity size={20} />, label: 'Active Devs', value: '3', color: 'var(--green)' },
-                { icon: <GitBranch size={20} />, label: 'Commits', value: '47', color: 'var(--accent)' },
-                { icon: <Brain size={20} />, label: 'AI Score', value: '73%', color: 'var(--purple)' },
-              ].map((stat, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: 'var(--surface-2)',
-                    padding: '1rem',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border)',
-                    textAlign: 'center',
-                    animation: `fadeInUp 1.4s ease-out ${i * 0.15}s both`,
-                  }}
-                >
-                  <div style={{ color: stat.color, marginBottom: '0.5rem' }}>
-                    {stat.icon}
-                  </div>
-                  <div style={{ 
-                    fontSize: '1.5rem', 
-                    fontWeight: 700, 
-                    color: 'var(--text-primary)',
-                    fontFamily: 'var(--font-mono)',
-                    marginBottom: '0.25rem' 
-                  }}>
-                    {stat.value}
-                  </div>
-                  <div style={{ 
-                    fontSize: '0.7rem', 
-                    color: 'var(--text-secondary)',
-                    fontFamily: 'var(--font-body)',
-                    fontWeight: 500 
-                  }}>
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Project Health */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                fontSize: '0.875rem', 
-                color: 'var(--text-secondary)', 
-                marginBottom: '0.5rem',
-                fontFamily: 'var(--font-body)',
-                fontWeight: 500 
-              }}>
+                className="hero-health-label"
+              >
                 Project Health
               </div>
-              <div style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 800, 
-                color: 'var(--green)',
-                fontFamily: 'var(--font-display)',
-                textShadow: '0 0 20px var(--accent-glow)',
-                animation: 'pulse 2s ease-in-out infinite',
-              }}>
+
+              <div
+                className="hero-health-value"
+              >
                 Excellent
               </div>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
 
-      {/* Mobile Responsive Styles */}
+      {/* STYLES */}
+
       <style jsx>{`
+
+        .hero-grid {
+
+          display: grid;
+
+          grid-template-columns:
+            minmax(0, 1.1fr)
+            minmax(320px, 500px);
+
+          align-items: center;
+
+          gap:
+            clamp(2rem, 4vw, 4rem);
+        }
+
+        .hero-content {
+
+          max-width: 560px;
+
+          min-width: 0;
+        }
+
+        .hero-badge {
+
+          display: inline-flex;
+
+          align-items: center;
+
+          gap: 0.65rem;
+
+          padding:
+            0.65rem 1.15rem;
+
+          border-radius: 14px;
+
+          background:
+            var(--surface);
+
+          border:
+            1px solid var(--border);
+
+          margin-bottom: 1.5rem;
+
+          font-size: 0.8rem;
+
+          font-weight: 600;
+
+          color: var(--accent);
+
+          backdrop-filter:
+            blur(12px);
+        }
+
+        .hero-title {
+
+          font-size:
+            clamp(2.1rem, 4vw, 3.8rem);
+
+          line-height: 0.98;
+
+          letter-spacing: -0.04em;
+
+          font-weight: 800;
+
+          margin-bottom: 1.25rem;
+
+          font-family:
+            var(--font-display);
+
+          background:
+            linear-gradient(
+              135deg,
+              var(--text-primary) 0%,
+              var(--accent) 30%,
+              var(--purple) 60%,
+              var(--text-primary) 100%
+            );
+
+          -webkit-background-clip: text;
+
+          -webkit-text-fill-color:
+            transparent;
+
+          background-clip: text;
+        }
+
+        .hero-description {
+
+          font-size:
+            clamp(1rem, 1.4vw, 1.15rem);
+
+          line-height: 1.7;
+
+          color:
+            var(--text-secondary);
+
+          margin-bottom: 1.75rem;
+
+          max-width: 520px;
+        }
+
+        .hero-buttons {
+
+          display: flex;
+
+          gap: 1rem;
+
+          flex-wrap: wrap;
+
+          align-items: center;
+        }
+
+        .hero-primary-btn {
+
+          display: inline-flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          gap: 0.5rem;
+
+          border: none;
+
+          cursor: pointer;
+
+          border-radius: 12px;
+
+          padding:
+            0.9rem 1.4rem;
+
+          background:
+            linear-gradient(
+              135deg,
+              var(--accent),
+              var(--accent-bright)
+            );
+
+          color: white;
+
+          font-weight: 600;
+
+          font-size: 0.92rem;
+
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+
+          box-shadow:
+            0 10px 30px
+            var(--accent-glow);
+        }
+
+        .hero-primary-btn:hover {
+
+          transform:
+            translateY(-2px);
+
+          box-shadow:
+            0 14px 34px
+            var(--accent-glow);
+        }
+
+        .hero-secondary-btn {
+
+          border:
+            1.5px solid var(--accent);
+
+          background: transparent;
+
+          color: var(--accent);
+
+          border-radius: 12px;
+
+          padding:
+            0.9rem 1.4rem;
+
+          font-size: 0.92rem;
+
+          font-weight: 600;
+
+          cursor: pointer;
+
+          transition:
+            all 0.2s ease;
+        }
+
+        .hero-secondary-btn:hover {
+
+          background:
+            var(--accent-glow);
+
+          transform:
+            translateY(-2px);
+        }
+
+        .hero-trust {
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 0.75rem;
+
+          flex-wrap: wrap;
+
+          margin-top: 1.25rem;
+
+          font-size: 0.82rem;
+
+          color:
+            var(--text-dim);
+        }
+
+        .hero-dashboard-card {
+
+          position: relative;
+
+          overflow: hidden;
+
+          background:
+            var(--surface);
+
+          border:
+            1px solid var(--border);
+
+          border-radius: 22px;
+
+          padding: 1.75rem;
+
+          backdrop-filter:
+            blur(20px);
+
+          box-shadow:
+            0 30px 60px rgba(0,0,0,0.12);
+
+          transition:
+            transform 0.2s ease-out;
+
+          width: 100%;
+
+          min-width: 0;
+        }
+
+        .hero-card-glow {
+
+          position: absolute;
+
+          inset: -50%;
+
+          background:
+            radial-gradient(
+              circle,
+              var(--accent-glow) 0%,
+              transparent 70%
+            );
+
+          opacity: 0.5;
+
+          animation:
+            pulse 2s ease-in-out infinite;
+        }
+
+        .hero-dev-list {
+
+          display: flex;
+
+          justify-content: center;
+
+          gap: 0.5rem;
+
+          flex-wrap: wrap;
+        }
+
+        .hero-dev-chip {
+
+          background:
+            var(--surface-2);
+
+          border:
+            1px solid var(--border);
+
+          border-radius: 12px;
+
+          padding:
+            0.5rem 0.9rem;
+
+          font-size: 0.78rem;
+
+          color:
+            var(--text-secondary);
+        }
+
+        .hero-stats-grid {
+
+          display: grid;
+
+          grid-template-columns:
+            repeat(3, minmax(0,1fr));
+
+          gap: 0.9rem;
+
+          margin-bottom: 1.5rem;
+        }
+
+        .hero-stat-card {
+
+          background:
+            var(--surface-2);
+
+          border:
+            1px solid var(--border);
+
+          border-radius: 14px;
+
+          padding: 1rem;
+
+          text-align: center;
+        }
+
+        .hero-stat-value {
+
+          font-size: 1.4rem;
+
+          font-weight: 700;
+
+          color:
+            var(--text-primary);
+
+          margin-bottom: 0.25rem;
+        }
+
+        .hero-stat-label {
+
+          font-size: 0.72rem;
+
+          color:
+            var(--text-secondary);
+        }
+
+        .hero-health-label {
+
+          font-size: 0.85rem;
+
+          color:
+            var(--text-secondary);
+
+          margin-bottom: 0.4rem;
+        }
+
+        .hero-health-value {
+
+          font-size:
+            clamp(2rem, 4vw, 2.6rem);
+
+          font-weight: 800;
+
+          color:
+            var(--green);
+
+          text-shadow:
+            0 0 20px
+            var(--accent-glow);
+        }
+
+        /* =========================
+           TABLET
+        ========================= */
+
         @media (max-width: 1024px) {
-          div[style*="grid-template-columns: 1.2fr 1fr"] {
-            grid-template-columns: 1fr;
-            gap: 3rem;
+
+          .hero-section {
+
+            min-height: auto !important;
+
+            padding:
+              6rem 1.25rem 4rem !important;
+          }
+
+          .hero-grid {
+
+            grid-template-columns:
+              1fr;
+
             text-align: center;
           }
-          
-          div[style*="maxWidth: 500px"] {
-            max-width: 600px;
+
+          .hero-content {
+
             margin: 0 auto;
           }
-          
-          div[style*="display: flex; gap: 1.5rem"] {
+
+          .hero-buttons {
+
             justify-content: center;
-            flex-wrap: wrap;
+          }
+
+          .hero-trust {
+
+            justify-content: center;
+          }
+
+          .hero-dashboard-card {
+
+            max-width: 700px;
+
+            margin: 0 auto;
           }
         }
+
+        /* =========================
+           MOBILE
+        ========================= */
 
         @media (max-width: 768px) {
-          section[style*="minHeight: 100vh"] {
-            padding: 6rem 1rem 4rem;
+
+          .hero-section {
+
+            padding:
+              5.5rem 1rem 3rem !important;
           }
-          
-          div[style*="grid-template-columns: 1.2fr 1fr"] {
-            gap: 2rem;
+
+          .hero-title {
+
+            font-size:
+              clamp(2.3rem, 11vw, 3.4rem);
+
+            line-height: 1.02;
           }
-          
-          h1[style*="clamp(2.5rem, 6vw, 5rem)"] {
-            font-size: clamp(2rem, 8vw, 3.5rem);
+
+          .hero-description {
+
+            font-size: 1rem;
           }
-          
-          div[style*="fontSize: 1.25rem"] {
-            font-size: 1.1rem;
+
+          .hero-buttons {
+
+            flex-direction: column;
+
+            width: 100%;
           }
-          
-          div[style*="padding: 2rem"] {
-            padding: 1.5rem;
+
+          .hero-buttons button {
+
+            width: 100%;
           }
-          
-          div[style*="display: grid; gridTemplateColumns: repeat(3, 1fr)"] {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+
+          .hero-stats-grid {
+
+            grid-template-columns:
+              1fr;
+          }
+
+          .hero-dashboard-card {
+
+            padding: 1.2rem;
           }
         }
 
+        /* =========================
+           SMALL MOBILE
+        ========================= */
+
         @media (max-width: 480px) {
-          section[style*="minHeight: 100vh"] {
-            padding: 5rem 0.75rem 3rem;
+
+          .hero-section {
+
+            padding:
+              5rem 0.8rem 2.5rem !important;
           }
-          
-          h1[style*="clamp(2.5rem, 6vw, 5rem)"] {
-            font-size: clamp(1.75rem, 10vw, 2.5rem);
-          }
-          
-          div[style*="fontSize: 1.25rem"] {
-            font-size: 1rem;
-          }
-          
-          div[style*="padding: 2rem"] {
+
+          .hero-dashboard-card {
+
+            border-radius: 18px;
+
             padding: 1rem;
           }
-          
-          div[style*="display: flex; gap: 1.5rem"] {
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-          }
-          
-          button[style*="padding: 0.75rem 1.75rem"] {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.9rem;
-          }
-          
-          div[style*="fontSize: 2.5rem"] {
-            font-size: 2rem;
+
+          .hero-dev-chip {
+
+            width: 100%;
           }
         }
+
       `}</style>
+
     </section>
   );
 }

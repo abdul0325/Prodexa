@@ -9,7 +9,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async validateGithubUser(profile: any, accessToken: string) {
     const email = profile.emails?.[0]?.value;
@@ -37,7 +37,7 @@ export class AuthService {
       });
     }
 
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email, role: user.role };
     const token = this.jwtService.sign(payload);
 
     return { user, token };

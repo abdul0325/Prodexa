@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -19,6 +20,7 @@ import { NotificationsModule } from './prisma/notifications/notifications.module
 import { GatewayModule } from './gateway/gateway.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { GithubWebhooksModule } from './github/webhooks/github-webhooks.module';
+import { ManagerModule } from './manager/manager.module';
 
 @Module({
   imports: [
@@ -52,8 +54,9 @@ import { GithubWebhooksModule } from './github/webhooks/github-webhooks.module';
     NotificationsModule,
     GatewayModule,
     GithubWebhooksModule,
+    ManagerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

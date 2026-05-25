@@ -32,21 +32,40 @@ export default function MLTab({
 
         <div
             style={{
+
                 display: 'flex',
+
                 flexDirection: 'column',
+
                 gap: '1.5rem',
+
+                width: '100%',
+
+                minWidth: 0,
             }}
         >
 
             {/* HEADER */}
 
-            <div className="card">
+            <div
+                className="card"
+                style={{
+
+                    border:
+                        '1px solid rgba(148,163,184,0.18)',
+
+                    width: '100%',
+
+                    minWidth: 0,
+                }}
+            >
 
                 <div
                     style={{
+
                         display: 'flex',
 
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
 
                         justifyContent:
                             'space-between',
@@ -57,11 +76,25 @@ export default function MLTab({
                     }}
                 >
 
-                    <div>
+                    <div
+                        style={{
+                            minWidth: 0,
+                            flex: 1,
+                        }}
+                    >
 
                         <h3
                             style={{
-                                marginBottom: 4,
+
+                                marginBottom: 6,
+
+                                fontSize:
+                                    'clamp(1rem,2vw,1.15rem)',
+
+                                lineHeight: 1.2,
+
+                                wordBreak:
+                                    'break-word',
                             }}
                         >
                             ML Intelligence Center
@@ -69,10 +102,13 @@ export default function MLTab({
 
                         <div
                             style={{
-                                fontSize: '0.8rem',
+
+                                fontSize: '0.82rem',
 
                                 color:
                                     'var(--text-muted)',
+
+                                lineHeight: 1.5,
                             }}
                         >
                             Predictive engineering intelligence
@@ -82,11 +118,17 @@ export default function MLTab({
 
                     <div
                         style={{
+
                             display: 'flex',
 
                             alignItems: 'center',
 
-                            gap: '1rem',
+                            gap: '0.75rem',
+
+                            flexWrap: 'wrap',
+
+                            justifyContent:
+                                'flex-end',
                         }}
                     >
 
@@ -99,9 +141,46 @@ export default function MLTab({
                         )}
 
                         <button
-                            className="button"
                             onClick={onRunML}
                             disabled={runningML}
+                            style={{
+
+                                minHeight: 46,
+
+                                padding:
+                                    '0.8rem 1.1rem',
+
+                                borderRadius: 14,
+
+                                border: 'none',
+
+                                cursor:
+                                    runningML
+                                        ? 'not-allowed'
+                                        : 'pointer',
+
+                                background:
+                                    'linear-gradient(135deg,#2563eb,#1d4ed8)',
+
+                                color: '#fff',
+
+                                fontWeight: 700,
+
+                                fontSize: '0.9rem',
+
+                                transition:
+                                    'all 0.2s ease',
+
+                                opacity:
+                                    runningML
+                                        ? 0.7
+                                        : 1,
+
+                                whiteSpace: 'nowrap',
+
+                                boxShadow:
+                                    '0 10px 25px rgba(37,99,235,0.35)',
+                            }}
                         >
                             {
                                 runningML
@@ -120,20 +199,37 @@ export default function MLTab({
 
             {!hasData && (
 
-                <div className="card">
+                <div
+                    className="card"
+                    style={{
+
+                        border:
+                            '1px solid rgba(148,163,184,0.18)',
+                    }}
+                >
 
                     <div
                         style={{
-                            padding: '2rem',
+
+                            padding:
+                                '2rem clamp(1rem,2vw,2.5rem)',
 
                             textAlign: 'center',
 
                             color:
                                 'var(--text-muted)',
+
+                            lineHeight: 1.8,
+
+                            fontSize:
+                                'clamp(0.9rem,1.5vw,1rem)',
                         }}
                     >
 
                         No ML forecast available yet.
+
+                        <br />
+
                         Run engineering intelligence analysis
                         to generate predictive telemetry.
 
@@ -151,111 +247,56 @@ export default function MLTab({
 
                     {/* SUMMARY */}
 
-                    <div className="card">
+                    <div
+                        className="card"
+                        style={{
+
+                            border:
+                                '1px solid rgba(148,163,184,0.18)',
+                        }}
+                    >
 
                         <div
                             style={{
+
                                 display: 'grid',
 
                                 gridTemplateColumns:
-                                    'repeat(auto-fit, minmax(220px, 1fr))',
+                                    'repeat(auto-fit,minmax(min(100%,220px),1fr))',
 
                                 gap: '1rem',
+
+                                width: '100%',
                             }}
                         >
 
-                            <div>
+                            {/* HEALTH */}
 
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
+                            <MetricCard
+                                label="Engineering Health"
+                                value={
+                                    mlData?.projectScore || 0
+                                }
+                            />
 
-                                        color:
-                                            'var(--text-muted)',
+                            {/* RISK */}
 
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Engineering Health
-                                </div>
+                            <MetricCard
+                                label="Delivery Risk"
+                                value={deliveryRisk}
+                            />
 
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '2rem',
+                            {/* CONFIDENCE */}
 
-                                        fontWeight: 800,
-                                    }}
-                                >
-                                    {mlData?.projectScore || 0}
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Delivery Risk
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '2rem',
-
-                                        fontWeight: 800,
-                                    }}
-                                >
-                                    {deliveryRisk}
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Forecast Confidence
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '2rem',
-
-                                        fontWeight: 800,
-                                    }}
-                                >
-                                    {Math.round(
-                                        (
-                                            mlData?.forecastConfidence ||
-                                            0
-                                        ) * 100,
-                                    )}
-                                    %
-                                </div>
-
-                            </div>
+                            <MetricCard
+                                label="Forecast Confidence"
+                                value={`${Math.round(
+                                    (
+                                        mlData?.forecastConfidence ||
+                                        0
+                                    ) * 100,
+                                )}%`}
+                            />
 
                         </div>
 
@@ -263,7 +304,14 @@ export default function MLTab({
 
                     {/* EXPLAINABILITY */}
 
-                    <div className="card">
+                    <div
+                        className="card"
+                        style={{
+
+                            border:
+                                '1px solid rgba(148,163,184,0.18)',
+                        }}
+                    >
 
                         <h3
                             style={{
@@ -275,9 +323,14 @@ export default function MLTab({
 
                         <div
                             style={{
+
                                 display: 'flex',
+
                                 flexDirection: 'column',
+
                                 gap: '1rem',
+
+                                width: '100%',
                             }}
                         >
 
@@ -286,8 +339,20 @@ export default function MLTab({
 
                                 <div
                                     style={{
+
                                         color:
                                             'var(--text-muted)',
+
+                                        padding:
+                                            '1rem',
+
+                                        borderRadius: 16,
+
+                                        background:
+                                            'rgba(255,255,255,0.03)',
+
+                                        border:
+                                            '1px solid rgba(148,163,184,0.14)',
                                     }}
                                 >
                                     No ML reasoning available
@@ -306,19 +371,32 @@ export default function MLTab({
                                             <div
                                                 key={index}
                                                 style={{
-                                                    padding:
-                                                        '1rem',
 
-                                                    borderRadius: 12,
+                                                    padding:
+                                                        '1rem clamp(1rem,2vw,1.1rem)',
+
+                                                    borderRadius: 16,
 
                                                     background:
                                                         'rgba(255,255,255,0.03)',
 
                                                     border:
-                                                        '1px solid rgba(255,255,255,0.05)',
+                                                        '1px solid rgba(148,163,184,0.16)',
 
                                                     lineHeight:
-                                                        1.7,
+                                                        1.75,
+
+                                                    fontSize:
+                                                        '0.92rem',
+
+                                                    color:
+                                                        'var(--text-secondary)',
+
+                                                    wordBreak:
+                                                        'break-word',
+
+                                                    overflowWrap:
+                                                        'break-word',
                                                 }}
                                             >
                                                 {reason}
@@ -335,7 +413,14 @@ export default function MLTab({
 
                     {/* SIGNALS */}
 
-                    <div className="card">
+                    <div
+                        className="card"
+                        style={{
+
+                            border:
+                                '1px solid rgba(148,163,184,0.18)',
+                        }}
+                    >
 
                         <h3
                             style={{
@@ -347,225 +432,52 @@ export default function MLTab({
 
                         <div
                             style={{
+
                                 display: 'grid',
 
                                 gridTemplateColumns:
-                                    'repeat(auto-fit, minmax(200px, 1fr))',
+                                    'repeat(auto-fit,minmax(min(100%,200px),1fr))',
 
                                 gap: '1rem',
+
+                                width: '100%',
                             }}
                         >
 
-                            <div
-                                style={{
-                                    padding: '1rem',
+                            <SignalCard
+                                label="Average Impact Score"
+                                value={
+                                    mlData?.signals?.avgImpactScore || 0
+                                }
+                            />
 
-                                    borderRadius: 12,
+                            <SignalCard
+                                label="Average Risk Score"
+                                value={
+                                    mlData?.signals?.avgRiskScore || 0
+                                }
+                            />
 
-                                    background:
-                                        'rgba(255,255,255,0.03)',
+                            <SignalCard
+                                label="Noise Ratio"
+                                value={`${Math.round(
+                                    (mlData?.signals?.noiseRatio || 0) * 100,
+                                )}%`}
+                            />
 
-                                    border:
-                                        '1px solid rgba(255,255,255,0.05)',
-                                }}
-                            >
+                            <SignalCard
+                                label="Testing Ratio"
+                                value={`${Math.round(
+                                    (mlData?.signals?.testingRatio || 0) * 100,
+                                )}%`}
+                            />
 
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Average Impact Score
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '1.5rem',
-
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    {mlData?.signals?.avgImpactScore || 0}
-                                </div>
-
-                            </div>
-
-                            <div
-                                style={{
-                                    padding: '1rem',
-
-                                    borderRadius: 12,
-
-                                    background:
-                                        'rgba(255,255,255,0.03)',
-
-                                    border:
-                                        '1px solid rgba(255,255,255,0.05)',
-                                }}
-                            >
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Average Risk Score
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '1.5rem',
-
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    {mlData?.signals?.avgRiskScore || 0}
-                                </div>
-
-                            </div>
-
-                            <div
-                                style={{
-                                    padding: '1rem',
-
-                                    borderRadius: 12,
-
-                                    background:
-                                        'rgba(255,255,255,0.03)',
-
-                                    border:
-                                        '1px solid rgba(255,255,255,0.05)',
-                                }}
-                            >
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Noise Ratio
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '1.5rem',
-
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    {Math.round(
-                                        (mlData?.signals?.noiseRatio || 0) * 100,
-                                    )}
-                                    %
-                                </div>
-
-                            </div>
-
-                            <div
-                                style={{
-                                    padding: '1rem',
-
-                                    borderRadius: 12,
-
-                                    background:
-                                        'rgba(255,255,255,0.03)',
-
-                                    border:
-                                        '1px solid rgba(255,255,255,0.05)',
-                                }}
-                            >
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Testing Ratio
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '1.5rem',
-
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    {Math.round(
-                                        (mlData?.signals?.testingRatio || 0) * 100,
-                                    )}
-                                    %
-                                </div>
-
-                            </div>
-
-                            <div
-                                style={{
-                                    padding: '1rem',
-
-                                    borderRadius: 12,
-
-                                    background:
-                                        'rgba(255,255,255,0.03)',
-
-                                    border:
-                                        '1px solid rgba(255,255,255,0.05)',
-                                }}
-                            >
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '0.8rem',
-
-                                        color:
-                                            'var(--text-muted)',
-
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Hotspot Count
-                                </div>
-
-                                <div
-                                    style={{
-                                        fontSize:
-                                            '1.5rem',
-
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    {mlData?.signals?.hotspotCount || 0}
-                                </div>
-
-                            </div>
+                            <SignalCard
+                                label="Hotspot Count"
+                                value={
+                                    mlData?.signals?.hotspotCount || 0
+                                }
+                            />
 
                         </div>
 
@@ -574,6 +486,160 @@ export default function MLTab({
                 </>
 
             )}
+
+        </div>
+    );
+}
+
+/* METRIC CARD */
+
+function MetricCard({
+
+    label,
+
+    value,
+
+}: {
+
+    label: string;
+
+    value: any;
+}) {
+
+    return (
+
+        <div
+            style={{
+
+                padding:
+                    '1rem clamp(1rem,2vw,1.2rem)',
+
+                borderRadius: 18,
+
+                background:
+                    'rgba(255,255,255,0.03)',
+
+                border:
+                    '1px solid rgba(148,163,184,0.16)',
+
+                width: '100%',
+
+                minWidth: 0,
+            }}
+        >
+
+            <div
+                style={{
+
+                    fontSize: '0.82rem',
+
+                    color:
+                        'var(--text-muted)',
+
+                    marginBottom: 10,
+
+                    lineHeight: 1.5,
+                }}
+            >
+                {label}
+            </div>
+
+            <div
+                style={{
+
+                    fontSize:
+                        'clamp(1.7rem,4vw,2rem)',
+
+                    fontWeight: 800,
+
+                    color:
+                        'var(--text-primary)',
+
+                    lineHeight: 1.1,
+
+                    wordBreak:
+                        'break-word',
+                }}
+            >
+                {value}
+            </div>
+
+        </div>
+    );
+}
+
+/* SIGNAL CARD */
+
+function SignalCard({
+
+    label,
+
+    value,
+
+}: {
+
+    label: string;
+
+    value: any;
+}) {
+
+    return (
+
+        <div
+            style={{
+
+                padding:
+                    '1rem clamp(1rem,2vw,1.1rem)',
+
+                borderRadius: 16,
+
+                background:
+                    'rgba(255,255,255,0.03)',
+
+                border:
+                    '1px solid rgba(148,163,184,0.16)',
+
+                width: '100%',
+
+                minWidth: 0,
+            }}
+        >
+
+            <div
+                style={{
+
+                    fontSize: '0.8rem',
+
+                    color:
+                        'var(--text-muted)',
+
+                    marginBottom: 10,
+
+                    lineHeight: 1.5,
+                }}
+            >
+                {label}
+            </div>
+
+            <div
+                style={{
+
+                    fontSize:
+                        'clamp(1.3rem,3vw,1.55rem)',
+
+                    fontWeight: 800,
+
+                    color:
+                        'var(--text-primary)',
+
+                    lineHeight: 1.1,
+
+                    wordBreak:
+                        'break-word',
+                }}
+            >
+                {value}
+            </div>
 
         </div>
     );
