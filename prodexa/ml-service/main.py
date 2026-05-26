@@ -106,16 +106,14 @@ async def startup_event():
 
     except Exception as error:
 
-        print(
-            "❌ ML startup failed:",
-        )
+    print(
+        "❌ ML startup failed:",
+    )
 
-        print(error)
-
-        raise error
+    print(error)
 
     print(
-        "\n📡 ML Service running " "on http://localhost:5000",
+        "\n📡 ML Service running " "on PORT 0.0.0.0:8080",
     )
 
     print(

@@ -10,6 +10,7 @@ Trains:
 Using REAL engineering telemetry from the NestJS backend.
 """
 
+from dotenv import load_dotenv
 import os
 import joblib
 import requests
@@ -31,6 +32,14 @@ from sklearn.preprocessing import (
 from sklearn.metrics import (
     mean_absolute_error,
     accuracy_score,
+)
+
+load_dotenv(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        ".env",
+    )
 )
 
 # ─────────────────────────────────────
@@ -63,7 +72,8 @@ SCALER_PATH = os.path.join(
 # ─────────────────────────────────────
 
 BACKEND_DATASET_URL = f"{os.getenv('BACKEND_URL')}/ml/dataset"
-
+print("BACKEND_URL =", os.getenv("BACKEND_URL"))
+print("DATASET_URL =", BACKEND_DATASET_URL)
 # ─────────────────────────────────────
 # FETCH REAL DATASET
 # ─────────────────────────────────────
