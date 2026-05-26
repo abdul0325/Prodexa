@@ -26,15 +26,43 @@ import { ManagerModule } from './manager/manager.module';
   imports: [
     // Redis — used for caching + BullMQ
     RedisModule.forRoot({
+
       type: 'single',
-      url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`,
+
+      options: {
+
+        host:
+          process.env.REDIS_HOST,
+
+        port: parseInt(
+          process.env.REDIS_PORT || '6379',
+        ),
+
+        password:
+          process.env.REDIS_PASSWORD,
+
+        tls: {},
+
+        maxRetriesPerRequest: null,
+      },
     }),
 
     // BullMQ job queue
     BullModule.forRoot({
+
       connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+
+        host:
+          process.env.REDIS_HOST,
+
+        port: parseInt(
+          process.env.REDIS_PORT || '6379',
+        ),
+
+        password:
+          process.env.REDIS_PASSWORD,
+
+        tls: {},
       },
     }),
 
