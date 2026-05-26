@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,7 +13,7 @@ export class GithubService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
-  ) {}
+  ) { }
 
   // ─────────────────────────────────────────────
   // CORE: Paginated fetcher with retry + rate limit
@@ -35,7 +36,7 @@ export class GithubService {
       for (let attempt = 1; attempt <= retries; attempt++) {
         try {
           const response = await this.httpService.axiosRef.get(url, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `token ${token}` },
             params: { ...params, per_page: perPage, page },
           });
 
@@ -137,19 +138,23 @@ export class GithubService {
   // PUBLIC METHODS (with caching)
   // ─────────────────────────────────────────────
 
-  async getContributors(owner: string, repo: string) {
+  async getContributors(
+    owner: string,
+    repo: string,
+    token: string,
+  ): Promise<any[]> {
     const cacheKey = this.getCacheKey('contributors', owner, repo);
     const cached = await this.getFromCache<any>(cacheKey);
     if (cached) return cached;
 
     try {
       this.logger.log(
-        `Fetching contributors for ${owner}/${repo} with token: ${!!process.env.GITHUB_TOKEN}`,
+        `Fetching contributors for ${owner}/${repo} with token: ${!!token}`,
       );
 
       const response = await this.httpService.axiosRef.get(
         `https://api.github.com/repos/${owner}/${repo}/contributors`,
-        { headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } },
+        { headers: { Authorization: `token ${token}` } },
       );
       await this.setCache(cacheKey, response.data);
       this.logger.log(
@@ -175,14 +180,18 @@ export class GithubService {
     }
   }
 
-  async getAllCommits(owner: string, repo: string) {
+  async getAllCommits(
+    owner: string,
+    repo: string,
+    token: string,
+  ) {
     const cacheKey = this.getCacheKey('commits', owner, repo);
     const cached = await this.getFromCache<GitHubCommit>(cacheKey);
     if (cached) return cached;
 
     const data = await this.fetchPaginated<GitHubCommit>(
       `https://api.github.com/repos/${owner}/${repo}/commits`,
-      process.env.GITHUB_TOKEN || '',
+      token,
       { per_page: 100 },
     );
 
@@ -191,14 +200,14 @@ export class GithubService {
     return data;
   }
 
-  async getAllPullRequests(owner: string, repo: string) {
+  async getAllPullRequests(owner: string, repo: string, token: string) {
     const cacheKey = this.getCacheKey('pulls', owner, repo);
     const cached = await this.getFromCache<GitHubPull>(cacheKey);
     if (cached) return cached;
 
     const data = await this.fetchPaginated<GitHubPull>(
       `https://api.github.com/repos/${owner}/${repo}/pulls`,
-      process.env.GITHUB_TOKEN || '',
+      token,
       { state: 'all' },
     );
 
@@ -207,14 +216,14 @@ export class GithubService {
     return data;
   }
 
-  async getAllIssues(owner: string, repo: string) {
+  async getAllIssues(owner: string, repo: string, token: string) {
     const cacheKey = this.getCacheKey('issues', owner, repo);
     const cached = await this.getFromCache<GitHubIssue>(cacheKey);
     if (cached) return cached;
 
     const data = await this.fetchPaginated<GitHubIssue>(
       `https://api.github.com/repos/${owner}/${repo}/issues`,
-      process.env.GITHUB_TOKEN || '',
+      token,
       { state: 'all' },
     );
 
@@ -277,7 +286,7 @@ export class GithubService {
   async getRateLimit(token: string) {
     const response = await this.httpService.axiosRef.get(
       'https://api.github.com/rate_limit',
-      { headers: { Authorization: `Bearer ${token}` } },
+      { headers: { Authorization: `token ${token}` } },
     );
     return response.data.rate;
   }

@@ -20,7 +20,11 @@ export class DeveloperAnalyticsService {
     const repoPath = project.repoUrl.split('github.com/')[1];
     const [owner, repo] = repoPath.replace('.git', '').split('/');
 
-    const contributors = await this.githubService.getContributors(owner, repo);
+    const contributors = await this.githubService.getContributors(
+      owner,
+      repo,
+      token,
+    );
 
     // ← FIXED: removed 'since' filter — fetch ALL commits, PRs, issues
     const [commits, pulls, issues] = await Promise.all([
@@ -93,10 +97,10 @@ export class DeveloperAnalyticsService {
     const token = project.user?.githubToken || process.env.GITHUB_TOKEN;
 
     const [contributors, commits, prs, issues] = await Promise.all([
-      this.githubService.getContributors(owner, repo),
-      this.githubService.getAllCommits(owner, repo),
-      this.githubService.getAllPullRequests(owner, repo),
-      this.githubService.getAllIssues(owner, repo),
+      this.githubService.getContributors(owner, repo, token),
+      this.githubService.getAllCommits(owner, repo, token,),
+      this.githubService.getAllPullRequests(owner, repo, token),
+      this.githubService.getAllIssues(owner, repo, token),
     ]);
 
     const tasks = contributors.map(async (contributor) => {
