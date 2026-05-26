@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GithubService } from '../github/github.service';
@@ -28,9 +29,23 @@ export class DeveloperAnalyticsService {
 
     // ← FIXED: removed 'since' filter — fetch ALL commits, PRs, issues
     const [commits, pulls, issues] = await Promise.all([
-      this.githubService.getAllCommits(owner, repo),
-      this.githubService.getAllPullRequests(owner, repo),
-      this.githubService.getAllIssues(owner, repo),
+      this.githubService.getAllCommits(
+        owner,
+        repo,
+        token,
+      ),
+
+      this.githubService.getAllPullRequests(
+        owner,
+        repo,
+        token,
+      ),
+
+      this.githubService.getAllIssues(
+        owner,
+        repo,
+        token,
+      ),
     ]);
 
     const devAnalytics = contributors.map((contributor) => {
@@ -94,11 +109,15 @@ export class DeveloperAnalyticsService {
     const { owner, repo } = parseRepoUrl(project.repoUrl);
 
     // Use user's own GitHub token for better rate limits & private repo access
-    const token = project.user?.githubToken || process.env.GITHUB_TOKEN;
+    const token = project.user?.githubToken;
+
+    if (!token) {
+      throw new NotFoundException('GitHub token not found');
+    }
 
     const [contributors, commits, prs, issues] = await Promise.all([
       this.githubService.getContributors(owner, repo, token),
-      this.githubService.getAllCommits(owner, repo, token,),
+      this.githubService.getAllCommits(owner, repo, token),
       this.githubService.getAllPullRequests(owner, repo, token),
       this.githubService.getAllIssues(owner, repo, token),
     ]);
