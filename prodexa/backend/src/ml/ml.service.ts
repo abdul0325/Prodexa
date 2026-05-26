@@ -34,7 +34,7 @@ export class MLService {
 
   private mlServiceUrl =
     process.env.ML_SERVICE_URL ||
-    'http://localhost:8000';
+    'https://prodexa-production-cbd4.up.railway.app';
 
   async analyzeProject(
     projectId: string,

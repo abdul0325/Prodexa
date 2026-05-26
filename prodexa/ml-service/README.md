@@ -34,7 +34,7 @@ python training/train.py
 python main.py
 ```
 
-Service runs on: http://localhost:5000
+Service runs on: https://prodexa-production-cbd4.up.railway.app
 
 ---
 
