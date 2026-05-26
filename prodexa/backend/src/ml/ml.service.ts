@@ -139,7 +139,7 @@ export class MLService {
 
       throw new HttpException(
 
-        'ML service request failed — make sure FastAPI is running on port 5000',
+        `ML service request failed: ${error.message}`,
 
         HttpStatus.BAD_GATEWAY,
       );

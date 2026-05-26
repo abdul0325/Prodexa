@@ -50,7 +50,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         os.getenv("BACKEND_URL"),
-        os.getenv("BACKEND_URL"),
+        "https://prodexa-mu.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -158,8 +158,8 @@ if __name__ == "__main__":
 
     port = int(
         os.getenv(
-            "ML_PORT",
-            5000,
+            "PORT",
+            8000,
         )
     )
 
