@@ -68,6 +68,20 @@ interface DashboardData {
     developers: Developer[];
   };
   developerRisk: DeveloperRiskEntry[];
+  prediction?: {
+    productivityScore: number;
+    deliveryRisk: string;
+    workloadForecast: number;
+    teamHealthStatus: string;
+
+    avgImpactScore: number;
+    avgRiskScore: number;
+    noiseRatio: number;
+    testingRatio: number;
+    hotspotCount: number;
+
+    generatedAt: string;
+  };
 }
 
 interface Developer {
@@ -233,13 +247,66 @@ export default function ProjectDetailPage({
         api.dashboard.activity(projectId), // ActivityPoint[]
         api.projects.list(),               // Project[]
       ]);
-
-      setDashboard(dash as DashboardData);
-      setActivity(act || []);
-
       const currentProject = (projects as any[]).find(
         (p: any) => p.id === projectId,
       );
+      setDashboard(dash as DashboardData);
+      const dashboardData = dash as any;
+
+      if (dashboardData.prediction) {
+        console.log(
+          'PREDICTION LOADED',
+          dashboardData.prediction,
+        );
+        setMlData({
+
+          projectId,
+
+          projectName:
+            currentProject?.name || '',
+
+          projectScore:
+            dashboardData.prediction.productivityScore,
+
+          deliveryRisk:
+            dashboardData.prediction.deliveryRisk,
+
+          teamHealthStatus:
+            dashboardData.prediction.teamHealthStatus,
+
+          forecastConfidence:
+            Number(
+              dashboardData.prediction.workloadForecast,
+            ),
+
+          reasons: [],
+
+          signals: {
+
+            avgImpactScore:
+              dashboardData.prediction.avgImpactScore,
+
+            avgRiskScore:
+              dashboardData.prediction.avgRiskScore,
+
+            noiseRatio:
+              dashboardData.prediction.noiseRatio,
+
+            testingRatio:
+              dashboardData.prediction.testingRatio,
+
+            hotspotCount:
+              dashboardData.prediction.hotspotCount,
+          },
+
+          generatedAt:
+            dashboardData.prediction.generatedAt,
+        });
+      }
+
+      setActivity(act || []);
+
+
       if (currentProject?.name) {
         setProjectName(currentProject.name);
       }
@@ -371,11 +438,16 @@ export default function ProjectDetailPage({
       0,
 
     // avgImpactScore is ML-specific, keep using mlData
-    avgImpactScore: mlData?.signals?.avgImpactScore ?? 0,
+    avgImpactScore:
+      mlData?.signals?.avgImpactScore ?? 0,
+
 
     // Use real risk detection data for these metrics
-    avgRiskScore: (riskDetection as any)?.signals?.avgRiskScore ?? 0,
-    hotspotCount: (riskDetection as any)?.signals?.hotspotCount ?? 0,
+    avgRiskScore:
+      mlData?.signals?.avgRiskScore ?? 0,
+
+    hotspotCount:
+      mlData?.signals?.hotspotCount ?? 0,
 
     // forecastConfidence: Python float 0–1, multiply by 100 for display
     // This is ML-only, keep as is
@@ -394,7 +466,7 @@ export default function ProjectDetailPage({
   };
 
   const forecastPanelData = mlData ?? null;
-  const riskPanelData = riskDetection ?? null;
+  const riskPanelData = mlData ?? null;
   const trendChartData = trendsData?.healthTrend ?? [];
 
   // ─────────────────────────────────────────────

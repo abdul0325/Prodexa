@@ -38,11 +38,6 @@ import { ManagerModule } from './manager/manager.module';
           process.env.REDIS_PORT || '6379',
         ),
 
-        password:
-          process.env.REDIS_PASSWORD,
-
-        tls: {},
-
         maxRetriesPerRequest: null,
       },
     }),
@@ -58,11 +53,6 @@ import { ManagerModule } from './manager/manager.module';
         port: parseInt(
           process.env.REDIS_PORT || '6379',
         ),
-
-        password:
-          process.env.REDIS_PASSWORD,
-
-        tls: {},
       },
     }),
 

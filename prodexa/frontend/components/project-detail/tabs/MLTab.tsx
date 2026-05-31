@@ -446,16 +446,12 @@ export default function MLTab({
 
                             <SignalCard
                                 label="Average Impact Score"
-                                value={
-                                    mlData?.signals?.avgImpactScore || 0
-                                }
+                                value={mlData?.signals?.avgImpactScore?.toFixed(2) || 0}
                             />
 
                             <SignalCard
                                 label="Average Risk Score"
-                                value={
-                                    mlData?.signals?.avgRiskScore || 0
-                                }
+                                value={mlData?.signals?.avgRiskScore?.toFixed(2) || 0}
                             />
 
                             <SignalCard

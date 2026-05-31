@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DeveloperAnalyticsService } from 'src/developer-analytics/developer-analytics.service';
@@ -7,7 +8,7 @@ export class DashboardService {
   constructor(
     private prisma: PrismaService,
     private devService: DeveloperAnalyticsService,
-  ) {}
+  ) { }
 
   /**
    * Unified Project Dashboard
@@ -25,11 +26,22 @@ export class DashboardService {
       daysThreshold,
     );
 
+    const latestPrediction =
+      await this.prisma.prediction.findFirst({
+        where: {
+          projectId,
+        },
+        orderBy: {
+          generatedAt: 'desc',
+        },
+      });
+
     return {
       projectId,
       healthScore: health.healthScore,
       healthStatus: health.status,
       metrics: health.metrics,
+      prediction: latestPrediction,
       leaderboard: {
         totals: {
           totalCommits: health.metrics?.totalCommits,

@@ -92,7 +92,7 @@ export default function KPIGrid({
 
             <StatCard
                 label="Impact Score"
-                value={impactScore}
+                value={Math.round(impactScore)}
                 sub="Commit impact intelligence"
                 color="var(--accent)"
                 updating={isLive}
@@ -101,7 +101,7 @@ export default function KPIGrid({
 
             <StatCard
                 label="Risk Score"
-                value={riskScore}
+                value={Math.round(riskScore)}
                 sub="Engineering instability score"
                 color="var(--danger)"
                 updating={isLive}

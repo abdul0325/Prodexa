@@ -17,48 +17,37 @@ export default function RiskDetectionPanel({
     loading = false,
 
 }: Props) {
+    console.log('RISK PANEL DATA', mlData);
 
-    const deliveryRisk =
-        (
-            mlData?.deliveryRisk ||
-            'LOW'
-        ).toUpperCase();
+    const deliveryRisk = (
+        mlData?.deliveryRisk || 'LOW'
+    ).toUpperCase();
 
     const signals = [
-
         {
             label: 'Noise Ratio',
-
-            value:
-                mlData?.signals?.noiseRatio || 0,
-
+            value: mlData?.signals?.noiseRatio
+                ? `${(mlData.signals.noiseRatio * 100).toFixed(1)}%`
+                : '0%',
             severity: 'warning',
         },
-
         {
             label: 'Testing Ratio',
-
-            value:
-                mlData?.signals?.testingRatio || 0,
-
+            value: mlData?.signals?.testingRatio
+                ? `${(mlData.signals.testingRatio * 100).toFixed(1)}%`
+                : '0%',
             severity: 'success',
         },
-
         {
             label: 'Hotspot Count',
-
-            value:
-                mlData?.signals?.hotspotCount || 0,
-
+            value: mlData?.signals?.hotspotCount ?? 0,
             severity: 'danger',
         },
-
         {
             label: 'Risk Score',
-
-            value:
-                mlData?.signals?.avgRiskScore || 0,
-
+            value: mlData?.signals?.avgRiskScore
+                ? `${(mlData.signals.avgRiskScore).toFixed(1)}`
+                : '0%',
             severity: 'danger',
         },
     ];

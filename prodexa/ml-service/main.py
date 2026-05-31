@@ -50,7 +50,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         os.getenv("BACKEND_URL"),
-        "https://prodexa-mu.vercel.app",
+        "http://localhost:3001",
     ],
     allow_credentials=True,
     allow_methods=["*"],

@@ -74,6 +74,20 @@ export interface DashboardData {
     developers: Developer[];
   };
   developerRisk: DeveloperRisk[];
+  prediction?: {
+    productivityScore: number;
+    deliveryRisk: string;
+    workloadForecast: number;
+    teamHealthStatus: string;
+
+    avgImpactScore: number;
+    avgRiskScore: number;
+    noiseRatio: number;
+    testingRatio: number;
+    hotspotCount: number;
+
+    generatedAt: string;
+  };
 }
 
 export interface ActivityPoint {

@@ -110,32 +110,47 @@ export class MLService {
 
       // SAVE PREDICTION
 
-      await this.prisma.prediction
-        .create({
+      await this.prisma.prediction.create({
+        data: {
+          projectId,
 
-          data: {
+          productivityScore:
+            predictions.projectScore,
 
-            projectId,
+          deliveryRisk:
+            predictions.deliveryRisk,
 
-            productivityScore:
-              predictions.projectScore,
+          workloadForecast:
+            predictions.forecastConfidence || 0,
 
-            deliveryRisk:
-              predictions.deliveryRisk,
+          teamHealthStatus:
+            predictions.teamHealthStatus,
 
-            workloadForecast:
-              predictions.forecastConfidence || 0,
-          },
-        });
+          avgImpactScore:
+            predictions.signals?.avgImpactScore,
+
+          avgRiskScore:
+            predictions.signals?.avgRiskScore,
+
+          noiseRatio:
+            predictions.signals?.noiseRatio,
+
+          testingRatio:
+            predictions.signals?.testingRatio,
+
+          hotspotCount:
+            predictions.signals?.hotspotCount,
+        },
+      });
 
       return predictions;
 
     } catch (error) {
 
-      console.error(
-        'ML SERVICE ERROR:',
-        error.message,
-      );
+      console.error('ML SERVICE ERROR');
+      console.error(error.response?.data);
+      console.error(error.response?.status);
+      console.error(error.message);
 
       throw new HttpException(
 
