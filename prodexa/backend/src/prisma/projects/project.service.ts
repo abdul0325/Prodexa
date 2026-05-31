@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { GithubService } from 'src/github/github.service';
@@ -27,20 +28,88 @@ export class ProjectService {
   ) { }
 
   // 1️⃣ Create a project
-  async createProject(createProjectDto: CreateProjectDto, userId: string) {
-    const project = await this.prisma.project.create({
-      data: {
-        name: createProjectDto.name,
-        repoUrl: createProjectDto.repoUrl,
-        ownerName: createProjectDto.ownerName,
-        user: {
-          connect: { id: userId },
-        },
-      },
-    });
+  async createProject(
+    createProjectDto: CreateProjectDto,
+    userId: string,
+  ) {
 
-    // Queue analysis job after project creation
-    await this.analyticsQueueService.addProjectAnalysisJob(project.id);
+    const [owner, repoName] =
+      createProjectDto.repoUrl
+        .split('github.com/')[1]
+        .split('/');
+
+   const user =
+  await this.prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+if (!user?.githubToken) {
+  throw new NotFoundException(
+    'GitHub token not found',
+  );
+}
+
+const repoInfo =
+  await this.githubService.getRepository(
+    owner,
+    repoName,
+    user.githubToken,
+  );
+
+const repository =
+  await this.prisma.repository.upsert({
+    where: {
+      fullName: `${owner}/${repoName}`,
+    },
+
+    update: {
+      githubId: repoInfo.id.toString(),
+    },
+
+    create: {
+      githubId:
+        repoInfo.id.toString(),
+
+      owner,
+
+      repoName,
+
+      fullName:
+        `${owner}/${repoName}`,
+
+      url:
+        createProjectDto.repoUrl,
+    },
+  });
+
+    const project =
+      await this.prisma.project.create({
+        data: {
+          name: createProjectDto.name,
+          repoUrl: createProjectDto.repoUrl,
+          ownerName: createProjectDto.ownerName,
+
+          repoOwner: owner,
+          repoName,
+
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+
+          repository: {
+            connect: {
+              id: repository.id,
+            },
+          },
+        },
+      });
+
+    await this.analyticsQueueService
+      .addProjectAnalysisJob(project.id);
 
     return project;
   }

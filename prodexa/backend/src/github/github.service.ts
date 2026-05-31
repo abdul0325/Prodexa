@@ -292,4 +292,22 @@ export class GithubService {
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
+
+  async getRepository(
+    owner: string,
+    repo: string,
+    token: string,
+  ) {
+    const response =
+      await this.httpService.axiosRef.get(
+        `https://api.github.com/repos/${owner}/${repo}`,
+        {
+          headers: {
+            Authorization: `token ${token}`,
+          },
+        },
+      );
+
+    return response.data;
+  }
 }
