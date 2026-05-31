@@ -398,20 +398,21 @@ export default function ProjectDetailPage({
    * 2. liveHealthScore          (WebSocket realtime)
    * 3. dashboard.healthScore    (GET /dashboard/project/:id)
    */
-  const displayHealth =
-    (engineeringHealth as any)?.score ??
-    liveHealthScore ??
-    dashboard?.healthScore ??
-    0;
+const displayHealth =
+  mlData?.projectScore ??
+  dashboard?.prediction?.productivityScore ??
+  (engineeringHealth as any)?.score ??
+  liveHealthScore ??
+  dashboard?.healthScore ??
+  0;
 
-  /**
-   * Health status priority mirrors above
-   */
-  const displayStatus =
-    (engineeringHealth as any)?.status ||
-    liveHealthStatus ||
-    dashboard?.healthStatus ||
-    'UNKNOWN';
+const displayStatus =
+  mlData?.teamHealthStatus ??
+  dashboard?.prediction?.teamHealthStatus ??
+  (engineeringHealth as any)?.status ??
+  liveHealthStatus ??
+  dashboard?.healthStatus ??
+  'UNKNOWN';
 
   const isLive = liveHealthScore !== null;
 
@@ -474,6 +475,7 @@ export default function ProjectDetailPage({
   // ─────────────────────────────────────────────
 
   if (loading) {
+
     return (
       <div className="page-shell">
         <Sidebar />
@@ -496,7 +498,12 @@ export default function ProjectDetailPage({
   // ─────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────
+  console.log('DISPLAY HEALTH', displayHealth);
+  console.log('DISPLAY STATUS', displayStatus);
 
+  console.log('ENGINEERING HEALTH', engineeringHealth);
+  console.log('DASHBOARD', dashboard);
+  console.log('ML DATA', mlData);
   return (
 
     <div

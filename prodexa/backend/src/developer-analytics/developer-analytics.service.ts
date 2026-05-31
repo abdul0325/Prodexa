@@ -399,41 +399,43 @@ export class DeveloperAnalyticsService {
     return { developerLogin, projectId, predictedScore };
   }
 
-async getProjectHealth(projectId: string) {
+  async getProjectHealth(projectId: string) {
 
-  const prediction =
-    await this.prisma.prediction.findFirst({
-      where: {
+    const prediction =
+      await this.prisma.prediction.findFirst({
+        where: {
+          projectId,
+        },
+        orderBy: {
+          generatedAt: 'desc',
+        },
+      });
+
+    if (!prediction) {
+      return {
         projectId,
-      },
-      orderBy: {
-        generatedAt: 'desc',
-      },
-    });
+        healthScore: 0,
+        status: 'UNKNOWN',
+        deliveryRisk: 'UNKNOWN',
+        confidence: 0,
+      };
+    }
 
-  if (!prediction) {
     return {
       projectId,
-      healthScore: 0,
-      status: 'UNKNOWN',
+      healthScore:
+        prediction.productivityScore,
+
+      status:
+        prediction.teamHealthStatus,
+
+      deliveryRisk:
+        prediction.deliveryRisk,
+
+      confidence:
+        prediction.workloadForecast,
     };
   }
-
-  return {
-    projectId,
-    healthScore:
-      prediction.productivityScore,
-
-    status:
-      prediction.teamHealthStatus,
-
-    deliveryRisk:
-      prediction.deliveryRisk,
-
-    confidence:
-      prediction.workloadForecast,
-  };
-}
 
   async getProjectLeaderboard(projectId: string) {
     const developers = await this.prisma.developerActivity.findMany({

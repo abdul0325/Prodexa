@@ -82,7 +82,7 @@ export class MLService {
     );
 
     try {
-
+      console.log('ML URL:', this.mlServiceUrl);
       const response$ =
         this.httpService.post(
 
@@ -164,7 +164,6 @@ export class MLService {
   async checkHealth() {
 
     try {
-
       const response$ =
         this.httpService.get(
           `${this.mlServiceUrl}/health`,

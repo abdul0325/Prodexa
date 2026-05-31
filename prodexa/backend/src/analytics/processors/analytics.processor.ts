@@ -84,9 +84,10 @@ export class AnalyticsProcessor extends WorkerHost {
           'Generating intelligence...',
         );
         await this.intelligenceService.getProjectIntelligence(projectId);
-        await this.mlService.analyzeProject(
-          projectId,
-        );
+        const prediction =
+          await this.mlService.analyzeProject(
+            projectId,
+          );
         // ── Step 4: Predict per-developer scores ───────────────
         this.gateway.emitAnalysisStatus(
           projectId,
@@ -103,7 +104,16 @@ export class AnalyticsProcessor extends WorkerHost {
         }
 
         // ── Step 5: Get final health score ─────────────────────
-        const health = await this.devService.getProjectHealth(projectId);
+        const health = {
+          healthScore:
+            prediction.projectScore,
+
+          status:
+            prediction.teamHealthStatus,
+
+          deliveryRisk:
+            prediction.deliveryRisk,
+        };
 
         // ── Step 6: Update project status + sync time ──────────
         const latestCommit =
@@ -148,15 +158,24 @@ export class AnalyticsProcessor extends WorkerHost {
         );
         const healthScore = health.healthScore ?? 0;
         const healthStatus = health.status ?? 'Unknown';
-        this.gateway.emitHealthUpdate(projectId, healthScore, healthStatus);
+        this.gateway.emitHealthUpdate(
+          projectId,
+          prediction.projectScore,
+          prediction.teamHealthStatus,
+        );
         this.gateway.emitDashboardUpdate(projectId, {
-          healthScore,
-          status: healthStatus,
+          healthScore: prediction.projectScore,
+          status: prediction.teamHealthStatus,
+          deliveryRisk: prediction.deliveryRisk,
+          confidence: prediction.forecastConfidence,
         });
         this.gateway.emitNotification(project.userId, {
           type: 'ANALYSIS_COMPLETE',
           title: '✅ Analysis Complete',
-          message: `${project.name} analysis finished. Health: ${health.healthScore}/100 (${health.status})`
+          message:
+            `${project.name} analysis finished. ` +
+            `Health Score: ${prediction.projectScore}/100 · ` +
+            `Risk: ${prediction.deliveryRisk}`
         });
 
         this.logger.log(

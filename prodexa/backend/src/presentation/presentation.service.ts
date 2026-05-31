@@ -8,7 +8,7 @@ export class DashboardService {
   constructor(
     private prisma: PrismaService,
     private devService: DeveloperAnalyticsService,
-  ) {}
+  ) { }
 
   /**
    * Unified Project Dashboard
@@ -17,12 +17,6 @@ export class DashboardService {
     projectId: string,
     daysThreshold = 7,
   ) {
-
-    // ML Health
-    const health =
-      await this.devService.getProjectHealth(
-        projectId,
-      );
 
     // Leaderboard
     const leaderboard =
@@ -47,6 +41,8 @@ export class DashboardService {
           generatedAt: 'desc',
         },
       });
+    console.log('LATEST PREDICTION FROM DB');
+    console.log(latestPrediction);
 
     // Aggregate Metrics
     const developers =
@@ -77,44 +73,39 @@ export class DashboardService {
     return {
       projectId,
 
-      // ML Health
       healthScore:
-        health.healthScore,
+        latestPrediction?.productivityScore || 0,
 
       healthStatus:
-        health.status,
+        latestPrediction?.teamHealthStatus || 'UNKNOWN',
 
       deliveryRisk:
-        health.deliveryRisk,
+        latestPrediction?.deliveryRisk || 'UNKNOWN',
 
       confidence:
-        health.confidence,
+        latestPrediction?.workloadForecast || 0,
 
-      // Engineering Metrics
       metrics: {
         totalCommits,
         totalPRs,
         totalIssues,
-        totalDevelopers:
-          developers.length,
+        totalDevelopers: developers.length,
       },
 
-      // Latest ML Record
       prediction:
         latestPrediction,
 
-      // Leaderboard
       leaderboard: {
         totals: {
           totalCommits,
           totalPRs,
           totalIssues,
         },
+
         developers:
           leaderboard,
       },
 
-      // Developer Risk
       developerRisk:
         developerRisk.riskDevelopers,
     };

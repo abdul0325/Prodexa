@@ -34,7 +34,13 @@ export class MetricsAggregationService {
     async aggregateDailyMetrics(
         normalizedEvent: any,
     ) {
-
+        console.log(
+            'AGGREGATING SNAPSHOT',
+            {
+                projectId: normalizedEvent.projectId,
+                repositoryId: normalizedEvent.repositoryId,
+            },
+        );
         const today =
             this.getStartOfDay(
                 new Date(),
@@ -138,8 +144,8 @@ export class MetricsAggregationService {
             ? Math.floor(
                 (today.getTime() -
                     firstSnapshot.date.getTime()) /
-                    (1000 * 60 * 60 * 24),
-              )
+                (1000 * 60 * 60 * 24),
+            )
             : 0;
 
         /*

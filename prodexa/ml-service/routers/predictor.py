@@ -17,26 +17,22 @@ from training.train import (
 # LOAD MODELS
 # ─────────────────────────────────────
 
-health_model, risk_model, scaler = (
-    load_models()
-)
+health_model, risk_model, scaler = load_models()
 
 # ─────────────────────────────────────
 # RISK LABELS
 # ─────────────────────────────────────
 
 RISK_LABELS = {
-
     0: "LOW",
-
     1: "MEDIUM",
-
     2: "HIGH",
 }
 
 # ─────────────────────────────────────
 # PREDICT PROJECT
 # ─────────────────────────────────────
+
 
 def predict_project(
     project_id: str,
@@ -46,124 +42,76 @@ def predict_project(
 
     # BUILD DATAFRAME
 
-    df = pd.DataFrame([{
-
-        'totalCommits':
-            features.totalCommits,
-
-        'totalPRs':
-            features.totalPRs,
-
-        'avgImpactScore':
-            features.avgImpactScore,
-
-        'avgRiskScore':
-            features.avgRiskScore,
-
-        'avgMeaningfulness':
-            features.avgMeaningfulness,
-
-        'riskyCommits':
-            features.riskyCommits,
-
-        'highImpactCommits':
-            features.highImpactCommits,
-
-        'lowValueCommits':
-            features.lowValueCommits,
-
-        'noiseRatio':
-            features.noiseRatio,
-
-        'testingRatio':
-            features.testingRatio,
-
-        'backendChanges':
-            features.backendChanges,
-
-        'frontendChanges':
-            features.frontendChanges,
-
-        'infraChanges':
-            features.infraChanges,
-
-        'securityChanges':
-            features.securityChanges,
-
-        'hotspotCount':
-            features.hotspotCount,
-    }])
+    df = pd.DataFrame(
+        [
+            {
+                "totalCommits": features.totalCommits,
+                "totalPRs": features.totalPRs,
+                "avgImpactScore": features.avgImpactScore,
+                "avgRiskScore": features.avgRiskScore,
+                "avgMeaningfulness": features.avgMeaningfulness,
+                "riskyCommits": features.riskyCommits,
+                "highImpactCommits": features.highImpactCommits,
+                "lowValueCommits": features.lowValueCommits,
+                "noiseRatio": features.noiseRatio,
+                "testingRatio": features.testingRatio,
+                "backendChanges": features.backendChanges,
+                "frontendChanges": features.frontendChanges,
+                "infraChanges": features.infraChanges,
+                "securityChanges": features.securityChanges,
+                "hotspotCount": features.hotspotCount,
+                "hotspotRatio": features.hotspotRatio,
+                "testingCoverage": features.testingCoverage,
+                "backendRiskRatio": features.backendRiskRatio,
+            }
+        ]
+    )
 
     # FEATURE ENGINEERING
 
     df = engineer_features(df)
 
     feature_cols = [
-
-        'totalCommits',
-
-        'totalPRs',
-
-        'avgImpactScore',
-
-        'avgRiskScore',
-
-        'avgMeaningfulness',
-
-        'riskyCommits',
-
-        'highImpactCommits',
-
-        'lowValueCommits',
-
-        'noiseRatio',
-
-        'testingRatio',
-
-        'backendChanges',
-
-        'frontendChanges',
-
-        'infraChanges',
-
-        'securityChanges',
-
-        'hotspotCount',
-
-        'stability_score',
-
-        'engineering_discipline',
-
-        'risk_pressure',
-
-        'backend_volatility',
-
-        'infra_pressure',
+        "totalCommits",
+        "totalPRs",
+        "avgImpactScore",
+        "avgRiskScore",
+        "avgMeaningfulness",
+        "riskyCommits",
+        "highImpactCommits",
+        "lowValueCommits",
+        "noiseRatio",
+        "testingRatio",
+        "backendChanges",
+        "frontendChanges",
+        "infraChanges",
+        "securityChanges",
+        "hotspotCount",
+        "stability_score",
+        "engineering_discipline",
+        "risk_pressure",
+        "backend_volatility",
+        "infra_pressure",
+        "hotspotRatio",
+        "testingCoverage",
+        "backendRiskRatio",
     ]
 
     # SCALE
 
-    X = scaler.transform(
-        df[feature_cols]
-    )
+    X = scaler.transform(df[feature_cols])
 
     # PREDICT
 
     predicted_health = float(
-
         np.clip(
-
             health_model.predict(X)[0],
-
             0,
-
             100,
         )
     )
 
-    predicted_risk = int(
-        risk_model.predict(X)[0]
-    )
+    predicted_risk = int(risk_model.predict(X)[0])
 
     # EXPLAINABILITY
 
@@ -171,47 +119,23 @@ def predict_project(
 
     if features.noiseRatio >= 0.4:
 
-        reasons.append(
-            (
-                "High low-value "
-                "engineering activity detected"
-            )
-        )
+        reasons.append(("High low-value " "engineering activity detected"))
 
     if features.hotspotCount >= 5:
 
-        reasons.append(
-            (
-                "Subsystem instability "
-                "is increasing"
-            )
-        )
+        reasons.append(("Subsystem instability " "is increasing"))
 
     if features.testingRatio <= 0.1:
 
-        reasons.append(
-            (
-                "Testing activity remains low"
-            )
-        )
+        reasons.append(("Testing activity remains low"))
 
     if features.avgRiskScore >= 70:
 
-        reasons.append(
-            (
-                "High engineering "
-                "risk pressure detected"
-            )
-        )
+        reasons.append(("High engineering " "risk pressure detected"))
 
     if features.backendChanges >= 20:
 
-        reasons.append(
-            (
-                "Heavy backend "
-                "modification activity"
-            )
-        )
+        reasons.append(("Heavy backend " "modification activity"))
 
     # HEALTH STATUS
 
@@ -234,19 +158,11 @@ def predict_project(
     # CONFIDENCE
 
     confidence = float(
-
         min(
-
             0.95,
-
             max(
                 0.55,
-
-                1 -
-                (
-                    features.noiseRatio
-                    * 0.5
-                ),
+                1 - (features.noiseRatio * 0.5),
             ),
         )
     )
@@ -254,55 +170,25 @@ def predict_project(
     # RESPONSE
 
     return {
-
-        "projectId":
-            project_id,
-
-        "projectName":
-            project_name,
-
-        "projectScore":
-            round(
-                predicted_health,
-                2,
-            ),
-
-        "deliveryRisk":
-            RISK_LABELS[
-                predicted_risk
-            ],
-
-        "teamHealthStatus":
-            health_status,
-
-        "forecastConfidence":
-            round(
-                confidence,
-                2,
-            ),
-
-        "reasons":
-            reasons,
-
+        "projectId": project_id,
+        "projectName": project_name,
+        "projectScore": round(
+            predicted_health,
+            2,
+        ),
+        "deliveryRisk": RISK_LABELS[predicted_risk],
+        "teamHealthStatus": health_status,
+        "forecastConfidence": round(
+            confidence,
+            2,
+        ),
+        "reasons": reasons,
         "signals": {
-
-            "avgImpactScore":
-                features.avgImpactScore,
-
-            "avgRiskScore":
-                features.avgRiskScore,
-
-            "noiseRatio":
-                features.noiseRatio,
-
-            "testingRatio":
-                features.testingRatio,
-
-            "hotspotCount":
-                features.hotspotCount,
+            "avgImpactScore": features.avgImpactScore,
+            "avgRiskScore": features.avgRiskScore,
+            "noiseRatio": features.noiseRatio,
+            "testingRatio": features.testingRatio,
+            "hotspotCount": features.hotspotCount,
         },
-
-        "generatedAt":
-            datetime.utcnow()
-            .isoformat(),
+        "generatedAt": datetime.utcnow().isoformat(),
     }

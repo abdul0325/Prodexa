@@ -14,124 +14,63 @@ export class EngineeringHealthService {
         projectId: string,
     ) {
 
-        const [
-            avgPRCycleTime,
-            totalCommits,
-            openPRs,
-            recentCommits,
-        ] = await Promise.all([
-
-            this.prisma.engineeringKPI.aggregate({
+        const prediction =
+            await this.prisma.prediction.findFirst({
 
                 where: {
-
-                    metricName:
-                        'PR_CYCLE_TIME_HOURS',
-
-                    repositoryId:
-                        projectId,
+                    projectId,
                 },
 
-                _avg: {
-                    metricValue: true,
+                orderBy: {
+                    generatedAt: 'desc',
                 },
-            }),
+            });
 
-            this.prisma.commitEvent.count({
+        if (prediction) {
 
-                where: {
-                    repositoryId:
-                        projectId,
+            return {
+
+                score:
+                    prediction.productivityScore,
+
+                status:
+                    prediction.teamHealthStatus,
+
+                metrics: {
+
+                    avgImpactScore:
+                        prediction.avgImpactScore,
+
+                    avgRiskScore:
+                        prediction.avgRiskScore,
+
+                    noiseRatio:
+                        prediction.noiseRatio,
+
+                    testingRatio:
+                        prediction.testingRatio,
+
+                    hotspotCount:
+                        prediction.hotspotCount,
                 },
-            }),
 
-            this.prisma.pullRequestEvent.count({
-                where: {
-
-                    repositoryId:
-                        projectId,
-
-                    state: 'open',
-                },
-            }),
-
-            this.prisma.commitEvent.count({
-                where: {
-
-                    repositoryId:
-                        projectId,
-
-                    committedAt: {
-                        gte: new Date(
-                            Date.now() -
-                            7 * 24 * 60 * 60 * 1000,
-                        ),
-                    },
-                },
-            }),
-        ]);
-
-        const signals: string[] = [];
-
-        let score = 100;
-
-        const prCycleTime =
-            avgPRCycleTime._avg.metricValue || 0;
-
-        if (prCycleTime > 48) {
-
-            score -= 25;
-
-            signals.push(
-                'PR cycle time is very high',
-            );
-        }
-
-        if (openPRs > 20) {
-
-            score -= 15;
-
-            signals.push(
-                'Too many open pull requests',
-            );
-        }
-
-        if (recentCommits < 5) {
-
-            score -= 20;
-
-            signals.push(
-                'Low development activity detected',
-            );
-        }
-
-        if (signals.length === 0) {
-
-            signals.push(
-                'Engineering health looks stable',
-            );
+                signals: [
+                    `Delivery Risk: ${prediction.deliveryRisk}`,
+                ],
+            };
         }
 
         return {
 
-            score,
+            score: 0,
 
-            status:
-                this.getHealthStatus(score),
+            status: 'UNKNOWN',
 
-            metrics: {
+            metrics: {},
 
-                averagePRCycleTime:
-                    prCycleTime,
-
-                totalCommits,
-
-                openPRs,
-
-                recentCommits,
-            },
-
-            signals,
+            signals: [
+                'No ML prediction available',
+            ],
         };
     }
 

@@ -182,6 +182,9 @@ def train_models():
         "risk_pressure",
         "backend_volatility",
         "infra_pressure",
+        "hotspotRatio",
+        "testingCoverage",
+        "backendRiskRatio",
     ]
 
     X = df[feature_cols]

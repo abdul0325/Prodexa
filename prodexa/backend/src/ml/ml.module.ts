@@ -10,6 +10,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { FeatureEngineeringService }
   from './feature-engineering.service';
 import { TrainingDataService } from './training-data.service';
+import { SyntheticDatasetService } from './synthetic-dataset.service';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { TrainingDataService } from './training-data.service';
   providers: [
     MLService,
     FeatureEngineeringService,
-    TrainingDataService
+    TrainingDataService,
+    SyntheticDatasetService,
   ],
 
   controllers: [

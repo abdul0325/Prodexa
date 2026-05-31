@@ -7,51 +7,75 @@ import { PrismaService }
 import { FeatureEngineeringService }
     from './feature-engineering.service';
 
+import { SyntheticDatasetService }
+    from './synthetic-dataset.service';
+
 @Injectable()
 export class TrainingDataService {
 
     constructor(
-
-        private readonly prisma:
-            PrismaService,
-
-        private readonly featureEngineering:
-            FeatureEngineeringService,
+        private readonly prisma: PrismaService,
+        private readonly featureEngineering: FeatureEngineeringService,
+        private readonly syntheticDataset: SyntheticDatasetService,
     ) { }
 
     async generateDataset() {
 
         const projects =
-            await this.prisma.project
-                .findMany();
+            await this.prisma.project.findMany();
 
         const dataset: Record<string, any>[] = [];
 
         for (const project of projects) {
 
             const features =
-                await this.featureEngineering
-                    .generateProjectFeatures(
-                        project.id,
-                    );
+                await this.featureEngineering.generateProjectFeatures(
+                    project.id,
+                );
 
-            // SIMPLE LABELING LOGIC
+            // ─────────────────────────────
+            // DELIVERY RISK LABEL
+            // ─────────────────────────────
 
             let deliveryRisk = 0;
 
-            if (
-                features.avgRiskScore >= 70
-            ) {
+            const riskPressure =
+                features.avgRiskScore +
+                (features.hotspotCount * 5) +
+                (features.noiseRatio * 20);
+
+            if (riskPressure >= 80) {
 
                 deliveryRisk = 2;
-            }
 
-            else if (
-                features.avgRiskScore >= 40
-            ) {
+            } else if (riskPressure >= 50) {
 
                 deliveryRisk = 1;
+
             }
+
+            // ─────────────────────────────
+            // HEALTH LABEL
+            // ─────────────────────────────
+
+            const healthScore =
+                (
+                    (features.avgImpactScore * 0.40) +
+                    ((100 - features.avgRiskScore) * 0.30) +
+                    ((1 - features.noiseRatio) * 100 * 0.15) +
+                    (features.testingRatio * 100 * 0.15)
+                );
+
+            const engineeringHealth =
+                Math.round(
+                    Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            healthScore,
+                        ),
+                    ),
+                );
 
             dataset.push({
 
@@ -61,14 +85,20 @@ export class TrainingDataService {
                     deliveryRisk,
 
                 label_engineeringHealth:
-                    Math.max(
-                        0,
-                        100 -
-                        features.avgRiskScore,
-                    ),
+                    engineeringHealth,
             });
         }
 
-        return dataset;
+        const synthetic =
+            this.syntheticDataset.generateSamples(
+                1000,
+            );
+
+        return [
+
+            ...dataset,
+
+            ...synthetic,
+        ];
     }
 }

@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 # FEATURE VECTOR
 # ─────────────────────────────────────
 
+
 class ProjectFeatures(BaseModel):
 
     totalCommits: int
@@ -38,10 +39,17 @@ class ProjectFeatures(BaseModel):
 
     hotspotCount: int
 
+    hotspotRatio: float
+
+    testingCoverage: float
+
+    backendRiskRatio: float
+
 
 # ─────────────────────────────────────
 # REQUEST
 # ─────────────────────────────────────
+
 
 class PredictRequest(BaseModel):
 
@@ -55,6 +63,7 @@ class PredictRequest(BaseModel):
 # ─────────────────────────────────────
 # RESPONSE
 # ─────────────────────────────────────
+
 
 class PredictResponse(BaseModel):
 
@@ -80,6 +89,7 @@ class PredictResponse(BaseModel):
 # ─────────────────────────────────────
 # TRAINING RESPONSE
 # ─────────────────────────────────────
+
 
 class TrainResponse(BaseModel):
 

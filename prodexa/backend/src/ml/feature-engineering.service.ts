@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService }
-from 'src/prisma/prisma.service';
+    from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FeatureEngineeringService {
@@ -16,52 +16,54 @@ export class FeatureEngineeringService {
         repositoryId: string,
     ) {
 
+        // Get repository commits first
+        const commits =
+            await this.prisma.commitEvent.findMany({
+                where: {
+                    repositoryId,
+                },
+                select: {
+                    sha: true,
+                },
+                take: 100,
+                orderBy: {
+                    committedAt: 'desc',
+                },
+            });
+
+        const commitShas =
+            commits.map(
+                commit => commit.sha,
+            );
+
         const [
             impacts,
-            commits,
             pullRequests,
             fileChanges,
         ] = await Promise.all([
 
-            this.prisma
-                .commitImpactAnalysis
-                .findMany({
-
-                    take: 100,
-
-                    orderBy: {
-                        createdAt: 'desc',
+            this.prisma.commitImpactAnalysis.findMany({
+                where: {
+                    commitSha: {
+                        in: commitShas,
                     },
-                }),
+                },
+            }),
 
-            this.prisma
-                .commitEvent
-                .findMany({
+            this.prisma.pullRequestEvent.findMany({
+                where: {
+                    repositoryId,
+                },
+                take: 100,
+            }),
 
-                    where: {
-                        repositoryId,
+            this.prisma.commitFileChange.findMany({
+                where: {
+                    commitSha: {
+                        in: commitShas,
                     },
-
-                    take: 100,
-                }),
-
-            this.prisma
-                .pullRequestEvent
-                .findMany({
-
-                    where: {
-                        repositoryId,
-                    },
-
-                    take: 100,
-                }),
-
-            this.prisma
-                .commitFileChange
-                .findMany({
-
-                    take: 300,
-                }),
+                },
+            }),
         ]);
 
         // BASIC COUNTS
@@ -91,8 +93,7 @@ export class FeatureEngineeringService {
         const avgMeaningfulness =
             this.average(
                 impacts.map(
-                    i =>
-                        i.meaningfulnessScore,
+                    i => i.meaningfulnessScore,
                 ),
             );
 
@@ -108,33 +109,28 @@ export class FeatureEngineeringService {
                 i => i.impactScore >= 70,
             ).length;
 
-        // LOW VALUE / NOISE
+        // NOISE
 
         const lowValueCommits =
             impacts.filter(
-                i =>
-                    i.impactLevel ===
-                    'MINIMAL',
+                i => i.impactLevel === 'MINIMAL',
             ).length;
 
         const noiseRatio =
             totalCommits > 0
-                ? lowValueCommits /
-                totalCommits
+                ? lowValueCommits / totalCommits
                 : 0;
 
-        // TESTING SIGNALS
+        // TESTING
 
         const testingChanges =
             fileChanges.filter(
-                file =>
-                    file.isTestFile,
+                file => file.isTestFile,
             ).length;
 
         const testingRatio =
             fileChanges.length > 0
-                ? testingChanges /
-                fileChanges.length
+                ? testingChanges / fileChanges.length
                 : 0;
 
         // ENGINEERING SURFACES
@@ -142,45 +138,38 @@ export class FeatureEngineeringService {
         const backendChanges =
             fileChanges.filter(
                 file =>
-                    file.filename.includes(
-                        '/services/',
-                    ) ||
-                    file.filename.includes(
-                        '/controllers/',
-                    ),
+                    file.filename.includes('/services/') ||
+                    file.filename.includes('/controllers/') ||
+                    file.filename.includes('/repositories/') ||
+                    file.filename.includes('/modules/'),
             ).length;
 
         const frontendChanges =
             fileChanges.filter(
                 file =>
-                    file.filename.includes(
-                        '/app/',
-                    ) ||
-                    file.filename.includes(
-                        '/components/',
-                    ),
+                    file.filename.includes('/app/') ||
+                    file.filename.includes('/components/') ||
+                    file.filename.includes('/pages/') ||
+                    file.filename.includes('/hooks/'),
             ).length;
 
         const infraChanges =
             fileChanges.filter(
                 file =>
-                    file.filename.includes(
-                        'docker',
-                    ) ||
-                    file.filename.includes(
-                        'deploy',
-                    ),
+                    file.filename.toLowerCase().includes('docker') ||
+                    file.filename.toLowerCase().includes('deploy') ||
+                    file.filename.toLowerCase().includes('terraform') ||
+                    file.filename.toLowerCase().includes('kubernetes') ||
+                    file.filename.toLowerCase().includes('github/workflows'),
             ).length;
 
         const securityChanges =
             fileChanges.filter(
                 file =>
-                    file.filename.includes(
-                        'auth',
-                    ) ||
-                    file.filename.includes(
-                        'jwt',
-                    ),
+                    file.filename.toLowerCase().includes('auth') ||
+                    file.filename.toLowerCase().includes('jwt') ||
+                    file.filename.toLowerCase().includes('security') ||
+                    file.filename.toLowerCase().includes('permission'),
             ).length;
 
         // HOTSPOTS
@@ -190,24 +179,31 @@ export class FeatureEngineeringService {
 
         for (const file of fileChanges) {
 
-            fileFrequency[
-                file.filename
-            ] =
-                (
-                    fileFrequency[
-                        file.filename
-                    ] || 0
-                ) + 1;
+            fileFrequency[file.filename] =
+                (fileFrequency[file.filename] || 0) + 1;
         }
 
         const hotspotCount =
-            Object.values(
-                fileFrequency,
-            ).filter(
-                count => count >= 5,
-            ).length;
+            Object.values(fileFrequency)
+                .filter(
+                    count => count >= 5,
+                )
+                .length;
 
-        // FINAL VECTOR
+        const hotspotRatio =
+            totalCommits > 0
+                ? hotspotCount / totalCommits
+                : 0;
+
+        const testingCoverage =
+            fileChanges.length > 0
+                ? testingChanges / fileChanges.length
+                : 0;
+
+        const backendRiskRatio =
+            backendChanges > 0
+                ? securityChanges / backendChanges
+                : 0;
 
         return {
 
@@ -242,6 +238,12 @@ export class FeatureEngineeringService {
             securityChanges,
 
             hotspotCount,
+
+            hotspotRatio,
+
+            testingCoverage,
+
+            backendRiskRatio,
         };
     }
 
