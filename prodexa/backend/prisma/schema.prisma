@@ -46,19 +46,20 @@ model Repository {
 }
 
 model Project {
-  id             String         @id @default(uuid())
-  name           String
-  repoUrl        String
-  ownerName      String
-  repoOwner      String?
-  repoName       String?
-  status         ProjectStatus  @default(ACTIVE)
-  analysisStatus AnalysisStatus @default(IDLE)
-  lastSyncedAt   DateTime?
-  cacheExpiresAt DateTime?
-  lastError      String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @default(now()) @updatedAt
+  id                    String         @id @default(uuid())
+  name                  String
+  repoUrl               String
+  ownerName             String
+  repoOwner             String?
+  repoName              String?
+  status                ProjectStatus  @default(ACTIVE)
+  analysisStatus        AnalysisStatus @default(IDLE)
+  lastSyncedAt          DateTime?
+  cacheExpiresAt        DateTime?
+  lastError             String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @default(now()) @updatedAt
+  lastAnalyzedCommitSha String?
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

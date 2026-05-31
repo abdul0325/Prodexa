@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
@@ -7,6 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationsService } from 'src/prisma/notifications/notifications.service';
 import { RealtimeGateway } from 'src/gateway/realtime.gateway';
 import { parseRepoUrl } from 'src/github/utils/parse-repo.util';
+import { CommitService } from '../services/commit.service';
 
 @Processor('analytics')
 export class AnalyticsProcessor extends WorkerHost {
@@ -18,6 +20,7 @@ export class AnalyticsProcessor extends WorkerHost {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private gateway: RealtimeGateway,
+    private commitService: CommitService,
   ) {
     super();
   }
@@ -99,16 +102,31 @@ export class AnalyticsProcessor extends WorkerHost {
         const health = await this.devService.getProjectHealth(projectId);
 
         // ── Step 6: Update project status + sync time ──────────
+        const latestCommit =
+          await this.commitService.getLatestCommit(
+            projectId,
+          );
+
         await this.prisma.project.update({
           where: { id: projectId },
           data: {
             analysisStatus: 'DONE',
+
             lastSyncedAt: new Date(),
-            cacheExpiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 min
+
+            lastAnalyzedCommitSha:
+              latestCommit?.sha,
+
+            cacheExpiresAt:
+              new Date(Date.now() + 30 * 60 * 1000),
+
             lastError: null,
-            // Parse and store repo owner/name
-            repoOwner: parseRepoUrl(project.repoUrl).owner,
-            repoName: parseRepoUrl(project.repoUrl).repo,
+
+            repoOwner:
+              parseRepoUrl(project.repoUrl).owner,
+
+            repoName:
+              parseRepoUrl(project.repoUrl).repo,
           },
         });
 

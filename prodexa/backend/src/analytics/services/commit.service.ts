@@ -8,7 +8,7 @@ export class CommitService {
 
     constructor(
         private readonly prisma: PrismaService,
-    ) {}
+    ) { }
 
     async storeCommits(
         normalizedEvent: any,
@@ -51,5 +51,26 @@ export class CommitService {
                 },
             });
         }
+    }
+
+    async commitExists(sha: string) {
+        const commit =
+            await this.prisma.commitEvent.findUnique({
+                where: { sha },
+                select: { sha: true },
+            });
+
+        return !!commit;
+    }
+
+    async getLatestCommit(projectId: string) {
+        return this.prisma.commitEvent.findFirst({
+            where: {
+                repositoryId: projectId,
+            },
+            orderBy: {
+                committedAt: 'desc',
+            },
+        });
     }
 }

@@ -31,45 +31,66 @@ export class CommitFileChangeService {
                     file.filename,
                 );
 
-            await this.prisma
-                .commitFileChange
-                .create({
+            const exists =
+                await this.prisma.commitFileChange.findFirst({
 
-                    data: {
+                    where: {
 
                         commitSha,
 
                         filename:
                             file.filename,
-
-                        status:
-                            file.status,
-
-                        additions:
-                            file.additions || 0,
-
-                        deletions:
-                            file.deletions || 0,
-
-                        changes:
-                            file.changes || 0,
-
-                        patch:
-                            file.patch,
-
-                        fileExtension:
-                            classification.extension,
-
-                        isTestFile:
-                            classification.isTestFile,
-
-                        isDocumentation:
-                            classification.isDocumentation,
-
-                        isConfigFile:
-                            classification.isConfigFile,
                     },
                 });
+
+            if (exists) {
+
+                console.log(
+                    'Commit file already exists:',
+                    file.filename,
+                );
+
+                continue;
+            }
+
+            await this.prisma.commitFileChange.create({
+
+                data: {
+
+                    commitSha,
+
+                    filename:
+                        file.filename,
+
+                    status:
+                        file.status,
+
+                    additions:
+                        file.additions || 0,
+
+                    deletions:
+                        file.deletions || 0,
+
+                    changes:
+                        file.changes || 0,
+
+                    patch:
+                        file.patch,
+
+                    fileExtension:
+                        classification.extension,
+
+                    isTestFile:
+                        classification.isTestFile,
+
+                    isDocumentation:
+                        classification.isDocumentation,
+
+                    isConfigFile:
+                        classification.isConfigFile,
+                },
+            });
+
             console.log(
                 'Commit file change stored:',
                 file.filename,

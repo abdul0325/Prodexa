@@ -20,368 +20,480 @@ export class DeveloperAnalyticsService {
     private impactAnalysis: ImpactAnalysisService,
   ) { }
 
-  async analyzeDevelopers(projectId: string, token: string, since: string) {
+  async analyzeDevelopers(
+    projectId: string,
+    token: string,
+    _since: string,
+  ) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
-    if (!project) throw new NotFoundException('Project not found');
 
-    const repoPath = project.repoUrl.split('github.com/')[1];
-    const [owner, repo] = repoPath.replace('.git', '').split('/');
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
 
-    const contributors = await this.githubService.getContributors(
-      owner,
-      repo,
-      token,
-    );
+    const repoPath =
+      project.repoUrl.split('github.com/')[1];
 
-    // ← FIXED: removed 'since' filter — fetch ALL commits, PRs, issues
-    const [commits, pulls, issues] = await Promise.all([
-      this.githubService.getAllCommits(
+    const [owner, repo] =
+      repoPath.replace('.git', '').split('/');
+
+    const contributors =
+      await this.githubService.getContributors(
         owner,
         repo,
         token,
-      ),
+      );
 
-      this.githubService.getAllPullRequests(
-        owner,
-        repo,
-        token,
-      ),
+    const [commits, pulls, issues] =
+      await Promise.all([
+        this.githubService.getAllCommits(
+          owner,
+          repo,
+          token,
+        ),
 
-      this.githubService.getAllIssues(
-        owner,
-        repo,
-        token,
-      ),
-    ]);
+        this.githubService.getAllPullRequests(
+          owner,
+          repo,
+          token,
+        ),
+
+        this.githubService.getAllIssues(
+          owner,
+          repo,
+          token,
+        ),
+      ]);
+
+    // Incremental analysis
+    const newCommits: any[] = [];
 
     for (const commit of commits) {
 
-      if (!commit.commit?.author) continue;
+      if (
+        project.lastAnalyzedCommitSha &&
+        commit.sha ===
+        project.lastAnalyzedCommitSha
+      ) {
+        break;
+      }
 
-      await this.commitService.storeCommits({
-        repository: {
-          id: projectId,
-          fullName: `${owner}/${repo}`,
-        },
-        author: {
-          login: commit.author?.login || 'unknown',
-        },
-        branch: 'main',
-        commits: [{
-          sha: commit.sha,
-          message: commit.commit.message,
-          url: `https://github.com/${owner}/${repo}/commit/${commit.sha}`,
-          timestamp: commit.commit.author.date,
-        }],
-      });
+      newCommits.push(commit);
+
+    }
+
+    console.log(
+      `NEW COMMITS TO ANALYZE: ${newCommits.length}`,
+    );
+
+    for (const commit of newCommits) {
+
       try {
-        const details =
-          await this.githubCommitDetails.fetchCommitDetails(
-            owner,
-            repo,
+
+        if (!commit.commit?.author) {
+          continue;
+        }
+
+        const exists =
+          await this.commitService.commitExists(
             commit.sha,
           );
 
-        await this.commitFileChangeService.storeCommitFiles(
-          commit.sha,
-          details.files || [],
-        );
+        if (exists) {
 
-        await this.impactAnalysis.analyzeCommit(
-          commit.sha,
-        );
-        } catch (error) {
+          console.log(
+            'SKIPPING EXISTING COMMIT:',
+            commit.sha,
+          );
 
-    console.error(
-      'FAILED COMMIT:',
-      commit.sha,
-    );
+          continue;
+        }
 
-    console.error(
-      error.message,
-    );
-  }
-}
+        await this.commitService.storeCommits({
+          repository: {
+            id: projectId,
+            fullName: `${owner}/${repo}`,
+          },
 
-      const devAnalytics = contributors.map((contributor) => {
-        const login = contributor.login;
+          author: {
+            login:
+              commit.author?.login ||
+              'unknown',
+          },
 
-        const userCommits = commits.filter(
-          (c) => c.author?.login === login,
-        ).length;
+          branch: 'main',
 
-        const userPRs = pulls.filter((p) => p.user?.login === login).length;
+          commits: [
+            {
+              sha: commit.sha,
 
-        const userIssues = issues.filter(
-          (i) => i.user?.login === login && !i.pull_request,
-        ).length;
+              message:
+                commit.commit.message,
 
-        return {
-          developerLogin: login,
-          commits: userCommits,
-          pullRequestCount: userPRs,
-          issueCount: userIssues,
-          productivityScore: calcProductivityScore(
-            userCommits,
-            userPRs,
-            userIssues,
-          ),
-          activityTimestamp: new Date(),
-          projectId,
-        };
-      });
+              url:
+                `https://github.com/${owner}/${repo}/commit/${commit.sha}`,
 
-      // upsert instead of createMany to always update existing records
-      for (const dev of devAnalytics) {
-        await this.prisma.developerActivity.upsert({
-          where: {
-            developerLogin_projectId: {
-              developerLogin: dev.developerLogin,
-              projectId,
+              timestamp:
+                commit.commit.author.date,
             },
-          },
-          update: {
-            commits: dev.commits,
-            pullRequestCount: dev.pullRequestCount,
-            issueCount: dev.issueCount,
-            productivityScore: dev.productivityScore,
-            activityTimestamp: dev.activityTimestamp,
-          },
-          create: dev,
+          ],
         });
+
+        const details =
+          await this.githubCommitDetails
+            .fetchCommitDetails(
+              owner,
+              repo,
+              commit.sha,
+            );
+
+        await this.commitFileChangeService
+          .storeCommitFiles(
+            commit.sha,
+            details.files || [],
+          );
+
+        await this.impactAnalysis
+          .analyzeCommit(
+            commit.sha,
+          );
+
+      } catch (error: any) {
+
+        console.error(
+          'FAILED COMMIT:',
+          commit.sha,
+        );
+
+        console.error(
+          error?.message,
+        );
       }
 
-      return devAnalytics;
     }
 
-  async analyzeProjectContributors(projectId: string) {
-      const project = await this.prisma.project.findUnique({
-        where: { id: projectId },
-        include: { user: true }, // ← include user to get their token
-      });
-      if (!project) throw new NotFoundException('Project not found');
+    const devAnalytics =
+      contributors.map(
+        (contributor) => {
 
-      const { owner, repo } = parseRepoUrl(project.repoUrl);
+          const login =
+            contributor.login;
 
-      // Use user's own GitHub token for better rate limits & private repo access
-      const token = project.user?.githubToken;
+          const userCommits =
+            commits.filter(
+              (c) =>
+                c.author?.login === login,
+            ).length;
 
-      if (!token) {
-        throw new NotFoundException('GitHub token not found');
-      }
+          const userPRs =
+            pulls.filter(
+              (p) =>
+                p.user?.login === login,
+            ).length;
 
-      const [contributors, commits, prs, issues] = await Promise.all([
-        this.githubService.getContributors(owner, repo, token),
-        this.githubService.getAllCommits(owner, repo, token),
-        this.githubService.getAllPullRequests(owner, repo, token),
-        this.githubService.getAllIssues(owner, repo, token),
-      ]);
+          const userIssues =
+            issues.filter(
+              (i) =>
+                i.user?.login === login &&
+                !i.pull_request,
+            ).length;
 
-      const tasks = contributors.map(async (contributor) => {
-        const commitCount = commits.filter(
-          (c) =>
-            c.author?.login === contributor.login ||
-            c.commit?.author?.name === contributor.login, // fallback
-        ).length;
+          return {
+            developerLogin: login,
 
-        const prCount = prs.filter(
-          (p) => p.user?.login === contributor.login,
-        ).length;
+            commits:
+              userCommits,
 
-        const issueCount = issues.filter(
-          (i) => i.user?.login === contributor.login && !i.pull_request, // exclude PRs counted as issues
-        ).length;
+            pullRequestCount:
+              userPRs,
 
-        const productivityScore = calcProductivityScore(
-          commitCount,
-          prCount,
-          issueCount,
-        );
+            issueCount:
+              userIssues,
 
-        return this.prisma.developerActivity.upsert({
-          where: {
-            developerLogin_projectId: {
-              developerLogin: contributor.login,
-              projectId,
-            },
-          },
-          update: {
-            commits: commitCount,
-            pullRequestCount: prCount,
-            issueCount,
-            productivityScore,
-            activityTimestamp: new Date(),
-          },
-          create: {
-            developerLogin: contributor.login,
+            productivityScore:
+              calcProductivityScore(
+                userCommits,
+                userPRs,
+                userIssues,
+              ),
+
+            activityTimestamp:
+              new Date(),
+
             projectId,
-            commits: commitCount,
-            pullRequestCount: prCount,
-            issueCount,
-            productivityScore,
-          },
-        });
-      });
-
-      await Promise.all(tasks);
-
-      return {
-        message: 'Contributors analyzed and saved',
-        count: contributors.length,
-      };
-    }
-
-  async getDeveloperAnalytics(projectId: string, developerLogin ?: string) {
-      return this.prisma.developerActivity.findMany({
-        where: { projectId, developerLogin: developerLogin || undefined },
-        orderBy: { activityTimestamp: 'asc' },
-      });
-    }
-
-  async predictProject(projectId: string) {
-      const devs = await this.prisma.developerActivity.findMany({
-        where: { projectId },
-      });
-      if (!devs.length) return { message: 'No analytics data found for project' };
-
-      const avgScore =
-        devs.reduce((sum, d) => sum + d.productivityScore, 0) / devs.length;
-
-      const predictedHealth =
-        avgScore > 80
-          ? 'Excellent'
-          : avgScore > 60
-            ? 'Good'
-            : avgScore > 40
-              ? 'Average'
-              : 'Low';
-
-      return {
-        projectId,
-        developerCount: devs.length,
-        averageProductivity: avgScore,
-        predictedHealth,
-      };
-    }
-
-  async predictDeveloper(developerLogin: string, projectId: string) {
-      const dev = await this.prisma.developerActivity.findFirst({
-        where: { developerLogin, projectId },
-      });
-
-      if (!dev) return { message: 'Developer analytics not found' };
-
-      const predictedScore = calcProductivityScore(
-        dev.commits,
-        dev.pullRequestCount,
-        dev.issueCount,
+          };
+        },
       );
 
-      await this.prisma.developerActivity.update({
-        where: { developerLogin_projectId: { developerLogin, projectId } },
-        data: { predictedScore },
-      });
+    for (const dev of devAnalytics) {
 
-      return { developerLogin, projectId, predictedScore };
+      await this.prisma
+        .developerActivity
+        .upsert({
+
+          where: {
+            developerLogin_projectId:
+            {
+              developerLogin:
+                dev.developerLogin,
+
+              projectId,
+            },
+          },
+
+          update: {
+            commits:
+              dev.commits,
+
+            pullRequestCount:
+              dev.pullRequestCount,
+
+            issueCount:
+              dev.issueCount,
+
+            productivityScore:
+              dev.productivityScore,
+
+            activityTimestamp:
+              dev.activityTimestamp,
+          },
+
+          create: dev,
+        });
+
     }
+
+    return devAnalytics;
+  }
+
+  async analyzeProjectContributors(projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { user: true }, // ← include user to get their token
+    });
+    if (!project) throw new NotFoundException('Project not found');
+
+    const { owner, repo } = parseRepoUrl(project.repoUrl);
+
+    // Use user's own GitHub token for better rate limits & private repo access
+    const token = project.user?.githubToken;
+
+    if (!token) {
+      throw new NotFoundException('GitHub token not found');
+    }
+
+    const [contributors, commits, prs, issues] = await Promise.all([
+      this.githubService.getContributors(owner, repo, token),
+      this.githubService.getAllCommits(owner, repo, token),
+      this.githubService.getAllPullRequests(owner, repo, token),
+      this.githubService.getAllIssues(owner, repo, token),
+    ]);
+
+    const tasks = contributors.map(async (contributor) => {
+      const commitCount = commits.filter(
+        (c) =>
+          c.author?.login === contributor.login ||
+          c.commit?.author?.name === contributor.login, // fallback
+      ).length;
+
+      const prCount = prs.filter(
+        (p) => p.user?.login === contributor.login,
+      ).length;
+
+      const issueCount = issues.filter(
+        (i) => i.user?.login === contributor.login && !i.pull_request, // exclude PRs counted as issues
+      ).length;
+
+      const productivityScore = calcProductivityScore(
+        commitCount,
+        prCount,
+        issueCount,
+      );
+
+      return this.prisma.developerActivity.upsert({
+        where: {
+          developerLogin_projectId: {
+            developerLogin: contributor.login,
+            projectId,
+          },
+        },
+        update: {
+          commits: commitCount,
+          pullRequestCount: prCount,
+          issueCount,
+          productivityScore,
+          activityTimestamp: new Date(),
+        },
+        create: {
+          developerLogin: contributor.login,
+          projectId,
+          commits: commitCount,
+          pullRequestCount: prCount,
+          issueCount,
+          productivityScore,
+        },
+      });
+    });
+
+    await Promise.all(tasks);
+
+    return {
+      message: 'Contributors analyzed and saved',
+      count: contributors.length,
+    };
+  }
+
+  async getDeveloperAnalytics(projectId: string, developerLogin?: string) {
+    return this.prisma.developerActivity.findMany({
+      where: { projectId, developerLogin: developerLogin || undefined },
+      orderBy: { activityTimestamp: 'asc' },
+    });
+  }
+
+  async predictProject(projectId: string) {
+    const devs = await this.prisma.developerActivity.findMany({
+      where: { projectId },
+    });
+    if (!devs.length) return { message: 'No analytics data found for project' };
+
+    const avgScore =
+      devs.reduce((sum, d) => sum + d.productivityScore, 0) / devs.length;
+
+    const predictedHealth =
+      avgScore > 80
+        ? 'Excellent'
+        : avgScore > 60
+          ? 'Good'
+          : avgScore > 40
+            ? 'Average'
+            : 'Low';
+
+    return {
+      projectId,
+      developerCount: devs.length,
+      averageProductivity: avgScore,
+      predictedHealth,
+    };
+  }
+
+  async predictDeveloper(developerLogin: string, projectId: string) {
+    const dev = await this.prisma.developerActivity.findFirst({
+      where: { developerLogin, projectId },
+    });
+
+    if (!dev) return { message: 'Developer analytics not found' };
+
+    const predictedScore = calcProductivityScore(
+      dev.commits,
+      dev.pullRequestCount,
+      dev.issueCount,
+    );
+
+    await this.prisma.developerActivity.update({
+      where: { developerLogin_projectId: { developerLogin, projectId } },
+      data: { predictedScore },
+    });
+
+    return { developerLogin, projectId, predictedScore };
+  }
 
   async getProjectHealth(projectId: string) {
-      const activities = await this.prisma.developerActivity.findMany({
-        where: { projectId },
-      });
-      if (!activities.length)
-        return { message: 'No analytics found for this project' };
+    const activities = await this.prisma.developerActivity.findMany({
+      where: { projectId },
+    });
+    if (!activities.length)
+      return { message: 'No analytics found for this project' };
 
-      const totalCommits = activities.reduce((sum, d) => sum + d.commits, 0);
-      const totalPRs = activities.reduce((sum, d) => sum + d.pullRequestCount, 0);
-      const totalIssues = activities.reduce((sum, d) => sum + d.issueCount, 0);
-      const activeDevelopers = activities.length;
+    const totalCommits = activities.reduce((sum, d) => sum + d.commits, 0);
+    const totalPRs = activities.reduce((sum, d) => sum + d.pullRequestCount, 0);
+    const totalIssues = activities.reduce((sum, d) => sum + d.issueCount, 0);
+    const activeDevelopers = activities.length;
 
-      const commitScore = Math.min((totalCommits / 500) * 100, 100);
-      const prScore = Math.min((totalPRs / 200) * 100, 100);
-      const issueScore = Math.min((totalIssues / 200) * 100, 100);
-      const devScore = Math.min((activeDevelopers / 20) * 100, 100);
+    const commitScore = Math.min((totalCommits / 500) * 100, 100);
+    const prScore = Math.min((totalPRs / 200) * 100, 100);
+    const issueScore = Math.min((totalIssues / 200) * 100, 100);
+    const devScore = Math.min((activeDevelopers / 20) * 100, 100);
 
-      const healthScore =
-        commitScore * 0.3 + prScore * 0.3 + issueScore * 0.2 + devScore * 0.2;
+    const healthScore =
+      commitScore * 0.3 + prScore * 0.3 + issueScore * 0.2 + devScore * 0.2;
 
-      const status =
-        healthScore >= 80
-          ? 'Excellent'
-          : healthScore >= 60
-            ? 'Healthy'
-            : healthScore >= 40
-              ? 'Moderate'
-              : 'Risky';
+    const status =
+      healthScore >= 80
+        ? 'Excellent'
+        : healthScore >= 60
+          ? 'Healthy'
+          : healthScore >= 40
+            ? 'Moderate'
+            : 'Risky';
 
-      return {
-        projectId,
-        healthScore: Math.round(healthScore),
-        status,
-        metrics: { totalCommits, totalPRs, totalIssues, activeDevelopers },
-      };
-    }
+    return {
+      projectId,
+      healthScore: Math.round(healthScore),
+      status,
+      metrics: { totalCommits, totalPRs, totalIssues, activeDevelopers },
+    };
+  }
 
   async getProjectLeaderboard(projectId: string) {
-      const developers = await this.prisma.developerActivity.findMany({
-        where: { projectId },
-      });
-      if (!developers.length) return { message: 'No developer data found' };
+    const developers = await this.prisma.developerActivity.findMany({
+      where: { projectId },
+    });
+    if (!developers.length) return { message: 'No developer data found' };
 
-      const leaderboard = developers
-        .map((dev) => ({
-          developer: dev.developerLogin,
-          commits: dev.commits,
-          prs: dev.pullRequestCount,
-          issues: dev.issueCount,
-          score: calcProductivityScore(
-            dev.commits,
-            dev.pullRequestCount,
-            dev.issueCount,
-          ),
-        }))
-        .sort((a, b) => b.score - a.score);
+    const leaderboard = developers
+      .map((dev) => ({
+        developer: dev.developerLogin,
+        commits: dev.commits,
+        prs: dev.pullRequestCount,
+        issues: dev.issueCount,
+        score: calcProductivityScore(
+          dev.commits,
+          dev.pullRequestCount,
+          dev.issueCount,
+        ),
+      }))
+      .sort((a, b) => b.score - a.score);
 
-      return { projectId, leaderboard };
-    }
+    return { projectId, leaderboard };
+  }
 
   async getDeveloperRisk(projectId: string, daysThreshold = 7) {
-      const now = new Date();
-      const activities = await this.prisma.developerActivity.findMany({
-        where: { projectId },
-        orderBy: { activityTimestamp: 'desc' },
-      });
+    const now = new Date();
+    const activities = await this.prisma.developerActivity.findMany({
+      where: { projectId },
+      orderBy: { activityTimestamp: 'desc' },
+    });
 
-      if (!activities.length)
-        return { message: 'No developer activity found for this project' };
+    if (!activities.length)
+      return { message: 'No developer activity found for this project' };
 
-      const developerLastActivityMap: Record<string, Date> = {};
-      activities.forEach((activity) => {
-        const login = activity.developerLogin;
-        if (
-          !developerLastActivityMap[login] ||
-          developerLastActivityMap[login] < activity.activityTimestamp
-        ) {
-          developerLastActivityMap[login] = activity.activityTimestamp;
-        }
-      });
+    const developerLastActivityMap: Record<string, Date> = {};
+    activities.forEach((activity) => {
+      const login = activity.developerLogin;
+      if (
+        !developerLastActivityMap[login] ||
+        developerLastActivityMap[login] < activity.activityTimestamp
+      ) {
+        developerLastActivityMap[login] = activity.activityTimestamp;
+      }
+    });
 
-      const riskDevelopers = Object.entries(developerLastActivityMap)
-        .map(([developer, lastActive]) => {
-          const daysSinceLastCommit = Math.floor(
-            (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24),
-          );
-          return {
-            developer,
-            lastActive: lastActive.toISOString(),
-            daysSinceLastCommit,
-            risk: daysSinceLastCommit > daysThreshold ? 'Inactive' : 'Active',
-          };
-        })
-        .sort((a, b) => b.daysSinceLastCommit - a.daysSinceLastCommit);
+    const riskDevelopers = Object.entries(developerLastActivityMap)
+      .map(([developer, lastActive]) => {
+        const daysSinceLastCommit = Math.floor(
+          (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        return {
+          developer,
+          lastActive: lastActive.toISOString(),
+          daysSinceLastCommit,
+          risk: daysSinceLastCommit > daysThreshold ? 'Inactive' : 'Active',
+        };
+      })
+      .sort((a, b) => b.daysSinceLastCommit - a.daysSinceLastCommit);
 
-      return { projectId, riskDevelopers };
-    }
+    return { projectId, riskDevelopers };
   }
+}
