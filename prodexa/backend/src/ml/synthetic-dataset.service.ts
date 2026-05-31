@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-interface SyntheticSample {
+export interface SyntheticSample {
     totalCommits: number;
     totalPRs: number;
     avgImpactScore: number;

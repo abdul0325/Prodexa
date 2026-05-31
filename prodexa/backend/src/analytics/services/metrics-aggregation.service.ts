@@ -226,7 +226,15 @@ export class MetricsAggregationService {
         /*
          * UPSERT SNAPSHOT
          */
-
+        console.log({
+            projectId,
+            today,
+            totalCommits,
+            totalPullRequests,
+            activeContributors,
+            commitVelocity,
+            healthScore,
+        });
         await this.prisma
             .dailyMetricsSnapshot
             .upsert({
