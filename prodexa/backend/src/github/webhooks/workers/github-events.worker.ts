@@ -76,7 +76,10 @@ export class GithubEventsWorker extends WorkerHost {
             await this.normalizer.normalizePushEvent(
                 payload,
             );
-
+        console.log(
+            'NORMALIZED RESULT',
+            normalized,
+        );
         await this.commitService.storeCommits(
             normalized,
         );

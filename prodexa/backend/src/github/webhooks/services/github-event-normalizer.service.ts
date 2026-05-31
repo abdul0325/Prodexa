@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class GithubEventNormalizerService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async normalizePushEvent(payload: any) {
     const repositoryId = payload.repository.id.toString();
@@ -36,6 +36,16 @@ export class GithubEventNormalizerService {
     });
 
     const projectId = repo?.projects[0]?.id;
+
+    console.log(
+      'NORMALIZED PUSH',
+      {
+        repositoryId,
+        projectId,
+        projectCount:
+          repo?.projects?.length,
+      },
+    );
 
     return {
       type: 'PUSH',
