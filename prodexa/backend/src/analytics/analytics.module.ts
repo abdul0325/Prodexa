@@ -20,6 +20,7 @@ import { TrendsService } from 'src/analytics/services/trends.service';
 import { DeltaAnalyticsService } from 'src/analytics/services/delta-analytics.service';
 import { CommitFileChangeService } from './services/commit-file-change.service';
 import { HealthCalculationService } from './services/health-calculation.service';
+import { MLModule } from 'src/ml/ml.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { HealthCalculationService } from './services/health-calculation.service'
     IntelligenceModule,
     NotificationsModule,
     GatewayModule,
-    IntelligenceModule
+    IntelligenceModule,
+    MLModule
   ],
   controllers: [
     AnalyticsController,

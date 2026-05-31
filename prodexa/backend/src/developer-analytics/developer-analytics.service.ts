@@ -399,42 +399,41 @@ export class DeveloperAnalyticsService {
     return { developerLogin, projectId, predictedScore };
   }
 
-  async getProjectHealth(projectId: string) {
-    const activities = await this.prisma.developerActivity.findMany({
-      where: { projectId },
+async getProjectHealth(projectId: string) {
+
+  const prediction =
+    await this.prisma.prediction.findFirst({
+      where: {
+        projectId,
+      },
+      orderBy: {
+        generatedAt: 'desc',
+      },
     });
-    if (!activities.length)
-      return { message: 'No analytics found for this project' };
 
-    const totalCommits = activities.reduce((sum, d) => sum + d.commits, 0);
-    const totalPRs = activities.reduce((sum, d) => sum + d.pullRequestCount, 0);
-    const totalIssues = activities.reduce((sum, d) => sum + d.issueCount, 0);
-    const activeDevelopers = activities.length;
-
-    const commitScore = Math.min((totalCommits / 500) * 100, 100);
-    const prScore = Math.min((totalPRs / 200) * 100, 100);
-    const issueScore = Math.min((totalIssues / 200) * 100, 100);
-    const devScore = Math.min((activeDevelopers / 20) * 100, 100);
-
-    const healthScore =
-      commitScore * 0.3 + prScore * 0.3 + issueScore * 0.2 + devScore * 0.2;
-
-    const status =
-      healthScore >= 80
-        ? 'Excellent'
-        : healthScore >= 60
-          ? 'Healthy'
-          : healthScore >= 40
-            ? 'Moderate'
-            : 'Risky';
-
+  if (!prediction) {
     return {
       projectId,
-      healthScore: Math.round(healthScore),
-      status,
-      metrics: { totalCommits, totalPRs, totalIssues, activeDevelopers },
+      healthScore: 0,
+      status: 'UNKNOWN',
     };
   }
+
+  return {
+    projectId,
+    healthScore:
+      prediction.productivityScore,
+
+    status:
+      prediction.teamHealthStatus,
+
+    deliveryRisk:
+      prediction.deliveryRisk,
+
+    confidence:
+      prediction.workloadForecast,
+  };
+}
 
   async getProjectLeaderboard(projectId: string) {
     const developers = await this.prisma.developerActivity.findMany({

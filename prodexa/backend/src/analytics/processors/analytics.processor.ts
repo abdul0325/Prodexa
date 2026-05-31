@@ -9,6 +9,7 @@ import { NotificationsService } from 'src/prisma/notifications/notifications.ser
 import { RealtimeGateway } from 'src/gateway/realtime.gateway';
 import { parseRepoUrl } from 'src/github/utils/parse-repo.util';
 import { CommitService } from '../services/commit.service';
+import { MLService } from 'src/ml/ml.service';
 
 @Processor('analytics')
 export class AnalyticsProcessor extends WorkerHost {
@@ -21,6 +22,7 @@ export class AnalyticsProcessor extends WorkerHost {
     private notificationsService: NotificationsService,
     private gateway: RealtimeGateway,
     private commitService: CommitService,
+    private mlService: MLService,
   ) {
     super();
   }
@@ -82,7 +84,9 @@ export class AnalyticsProcessor extends WorkerHost {
           'Generating intelligence...',
         );
         await this.intelligenceService.getProjectIntelligence(projectId);
-
+        await this.mlService.analyzeProject(
+          projectId,
+        );
         // ── Step 4: Predict per-developer scores ───────────────
         this.gateway.emitAnalysisStatus(
           projectId,
@@ -152,7 +156,7 @@ export class AnalyticsProcessor extends WorkerHost {
         this.gateway.emitNotification(project.userId, {
           type: 'ANALYSIS_COMPLETE',
           title: '✅ Analysis Complete',
-          message: `${project.name} analysis finished. Health: ${health.healthScore}/100`,
+          message: `${project.name} analysis finished. Health: ${health.healthScore}/100 (${health.status})`
         });
 
         this.logger.log(

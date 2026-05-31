@@ -29,6 +29,7 @@ import { TrainingDataService } from './training-data.service';
 
   exports: [
     FeatureEngineeringService,
+    MLService,
   ],
 })
 export class MLModule { }
