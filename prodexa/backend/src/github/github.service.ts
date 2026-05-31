@@ -185,18 +185,16 @@ export class GithubService {
     repo: string,
     token: string,
   ) {
-    const cacheKey = this.getCacheKey('commits', owner, repo);
-    const cached = await this.getFromCache<GitHubCommit>(cacheKey);
-    if (cached) return cached;
-
     const data = await this.fetchPaginated<GitHubCommit>(
       `https://api.github.com/repos/${owner}/${repo}/commits`,
       token,
       { per_page: 100 },
     );
 
-    this.logger.log(`Fetched ${data.length} commits for ${owner}/${repo}`);
-    await this.setCache(cacheKey, data);
+    this.logger.log(
+      `Fetched ${data.length} commits for ${owner}/${repo}`,
+    );
+
     return data;
   }
 
