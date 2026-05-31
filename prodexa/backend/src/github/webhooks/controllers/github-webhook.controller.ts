@@ -42,8 +42,10 @@ export class GithubWebhookController {
             signature,
         );
 
+        console.log('WEBHOOK EVENT PUBLISHED TO QUEUE');
+
         await this.githubWebhookService.publishEvent(
-            (console.log('WEBHOOK EVENT PUBLISHED TO QUEUE'), githubEvent),
+            githubEvent,
             body,
         );
 
