@@ -2,6 +2,7 @@
 import {
     Body,
     Controller,
+    Get,
     Headers,
     Post,
     Req,
@@ -18,6 +19,14 @@ export class GithubWebhookController {
         private readonly githubWebhookService: GithubWebhookService,
         private readonly githubSignatureService: GithubSignatureService,
     ) { }
+
+    @Get()
+    test() {
+        console.log('GET HIT');
+        return {
+            success: true,
+        };
+    }
 
     @Post()
     async handleWebhook(
