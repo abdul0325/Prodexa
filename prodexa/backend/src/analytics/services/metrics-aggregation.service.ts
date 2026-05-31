@@ -235,6 +235,14 @@ export class MetricsAggregationService {
             commitVelocity,
             healthScore,
         });
+        console.log(
+            'UPSERT SNAPSHOT SUCCESS',
+            {
+                projectId,
+                totalCommits,
+                totalPullRequests,
+            },
+        );
         await this.prisma
             .dailyMetricsSnapshot
             .upsert({
@@ -291,5 +299,12 @@ export class MetricsAggregationService {
                     healthScore,
                 },
             });
+        console.log(
+            'SNAPSHOT SAVED',
+            {
+                projectId,
+                date: today,
+            },
+        );
     }
 }
