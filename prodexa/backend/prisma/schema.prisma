@@ -36,6 +36,7 @@ model Repository {
   repoName  String
   fullName  String   @unique
   url       String
+  webhookId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

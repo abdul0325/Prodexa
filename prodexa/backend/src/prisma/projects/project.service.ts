@@ -38,51 +38,76 @@ export class ProjectService {
         .split('github.com/')[1]
         .split('/');
 
-   const user =
-  await this.prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
+    const user =
+      await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
 
-if (!user?.githubToken) {
-  throw new NotFoundException(
-    'GitHub token not found',
-  );
-}
+    if (!user?.githubToken) {
+      throw new NotFoundException(
+        'GitHub token missing',
+      );
+    }
 
-const repoInfo =
-  await this.githubService.getRepository(
-    owner,
-    repoName,
-    user.githubToken,
-  );
+    const repoInfo =
+      await this.githubService.getRepository(
+        owner,
+        repoName,
+        user.githubToken,
+      );
 
-const repository =
-  await this.prisma.repository.upsert({
-    where: {
-      fullName: `${owner}/${repoName}`,
-    },
+    let webhookId: string | null = null;
 
-    update: {
-      githubId: repoInfo.id.toString(),
-    },
+    try {
 
-    create: {
-      githubId:
-        repoInfo.id.toString(),
+      const webhook =
+        await this.githubService.ensureWebhook(
+          owner,
+          repoName,
+          user.githubToken,
+        );
 
-      owner,
+      webhookId =
+        webhook?.id?.toString() || null;
 
-      repoName,
+      console.log(
+        'WEBHOOK CREATED',
+        webhookId,
+      );
+      console.log(
+        'WEBHOOK ID:',
+        webhook.id,
+      );
+    } catch (error: any) {
 
-      fullName:
-        `${owner}/${repoName}`,
+      console.error(
+        'WEBHOOK CREATION FAILED',
+        error?.response?.data || error,
+      );
+    }
 
-      url:
-        createProjectDto.repoUrl,
-    },
-  });
+    const repository =
+      await this.prisma.repository.upsert({
+        where: {
+          fullName: `${owner}/${repoName}`,
+        },
+
+        update: {
+          githubId: repoInfo.id.toString(),
+          webhookId: webhookId ?? undefined,
+        },
+
+        create: {
+          githubId: repoInfo.id.toString(),
+          owner,
+          repoName,
+          fullName: repoInfo.full_name,
+          url: repoInfo.html_url,
+          webhookId,
+        },
+      });
 
     const project =
       await this.prisma.project.create({

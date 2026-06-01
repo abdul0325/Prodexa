@@ -13,7 +13,10 @@ export class AuthService {
 
   async validateGithubUser(profile: any, accessToken: string) {
     const email = profile.emails?.[0]?.value;
-
+    console.log(
+      'GITHUB TOKEN:',
+      accessToken ? accessToken.substring(0, Math.min(20, accessToken.length)) : 'No token',
+    );
     let user = await this.prisma.user.findUnique({
       where: { email },
     });

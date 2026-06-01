@@ -310,4 +310,173 @@ export class GithubService {
 
     return response.data;
   }
+
+  async createWebhook(
+    owner: string,
+    repo: string,
+    token: string,
+  ) {
+    const webhookUrl =
+      process.env.GITHUB_WEBHOOK_URL;
+
+    const response =
+      await this.httpService.axiosRef.post(
+        `https://api.github.com/repos/${owner}/${repo}/hooks`,
+        {
+          name: 'web',
+          active: true,
+
+          events: [
+            'push',
+            'pull_request',
+            'issues',
+          ],
+
+          config: {
+            url: webhookUrl,
+            content_type: 'json',
+            secret:
+              process.env.GITHUB_WEBHOOK_SECRET,
+            insecure_ssl: '0',
+          },
+        },
+        {
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github+json',
+          },
+        },
+      );
+
+    return response.data;
+  }
+
+  async ensureWebhook(
+    owner: string,
+    repo: string,
+    token: string,
+  ) {
+
+    const hooks =
+      await this.httpService.axiosRef.get(
+        `https://api.github.com/repos/${owner}/${repo}/hooks`,
+        {
+          headers: {
+            Authorization: `token ${token}`,
+          },
+        },
+      );
+
+    const existing =
+      hooks.data.find(
+        (hook: any) =>
+          hook.config?.url ===
+          process.env.GITHUB_WEBHOOK_URL,
+      );
+
+    if (existing) {
+
+      this.logger.log(
+        `Webhook already exists for ${owner}/${repo}`,
+      );
+
+      return existing;
+    }
+
+    this.logger.log(
+      `Creating webhook for ${owner}/${repo}`,
+    );
+
+    return this.createWebhook(
+      owner,
+      repo,
+      token,
+    );
+  }
+
+  async deleteWebhook(
+    owner: string,
+    repo: string,
+    webhookId: string,
+    token: string,
+  ) {
+
+    await this.httpService.axiosRef.delete(
+      `https://api.github.com/repos/${owner}/${repo}/hooks/${webhookId}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+        },
+      },
+    );
+
+    this.logger.log(
+      `Deleted webhook ${webhookId} for ${owner}/${repo}`,
+    );
+  }
+
+  async updateWebhook(
+    owner: string,
+    repo: string,
+    webhookId: string,
+    token: string,
+  ) {
+
+    await this.httpService.axiosRef.patch(
+      `https://api.github.com/repos/${owner}/${repo}/hooks/${webhookId}`,
+      {
+        active: true,
+
+        config: {
+          url: process.env.GITHUB_WEBHOOK_URL,
+          content_type: 'json',
+          secret: process.env.GITHUB_WEBHOOK_SECRET,
+          insecure_ssl: '0',
+        },
+      },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+        },
+      },
+    );
+
+    this.logger.log(
+      `Updated webhook ${webhookId}`,
+    );
+  }
+
+  async syncWebhook(
+    owner: string,
+    repo: string,
+    webhookId: string,
+    token: string,
+  ) {
+
+    try {
+
+      const response =
+        await this.httpService.axiosRef.get(
+          `https://api.github.com/repos/${owner}/${repo}/hooks/${webhookId}`,
+          {
+            headers: {
+              Authorization: `token ${token}`,
+            },
+          },
+        );
+
+      return {
+        exists: true,
+        hook: response.data,
+      };
+
+    } catch {
+
+      return {
+        exists: false,
+      };
+    }
+  }
 }
