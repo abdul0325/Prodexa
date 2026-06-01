@@ -52,7 +52,7 @@ export class MetricsAggregationService {
         const repositoryId =
             normalizedEvent.repositoryId;
         console.log(
-            'COUNTING COMMITS FOR REPO:',
+            'COUNTING COMMITS FOR Unique REPO:',
             repositoryId,
         );
 
