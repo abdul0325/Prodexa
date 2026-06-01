@@ -35,7 +35,7 @@ export class MetricsAggregationService {
         normalizedEvent: any,
     ) {
         console.log(
-            'AGGREGATING SNAPSHOT',
+            'AGGREGATING SNAPSHOTS',
             {
                 projectId: normalizedEvent.projectId,
                 repositoryId: normalizedEvent.repositoryId,
