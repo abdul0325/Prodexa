@@ -51,7 +51,15 @@ export class MetricsAggregationService {
 
         const repositoryId =
             normalizedEvent.repositoryId;
+        console.log(
+            'COUNTING COMMITS FOR REPO:',
+            repositoryId,
+        );
 
+        console.log(
+            'PROJECT:',
+            projectId,
+        );
         if (!projectId) {
             console.error('No projectId in normalized event, skipping aggregation');
             return;
@@ -306,5 +314,6 @@ export class MetricsAggregationService {
                 date: today,
             },
         );
+
     }
 }
