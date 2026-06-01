@@ -13,8 +13,34 @@ export class FeatureEngineeringService {
     ) { }
 
     async generateProjectFeatures(
-        repositoryId: string,
+        projectId: string,
     ) {
+        const project =
+            await this.prisma.project.findUnique({
+                where: {
+                    id: projectId,
+                },
+                include: {
+                    repository: true,
+                },
+            });
+
+        if (!project?.repository) {
+            throw new Error(
+                `Repository not linked to project ${projectId}`,
+            );
+        }
+
+        const repositoryId =
+            project.repository.githubId;
+            
+            console.log(
+            'FEATURE ENGINEERING',
+            {
+                projectId,
+                repositoryId,
+            },
+        );
 
         // Get repository commits first
         const commits =
