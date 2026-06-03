@@ -33,8 +33,8 @@ export class FeatureEngineeringService {
 
         const repositoryId =
             project.repository.githubId;
-            
-            console.log(
+
+        console.log(
             'FEATURE ENGINEERING',
             {
                 projectId,
@@ -56,7 +56,10 @@ export class FeatureEngineeringService {
                     committedAt: 'desc',
                 },
             });
-
+        console.log(
+            'COMMITS FOUND',
+            commits.length,
+        );
         const commitShas =
             commits.map(
                 commit => commit.sha,

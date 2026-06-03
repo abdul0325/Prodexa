@@ -63,10 +63,12 @@ export class CommitService {
         return !!commit;
     }
 
-    async getLatestCommit(projectId: string) {
+    async getLatestCommit(
+        repositoryId: string,
+    ) {
         return this.prisma.commitEvent.findFirst({
             where: {
-                repositoryId: projectId,
+                repositoryId,
             },
             orderBy: {
                 committedAt: 'desc',

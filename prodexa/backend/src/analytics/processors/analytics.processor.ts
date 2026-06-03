@@ -34,7 +34,10 @@ export class AnalyticsProcessor extends WorkerHost {
 
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
-        include: { user: true },
+        include: {
+          user: true,
+          repository: true,
+        },
       });
 
       if (!project) throw new Error(`Project ${projectId} not found`);
@@ -119,7 +122,7 @@ export class AnalyticsProcessor extends WorkerHost {
         // ── Step 6: Update project status + sync time ──────────
         const latestCommit =
           await this.commitService.getLatestCommit(
-            projectId,
+            project.repository!.githubId,
           );
 
         await this.prisma.project.update({
