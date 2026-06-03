@@ -26,9 +26,14 @@ import { GithubModule } from 'src/github/github.module';
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'analytics',
-    }),
+    BullModule.registerQueue(
+      {
+        name: 'analytics',
+      },
+      {
+        name: 'bootstrap',
+      },
+    ),
     PrismaModule,
     DeveloperAnalyticsModule,
     IntelligenceModule,

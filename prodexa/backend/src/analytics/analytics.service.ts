@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import { Job, Queue } from 'bullmq';
+import { Queue } from 'bullmq';
 import { DeveloperAnalyticsService } from '../developer-analytics/developer-analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -14,7 +14,11 @@ export class AnalyticsQueueService {
   constructor(
     private devService: DeveloperAnalyticsService,
     private prisma: PrismaService,
-    @InjectQueue('analytics') private analyticsQueue: Queue,
+    @InjectQueue('analytics')
+    private analyticsQueue: Queue,
+
+    @InjectQueue('bootstrap')
+    private bootstrapQueue: Queue,
   ) { }
 
   async addProjectAnalysisJob(projectId: string) {
@@ -47,16 +51,9 @@ export class AnalyticsQueueService {
   async addProjectBootstrapJob(
     projectId: string,
   ) {
-
-    await this.analyticsQueue.add(
+    await this.bootstrapQueue.add(
       'bootstrapProject',
-      {
-        projectId,
-      },
+      { projectId },
     );
-
-    return {
-      message: 'Bootstrap queued',
-    };
   }
 }

@@ -11,7 +11,7 @@ import { GithubCommitDetailsService } from 'src/github/services/github-commit-de
 import { ImpactAnalysisService } from 'src/intelligence/code-analysis/impact-analysis.service';
 import { AnalyticsQueueService } from '../analytics.service';
 
-@Processor('analytics')
+@Processor('bootstrap')
 export class BootstrapProcessor extends WorkerHost {
 
     private readonly logger =
@@ -36,7 +36,11 @@ export class BootstrapProcessor extends WorkerHost {
             'BOOTSTRAP PROCESSOR GOT:',
             job.name,
         );
-
+        if (job.name === 'analyzeProject') {
+            throw new Error(
+                'AnalyzeProject reached BootstrapProcessor',
+            );
+        }
         if (job.name !== 'bootstrapProject') {
             return;
         }
