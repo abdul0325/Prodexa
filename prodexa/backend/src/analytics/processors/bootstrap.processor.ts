@@ -32,6 +32,11 @@ export class BootstrapProcessor extends WorkerHost {
 
     async process(job: Job<any>) {
 
+        console.log(
+            'BOOTSTRAP PROCESSOR GOT:',
+            job.name,
+        );
+
         if (job.name !== 'bootstrapProject') {
             return;
         }
