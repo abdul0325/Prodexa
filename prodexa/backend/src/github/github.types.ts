@@ -1,5 +1,7 @@
 export interface GitHubCommit {
   sha: string;
+  html_url?: string;
+  url?: string;
   author?: {
     login: string;
   };

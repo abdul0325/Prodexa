@@ -94,30 +94,21 @@ export class GithubEventsWorker extends WorkerHost {
             const commit
             of normalized.commits
         ) {
-            console.log(
-                'Fetching commit details for:',
-                commit.sha,
-            );
-            const details = await this.githubCommitDetails.fetchCommitDetails(
-                owner,
-                repo,
-                commit.sha
-            );
-            console.log(
-                'Commit details fetched:',
-                details.files?.length,
-            );
-            console.log(
-                'Storing commit file changes...',
-            );
+
+            const details =
+                await this.githubCommitDetails
+                    .fetchCommitDetails(
+                        owner,
+                        repo,
+                        commit.sha,
+                    );
+
             await this.commitFileChange
                 .storeCommitFiles(
                     commit.sha,
                     details.files || [],
                 );
-            console.log(
-                'RUNNING IMPACT ANALYSIS...',
-            );
+
             await this.impactAnalysis
                 .analyzeCommit(
                     commit.sha,
@@ -156,4 +147,6 @@ export class GithubEventsWorker extends WorkerHost {
 
     private async handleIssue(payload: any) {
     }
+
+   
 }

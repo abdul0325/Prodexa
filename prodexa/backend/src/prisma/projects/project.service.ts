@@ -4,8 +4,8 @@ import { PrismaService } from '../prisma.service';
 import { GithubService } from 'src/github/github.service';
 import { GitHubPull, GitHubIssue, GitHubCommit } from 'src/github/github.types';
 import { randomUUID } from 'crypto';
-import { AnalyticsQueueService } from 'src/analytics/analytics.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { AnalyticsQueueService } from 'src/analytics/analytics.service';
 
 // Shared scoring formula — single source of truth
 export function calcProductivityScore(
@@ -134,7 +134,9 @@ export class ProjectService {
       });
 
     await this.analyticsQueueService
-      .addProjectAnalysisJob(project.id);
+      .addProjectBootstrapJob(
+        project.id,
+      );
 
     return project;
   }

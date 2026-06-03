@@ -5,6 +5,7 @@ import { GithubModule } from 'src/github/github.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { DeveloperAnalyticsModule } from 'src/developer-analytics/developer-analytics.module';
 import { AnalyticsQueueModule } from 'src/analytics/analytics.module';
+import { IntelligenceModule } from 'src/intelligence/intelligence.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AnalyticsQueueModule } from 'src/analytics/analytics.module';
     GithubModule,
     PrismaModule,
     AnalyticsQueueModule,
+    IntelligenceModule,
   ],
   providers: [ProjectService],
   controllers: [ProjectController],

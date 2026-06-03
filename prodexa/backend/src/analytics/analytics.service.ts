@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
@@ -14,7 +15,7 @@ export class AnalyticsQueueService {
     private devService: DeveloperAnalyticsService,
     private prisma: PrismaService,
     @InjectQueue('analytics') private analyticsQueue: Queue,
-  ) {}
+  ) { }
 
   async addProjectAnalysisJob(projectId: string) {
     // FIX: fetch the user's githubToken and pass it to the job
@@ -41,5 +42,21 @@ export class AnalyticsQueueService {
 
     this.logger.log(`Analysis job queued for project ${projectId}`);
     return { message: 'Analysis job added to queue' };
+  }
+
+  async addProjectBootstrapJob(
+    projectId: string,
+  ) {
+
+    await this.analyticsQueue.add(
+      'bootstrapProject',
+      {
+        projectId,
+      },
+    );
+
+    return {
+      message: 'Bootstrap queued',
+    };
   }
 }

@@ -28,6 +28,7 @@ export class AnalyticsProcessor extends WorkerHost {
   }
 
   async process(job: Job<any>) {
+
     if (job.name === 'analyzeProject') {
       const { projectId, githubToken, since } = job.data;
 

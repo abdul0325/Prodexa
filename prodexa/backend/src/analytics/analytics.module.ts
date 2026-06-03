@@ -21,6 +21,8 @@ import { DeltaAnalyticsService } from 'src/analytics/services/delta-analytics.se
 import { CommitFileChangeService } from './services/commit-file-change.service';
 import { HealthCalculationService } from './services/health-calculation.service';
 import { MLModule } from 'src/ml/ml.module';
+import { BootstrapProcessor } from './processors/bootstrap.processor';
+import { GithubModule } from 'src/github/github.module';
 
 @Module({
   imports: [
@@ -33,13 +35,14 @@ import { MLModule } from 'src/ml/ml.module';
     NotificationsModule,
     GatewayModule,
     IntelligenceModule,
-    MLModule
+    MLModule,
+    GithubModule
   ],
   controllers: [
     AnalyticsController,
   ],
 
-  providers: [AnalyticsQueueService, AnalyticsProcessor, MetricsAggregationService, CommitService, PullRequestService, KPIService, AnalyticsReadService, EngineeringHealthService, RiskDetectionService, TrendsService, DeltaAnalyticsService,CommitFileChangeService,HealthCalculationService],
-  exports: [AnalyticsQueueService, MetricsAggregationService, BullModule, CommitService, PullRequestService, KPIService, EngineeringHealthService, RiskDetectionService,CommitFileChangeService],
+  providers: [AnalyticsQueueService, AnalyticsProcessor, BootstrapProcessor, MetricsAggregationService, CommitService, PullRequestService, KPIService, AnalyticsReadService, EngineeringHealthService, RiskDetectionService, TrendsService, DeltaAnalyticsService, CommitFileChangeService, HealthCalculationService],
+  exports: [AnalyticsQueueService, MetricsAggregationService, BullModule, CommitService, PullRequestService, KPIService, EngineeringHealthService, RiskDetectionService, CommitFileChangeService],
 })
 export class AnalyticsQueueModule { }

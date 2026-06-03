@@ -9,6 +9,6 @@ import { GithubCommitDetailsService } from './services/github-commit-details.ser
 @Module({
   imports: [HttpModule, PrismaModule, RedisModule],
   providers: [GithubService, GithubCommitDetailsService],
-  exports: [GithubService,GithubCommitDetailsService],
+  exports: [GithubService, GithubCommitDetailsService],
 })
 export class GithubModule { }
