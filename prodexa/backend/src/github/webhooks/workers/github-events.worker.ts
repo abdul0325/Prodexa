@@ -15,6 +15,7 @@ import { RealtimeGateway } from 'src/gateway/realtime.gateway';
 import { GithubCommitDetailsService } from 'src/github/services/github-commit-details.service';
 import { CommitFileChangeService } from 'src/analytics/services/commit-file-change.service';
 import { ImpactAnalysisService } from 'src/intelligence/code-analysis/impact-analysis.service';
+import { AnalyticsQueueService } from 'src/analytics/analytics.service';
 
 @Processor(GITHUB_EVENTS_QUEUE)
 export class GithubEventsWorker extends WorkerHost {
@@ -28,7 +29,8 @@ export class GithubEventsWorker extends WorkerHost {
         private readonly kpiService: KPIService,
         private readonly githubCommitDetails: GithubCommitDetailsService,
         private readonly commitFileChange: CommitFileChangeService,
-        private readonly impactAnalysis: ImpactAnalysisService
+        private readonly impactAnalysis: ImpactAnalysisService,
+        private readonly analyticsQueueService: AnalyticsQueueService,
     ) {
         super();
     }
@@ -77,9 +79,14 @@ export class GithubEventsWorker extends WorkerHost {
                 payload,
             );
         console.log(
+            'PROJECT ID FOUND:',
+            normalized.projectId,
+        );
+        console.log(
             'NORMALIZED RESULT',
             normalized,
         );
+        console.log('STEP 1');
         await this.commitService.storeCommits(
             normalized,
         );
@@ -102,26 +109,38 @@ export class GithubEventsWorker extends WorkerHost {
                         repo,
                         commit.sha,
                     );
-
+            console.log('STEP 2');
             await this.commitFileChange
                 .storeCommitFiles(
                     commit.sha,
                     details.files || [],
                 );
-
+            console.log('STEP 3');
             await this.impactAnalysis
                 .analyzeCommit(
                     commit.sha,
                 );
         }
-
+        console.log('STEP 4');
         await this.aggregator.aggregateDailyMetrics(
             normalized,
         );
 
-        this.gateway.emitIntelligenceUpdate(
-            normalized.repositoryId,
-        );
+        if (normalized.projectId) {
+
+            console.log('STEP 5');
+
+            await this.analyticsQueueService
+                .addProjectAnalysisJob(
+                    normalized.projectId,
+                );
+
+            console.log('STEP 6');
+
+            this.gateway.emitIntelligenceUpdate(
+                normalized.projectId,
+            );
+        }
     }
 
     private async handlePullRequest(
@@ -148,5 +167,5 @@ export class GithubEventsWorker extends WorkerHost {
     private async handleIssue(payload: any) {
     }
 
-   
+
 }
