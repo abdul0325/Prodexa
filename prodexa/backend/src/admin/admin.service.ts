@@ -1,35 +1,22 @@
-/* eslint-disable prettier/prettier */
 import {
   Injectable,
   NotFoundException,
+  ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Role } from '@prisma/client';
 import {
   UpdateUserRoleDto,
   UpdateUserStatusDto,
   UpdateProjectStatusDto,
+  CreateUserByAdminDto,
 } from './dto/admin.dto';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) { }
-  private async createAuditLog(
-    userId: string,
-    action: string,
-    targetType: string,
-    targetId: string,
-    metadata?: any,
-  ) {
-    return this.prisma.auditLog.create({
-      data: {
-        userId,
-        action,
-        targetType,
-        targetId,
-        metadata,
-      },
-    });
-  }
+  constructor(private prisma: PrismaService) {}
+
   // ─────────────────────────────────────────────
   // USER MANAGEMENT
   // ─────────────────────────────────────────────
@@ -69,105 +56,38 @@ export class AdminService {
     return user;
   }
 
-  async updateUserRole(
-    adminId: string,
-    userId: string,
-    dto: UpdateUserRoleDto,
-  ) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+  async updateUserRole(userId: string, dto: UpdateUserRoleDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
 
-    if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
-
-    const updatedUser = await this.prisma.user.update({
+    return this.prisma.user.update({
       where: { id: userId },
       data: { role: dto.role },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-      },
+      select: { id: true, name: true, email: true, role: true },
     });
-
-    await this.createAuditLog(
-      adminId,
-      'USER_ROLE_CHANGED',
-      'USER',
-      userId,
-      {
-        userName: updatedUser.name,
-        newRole: dto.role,
-      },
-    );
-
-    return updatedUser;
   }
 
-async updateUserStatus(
-  adminId: string,
-  userId: string,
-  dto: UpdateUserStatusDto,
-) {
-  const user = await this.prisma.user.findUnique({
-    where: { id: userId },
-  });
+  async updateUserStatus(userId: string, dto: UpdateUserStatusDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException(`User ${userId} not found`);
 
-  if (!user) {
-    throw new NotFoundException(`User ${userId} not found`);
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: dto.isActive },
+      select: { id: true, name: true, email: true, isActive: true },
+    });
   }
 
-  const updatedUser = await this.prisma.user.update({
-    where: { id: userId },
-    data: { isActive: dto.isActive },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      isActive: true,
-    },
-  });
-
-  await this.createAuditLog(
-    adminId,
-    dto.isActive
-      ? 'USER_ACTIVATED'
-      : 'USER_DEACTIVATED',
-    'USER',
-    userId,
-    {
-      userName: updatedUser.name,
-    },
-  );
-
-  return updatedUser;
-}
-
-  async deleteUser(adminId: string, userId: string) {
+  async deleteUser(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User ${userId} not found`);
 
     // Soft delete by deactivating instead of hard delete
-    const deletedUser = await this.prisma.user.update({
+    return this.prisma.user.update({
       where: { id: userId },
       data: { isActive: false },
       select: { id: true, name: true, isActive: true },
     });
-
-    await this.createAuditLog(
-      adminId,
-      'USER_DELETED',
-      'USER',
-      userId,
-      {
-        userName: deletedUser.name,
-      },
-    );
-
-    return deletedUser;
   }
 
   // ─────────────────────────────────────────────
@@ -186,37 +106,20 @@ async updateUserStatus(
     });
   }
 
-  async updateProjectStatus(
-    adminId: string,
-    projectId: string,
-    dto: UpdateProjectStatusDto,
-  ) {
+  async updateProjectStatus(projectId: string, dto: UpdateProjectStatusDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
     if (!project) throw new NotFoundException(`Project ${projectId} not found`);
 
-    const updatedProject = await this.prisma.project.update({
+    return this.prisma.project.update({
       where: { id: projectId },
       data: { status: dto.status },
       select: { id: true, name: true, status: true },
     });
-
-    await this.createAuditLog(
-      adminId,
-      'PROJECT_STATUS_CHANGED',
-      'PROJECT',
-      projectId,
-      {
-        projectName: updatedProject.name,
-        status: dto.status,
-      },
-    );
-
-    return updatedProject;
   }
 
-  async deleteProject(adminId: string, projectId: string) {
+  async deleteProject(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -230,16 +133,7 @@ async updateUserStatus(
       this.prisma.notification.deleteMany({ where: { projectId } }),
       this.prisma.project.delete({ where: { id: projectId } }),
     ]);
-    console.log('ADMIN ID:', adminId);
-    await this.createAuditLog(
-      adminId,
-      'PROJECT_DELETED',
-      'PROJECT',
-      projectId,
-      {
-        projectName: project.name,
-      },
-    );
+
     return { message: `Project ${projectId} deleted successfully` };
   }
 

@@ -6,46 +6,71 @@ import { PrismaService }
     from '../prisma/prisma.service';
 
 @Injectable()
+
 export class ManagerService {
 
     constructor(
-        private prisma: PrismaService,
+
+        private prisma:
+            PrismaService,
     ) { }
 
-    private getLatestHealthScore(
+    private calculateProjectHealth(
         project: any,
     ): number {
 
-        return (
-            project.dailyMetricsSnapshots?.[0]
-                ?.healthScore ?? 0
+        if (
+            !project.developerActivities?.length
+        ) {
+            return 0;
+        }
+
+        const total =
+            project.developerActivities.reduce(
+
+                (
+                    sum: number,
+                    dev: any,
+                ) => {
+
+                    return (
+                        sum +
+                        (
+                            dev.productivityScore ||
+                            0
+                        )
+                    );
+                },
+
+                0,
+            );
+
+        return Math.round(
+            total /
+            project.developerActivities.length,
         );
     }
 
     async getOverview(
         userId: string,
     ) {
-        console.log(
-            'MANAGER USER ID:',
-            userId,
-        );
-        const projects =
-    await this.prisma.project.findMany({
 
-        include: {
-            developerActivities: true,
-            dailyMetricsSnapshots: {
-                orderBy: {
-                    date: 'desc',
-                },
-                take: 1,
-            },
-        },
-    });
-        console.log(
-            'PROJECTS FOUND:',
-            projects.length,
-        );
+        /* PROJECTS */
+
+        const projects =
+            await this.prisma.project
+                .findMany({
+
+                    where: {
+                        userId,
+                    },
+
+                    include: {
+
+                        developerActivities: true,
+                    },
+                });
+
         /* KPI COUNTS */
 
         const totalProjects =
@@ -53,26 +78,18 @@ export class ManagerService {
 
         const healthyProjects =
             projects.filter(
-                p =>
-                    this.getLatestHealthScore(p) >= 70,
+                (project) =>
+                    this.calculateProjectHealth(
+                        project,
+                    ) >= 70,
             ).length;
-
-        const mediumRiskProjects =
-            projects.filter(p => {
-
-                const health =
-                    this.getLatestHealthScore(p);
-
-                return (
-                    health >= 40 &&
-                    health < 70
-                );
-            }).length;
 
         const highRiskProjects =
             projects.filter(
-                p =>
-                    this.getLatestHealthScore(p) < 40,
+                (project) =>
+                    this.calculateProjectHealth(
+                        project,
+                    ) < 40,
             ).length;
 
         /* DEVELOPER AGGREGATION */
@@ -153,12 +170,11 @@ export class ManagerService {
                 averageProductivity:
                     Math.round(
                         dev.totalProductivity /
-                        Math.max(
-                            dev.entries,
-                            1,
-                        ),
+                        dev.entries,
                     ),
             }));
+
+        /* TOTAL DEVELOPERS */
 
         const totalDevelopers =
             developers.length;
@@ -166,62 +182,27 @@ export class ManagerService {
         /* PROJECT TABLE */
 
         const projectsData =
-            projects.map(project => {
+            projects.map((project) => ({
 
-                const snapshot =
-                    project.dailyMetricsSnapshots?.[0];
+                id: project.id,
 
-                const health =
-                    snapshot?.healthScore ?? null;
+                name: project.name,
 
-                return {
+                healthScore:
+                    this.calculateProjectHealth(project),
 
-                    id:
-                        project.id,
+                risk:
+                    this.calculateProjectHealth(project) < 40
+                        ? 'High'
+                        : 'Low',
 
-                    name:
-                        project.name,
+                developersCount:
+                    project.developerActivities
+                        .length,
 
-                    status:
-                        project.status,
-
-                    healthScore:
-                        health,
-
-                    totalCommits:
-                        snapshot?.totalCommits || 0,
-
-                    commitVelocity:
-                        snapshot?.commitVelocity || 0,
-
-                    activeContributors:
-                        snapshot?.activeContributors || 0,
-
-                    totalPullRequests:
-                        snapshot?.totalPullRequests || 0,
-
-                    mergedPullRequests:
-                        snapshot?.mergedPullRequests || 0,
-
-                    averagePRMergeTime:
-                        snapshot?.averagePRMergeTime || 0,
-
-                    risk:
-                        !snapshot
-                            ? 'Unknown'
-                            : health! < 40
-                                ? 'High'
-                                : health! < 70
-                                    ? 'Medium'
-                                    : 'Low',
-                };
-            });
-
-        projectsData.sort(
-            (a, b) =>
-                (a.healthScore ?? 0) -
-                (b.healthScore ?? 0),
-        );
+                status:
+                    project.status,
+            }));
 
         /* RISKS */
 
@@ -237,14 +218,8 @@ export class ManagerService {
 
         for (const project of projects) {
 
-            const snapshot =
-                project.dailyMetricsSnapshots?.[0];
-
-            if (!snapshot)
-                continue;
-
             if (
-                snapshot.healthScore < 40
+                this.calculateProjectHealth(project) < 40
             ) {
 
                 risks.push({
@@ -255,56 +230,7 @@ export class ManagerService {
                         project.name,
 
                     message:
-                        `Health score critically low (${snapshot.healthScore})`,
-                });
-            }
-
-            if (
-                snapshot.commitVelocity === 0
-            ) {
-
-                risks.push({
-
-                    type: 'PROJECT',
-
-                    title:
-                        project.name,
-
-                    message:
-                        'No commits recorded today',
-                });
-            }
-
-            if (
-                snapshot.activeContributors <= 1
-            ) {
-
-                risks.push({
-
-                    type: 'PROJECT',
-
-                    title:
-                        project.name,
-
-                    message:
-                        'Single contributor dependency detected',
-                });
-            }
-
-            if (
-                snapshot.averagePRMergeTime &&
-                snapshot.averagePRMergeTime > 72
-            ) {
-
-                risks.push({
-
-                    type: 'PROJECT',
-
-                    title:
-                        project.name,
-
-                    message:
-                        `Slow review cycle (${Math.round(snapshot.averagePRMergeTime)}h average merge time)`,
+                        'High delivery risk detected',
                 });
             }
         }
@@ -315,7 +241,8 @@ export class ManagerService {
         ) {
 
             if (
-                developer.averageProductivity < 40
+                developer.averageProductivity
+                < 40
             ) {
 
                 risks.push({
@@ -331,24 +258,7 @@ export class ManagerService {
             }
         }
 
-        risks.sort((a, b) => {
-
-            if (
-                a.type === 'PROJECT' &&
-                b.type !== 'PROJECT'
-            ) {
-                return -1;
-            }
-
-            if (
-                a.type !== 'PROJECT' &&
-                b.type === 'PROJECT'
-            ) {
-                return 1;
-            }
-
-            return 0;
-        });
+        /* RESPONSE */
 
         return {
 
@@ -357,8 +267,6 @@ export class ManagerService {
                 totalProjects,
 
                 healthyProjects,
-
-                mediumRiskProjects,
 
                 highRiskProjects,
 

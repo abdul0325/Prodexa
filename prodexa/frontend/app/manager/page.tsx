@@ -22,16 +22,22 @@ import {
 import DevAvatar from '@/components/project-detail/shared/DevAvatar';
 
 interface ManagerData {
+
     kpis: {
+
         totalProjects: number;
+
         healthyProjects: number;
-        mediumRiskProjects: number;
+
         highRiskProjects: number;
+
         totalDevelopers: number;
     };
 
     projects: any[];
+
     developers: any[];
+
     risks: any[];
 }
 
@@ -243,13 +249,7 @@ export default function ManagerPage() {
                             data?.kpis.healthyProjects || 0
                         }
                     />
-                    <KpiCard
-                        icon={<ShieldAlert size={18} />}
-                        label="Medium Risk Projects"
-                        value={
-                            data?.kpis.mediumRiskProjects || 0
-                        }
-                    />
+
                     <KpiCard
                         icon={<ShieldAlert size={18} />}
                         label="High Risk Projects"
@@ -406,19 +406,7 @@ export default function ManagerPage() {
                                                 </TableHead>
 
                                                 <TableHead>
-                                                    Commits
-                                                </TableHead>
-
-                                                <TableHead>
-                                                    Velocity
-                                                </TableHead>
-
-                                                <TableHead>
-                                                    Contributors
-                                                </TableHead>
-
-                                                <TableHead>
-                                                    PRs
+                                                    Developers
                                                 </TableHead>
 
                                                 <TableHead>
@@ -434,64 +422,25 @@ export default function ManagerPage() {
                                             {data.projects.map(
                                                 (project) => (
 
-                                                    <tr key={project.id}>
-
-                                                        <TableCell>
-                                                            <div
-                                                                style={{
-                                                                    fontWeight: 700,
-                                                                }}
-                                                            >
-                                                                {project.name}
-                                                            </div>
-                                                        </TableCell>
+                                                    <tr
+                                                        key={project.id}
+                                                    >
 
                                                         <TableCell>
 
-                                                            <div
-                                                                style={{
-                                                                    minWidth: 140,
-                                                                }}
+                                                            <Badge
+                                                                color={
+                                                                    project.healthScore >= 70
+                                                                        ? 'green'
+                                                                        : project.healthScore >= 40
+                                                                            ? 'yellow'
+                                                                            : 'red'
+                                                                }
                                                             >
-
-                                                                <div
-                                                                    style={{
-                                                                        fontWeight: 700,
-                                                                        marginBottom: 6,
-                                                                    }}
-                                                                >
-                                                                    {Math.round(
-                                                                        project.healthScore || 0,
-                                                                    )}%
-                                                                </div>
-
-                                                                <div
-                                                                    style={{
-                                                                        width: '100%',
-                                                                        height: 8,
-                                                                        background:
-                                                                            '#e5e7eb',
-                                                                        borderRadius: 999,
-                                                                        overflow: 'hidden',
-                                                                    }}
-                                                                >
-
-                                                                    <div
-                                                                        style={{
-                                                                            width: `${project.healthScore || 0}%`,
-                                                                            height: '100%',
-                                                                            background:
-                                                                                project.healthScore >= 70
-                                                                                    ? '#22c55e'
-                                                                                    : project.healthScore >= 40
-                                                                                        ? '#f59e0b'
-                                                                                        : '#ef4444',
-                                                                        }}
-                                                                    />
-
-                                                                </div>
-
-                                                            </div>
+                                                                {
+                                                                    project.healthScore
+                                                                }
+                                                            </Badge>
 
                                                         </TableCell>
 
@@ -499,11 +448,9 @@ export default function ManagerPage() {
 
                                                             <Badge
                                                                 color={
-                                                                    project.risk === 'Low'
-                                                                        ? 'green'
-                                                                        : project.risk === 'Medium'
-                                                                            ? 'yellow'
-                                                                            : 'red'
+                                                                    project.risk === 'High'
+                                                                        ? 'red'
+                                                                        : 'green'
                                                                 }
                                                             >
                                                                 {project.risk}
@@ -512,27 +459,17 @@ export default function ManagerPage() {
                                                         </TableCell>
 
                                                         <TableCell>
-                                                            {project.totalCommits}
-                                                        </TableCell>
-
-                                                        <TableCell>
-                                                            {project.commitVelocity}
-                                                        </TableCell>
-
-                                                        <TableCell>
-                                                            {project.activeContributors}
-                                                        </TableCell>
-
-                                                        <TableCell>
-                                                            {project.mergedPullRequests}
-                                                            /
-                                                            {project.totalPullRequests}
+                                                            {
+                                                                project.developersCount
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell>
 
                                                             <Badge color="blue">
-                                                                {project.status}
+                                                                {
+                                                                    project.status
+                                                                }
                                                             </Badge>
 
                                                         </TableCell>
@@ -605,10 +542,6 @@ export default function ManagerPage() {
 
                                                 <TableHead>
                                                     Avg Productivity
-                                                </TableHead>
-
-                                                <TableHead>
-                                                    Risk
                                                 </TableHead>
 
                                             </tr>
@@ -720,27 +653,7 @@ export default function ManagerPage() {
                                                             </Badge>
 
                                                         </TableCell>
-                                                        <TableCell>
 
-                                                            <Badge
-                                                                color={
-                                                                    developer.averageProductivity >= 70
-                                                                        ? 'green'
-                                                                        : developer.averageProductivity >= 40
-                                                                            ? 'yellow'
-                                                                            : 'red'
-                                                                }
-                                                            >
-                                                                {
-                                                                    developer.averageProductivity >= 70
-                                                                        ? 'Low'
-                                                                        : developer.averageProductivity >= 40
-                                                                            ? 'Medium'
-                                                                            : 'High'
-                                                                }
-                                                            </Badge>
-
-                                                        </TableCell>
                                                     </tr>
 
                                                 ),
@@ -837,33 +750,17 @@ export default function ManagerPage() {
 
                                                 <div
                                                     style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.75rem',
-                                                        marginBottom: '0.5rem',
+
+                                                        fontWeight: 700,
+
+                                                        marginBottom:
+                                                            '0.35rem',
+
+                                                        color:
+                                                            'var(--text-primary)',
                                                     }}
                                                 >
-
-                                                    <Badge
-                                                        color={
-                                                            risk.type === 'PROJECT'
-                                                                ? 'red'
-                                                                : 'yellow'
-                                                        }
-                                                    >
-                                                        {risk.type}
-                                                    </Badge>
-
-                                                    <div
-                                                        style={{
-                                                            fontWeight: 700,
-                                                            color:
-                                                                'var(--text-primary)',
-                                                        }}
-                                                    >
-                                                        {risk.title}
-                                                    </div>
-
+                                                    {risk.title}
                                                 </div>
 
                                                 <div

@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
@@ -40,16 +39,8 @@ export class AuthService {
         },
       });
     }
-    console.log('USER ID FROM DB:', user.id);
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    console.log('JWT PAYLOAD:', payload);
-
+    const payload = { sub: user.id, email: user.email, role: user.role };
     const token = this.jwtService.sign(payload);
 
     return { user, token };

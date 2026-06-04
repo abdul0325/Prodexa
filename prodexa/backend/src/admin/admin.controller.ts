@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
@@ -8,7 +7,6 @@ import {
   Body,
   UseGuards,
   Query,
-  Req,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from 'src/prisma/auth/jwt-auth.guard';
@@ -22,7 +20,7 @@ import {
 @UseGuards(JwtAuthGuard, AdminGuard)
 @Controller('admin')
 export class AdminController {
-  constructor(private adminService: AdminService) { }
+  constructor(private adminService: AdminService) {}
 
   // ─────────────────────────────────────────────
   // PLATFORM OVERVIEW
@@ -52,42 +50,23 @@ export class AdminController {
 
   /** PATCH /admin/users/:id/role — Change user role */
   @Patch('users/:id/role')
-  updateUserRole(
-    @Req() req,
-    @Param('id') userId: string,
-    @Body() dto: UpdateUserRoleDto,
-  ) {
-    return this.adminService.updateUserRole(
-      req.user.userId,
-      userId,
-      dto,
-    );
+  updateUserRole(@Param('id') userId: string, @Body() dto: UpdateUserRoleDto) {
+    return this.adminService.updateUserRole(userId, dto);
   }
 
   /** PATCH /admin/users/:id/status — Activate or deactivate user */
   @Patch('users/:id/status')
   updateUserStatus(
-    @Req() req,
     @Param('id') userId: string,
     @Body() dto: UpdateUserStatusDto,
   ) {
-    return this.adminService.updateUserStatus(
-      req.user.userId,
-      userId,
-      dto,
-    );
+    return this.adminService.updateUserStatus(userId, dto);
   }
 
   /** DELETE /admin/users/:id — Soft delete (deactivate) user */
   @Delete('users/:id')
-  deleteUser(
-    @Req() req,
-    @Param('id') userId: string,
-  ) {
-    return this.adminService.deleteUser(
-      req.user.userId,
-      userId,
-    );
+  deleteUser(@Param('id') userId: string) {
+    return this.adminService.deleteUser(userId);
   }
 
   // ─────────────────────────────────────────────
@@ -103,28 +82,16 @@ export class AdminController {
   /** PATCH /admin/projects/:id/status — Activate or deactivate a project */
   @Patch('projects/:id/status')
   updateProjectStatus(
-    @Req() req,
     @Param('id') projectId: string,
     @Body() dto: UpdateProjectStatusDto,
   ) {
-    return this.adminService.updateProjectStatus(
-      req.user.userId,
-      projectId,
-      dto,
-    );
+    return this.adminService.updateProjectStatus(projectId, dto);
   }
 
   /** DELETE /admin/projects/:id — Hard delete project + all its data */
   @Delete('projects/:id')
-  deleteProject(
-    @Req() req,
-    @Param('id') projectId: string,
-  ) {
-    console.log('REQ USER:', req.user);
-    return this.adminService.deleteProject(
-      req.user.userId,
-      projectId,
-    );
+  deleteProject(@Param('id') projectId: string) {
+    return this.adminService.deleteProject(projectId);
   }
 
   // ─────────────────────────────────────────────
