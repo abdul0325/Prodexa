@@ -398,21 +398,21 @@ export default function ProjectDetailPage({
    * 2. liveHealthScore          (WebSocket realtime)
    * 3. dashboard.healthScore    (GET /dashboard/project/:id)
    */
-const displayHealth =
-  mlData?.projectScore ??
-  dashboard?.prediction?.productivityScore ??
-  (engineeringHealth as any)?.score ??
-  liveHealthScore ??
-  dashboard?.healthScore ??
-  0;
+  const displayHealth =
+    mlData?.projectScore ??
+    dashboard?.prediction?.productivityScore ??
+    (engineeringHealth as any)?.score ??
+    liveHealthScore ??
+    dashboard?.healthScore ??
+    0;
 
-const displayStatus =
-  mlData?.teamHealthStatus ??
-  dashboard?.prediction?.teamHealthStatus ??
-  (engineeringHealth as any)?.status ??
-  liveHealthStatus ??
-  dashboard?.healthStatus ??
-  'UNKNOWN';
+  const displayStatus =
+    mlData?.teamHealthStatus ??
+    dashboard?.prediction?.teamHealthStatus ??
+    (engineeringHealth as any)?.status ??
+    liveHealthStatus ??
+    dashboard?.healthStatus ??
+    'UNKNOWN';
 
   const isLive = liveHealthScore !== null;
 
@@ -633,94 +633,60 @@ const displayStatus =
 
         </div>
 
-        {/* INTELLIGENCE GRID */}
-
+        {/* INTELLIGENCE GRID - FULLY RESPONSIVE ROW LAYOUT */}
         <div
           style={{
-
             display: 'grid',
-
-            gridTemplateColumns:
-              'repeat(auto-fit,minmax(min(100%,340px),1fr))',
-
-            gap:
-              'clamp(1rem,2vw,1.4rem)',
-
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+            gap: 'clamp(1rem, 2vw, 1.4rem)',
             width: '100%',
-
             alignItems: 'stretch',
-
             marginBottom: '1.75rem',
-
             overflow: 'hidden',
-
             minWidth: 0,
           }}
         >
-
           {/* AI INSIGHTS */}
-
           <div
             style={{
-
               minWidth: 0,
-
               width: '100%',
-
               display: 'flex',
-
-              height: 'screen',
+              height: '100%',
             }}
           >
-
             <AIInsightsPanel
-              insights={
-                aiInsights?.insights || []
-              }
+              insights={aiInsights?.insights || []}
             />
-
           </div>
 
           {/* FORECAST */}
-
           <div
             style={{
-
               minWidth: 0,
-
               width: '100%',
-
               display: 'flex',
+              height: '100%',
             }}
           >
-
             <PredictiveForecast
               mlData={forecastPanelData}
             />
-
           </div>
 
           {/* RISK */}
-
           <div
             style={{
-
               minWidth: 0,
-
               width: '100%',
-
               display: 'flex',
-
-              flexDirection: 'column',
+              height: '100%',
             }}
           >
-
             <RiskDetectionPanel
               mlData={riskPanelData}
             />
-
           </div>
-
         </div>
 
         {/* TABS */}

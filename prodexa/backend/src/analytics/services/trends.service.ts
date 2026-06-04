@@ -32,48 +32,120 @@ export class TrendsService {
                     take: 30,
                 });
 
+        const healthTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                health:
+                    s.healthScore || 0,
+
+                commits:
+                    s.totalCommits || 0,
+
+                prs:
+                    s.totalPullRequests || 0,
+
+                mergedPRs:
+                    s.mergedPullRequests || 0,
+
+                issues:
+                    s.totalIssues || 0,
+
+                closedIssues:
+                    s.closedIssues || 0,
+
+                contributors:
+                    s.activeContributors || 0,
+
+                velocity:
+                    s.commitVelocity || 0,
+
+                averagePRMergeTime:
+                    s.averagePRMergeTime || 0,
+
+                daysSinceStart:
+                    s.daysSinceStart || 0,
+            }));
+
+        const commitTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                commits:
+                    s.totalCommits || 0,
+            }));
+
+        const prTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                prs:
+                    s.totalPullRequests || 0,
+
+                mergedPRs:
+                    s.mergedPullRequests || 0,
+            }));
+
+        const velocityTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                velocity:
+                    s.commitVelocity || 0,
+            }));
+
+        const contributorsTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                contributors:
+                    s.activeContributors || 0,
+            }));
+
+        const issueTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                totalIssues:
+                    s.totalIssues || 0,
+
+                closedIssues:
+                    s.closedIssues || 0,
+            }));
+
+        const mergeTrend =
+            snapshots.map(s => ({
+
+                date: s.date,
+
+                mergedPRs:
+                    s.mergedPullRequests || 0,
+
+                averagePRMergeTime:
+                    s.averagePRMergeTime || 0,
+            }));
+
         return {
 
-            healthTrend:
-                snapshots.map(s => ({
+            healthTrend,
 
-                    date: s.date,
+            commitTrend,
 
-                    health: s.healthScore || 0,
+            prTrend,
 
-                    commits:
-                        s.totalCommits || 0,
+            velocityTrend,
 
-                    prs:
-                        s.totalPullRequests || 0,
-                })),
+            contributorsTrend,
 
-            commitTrend:
-                snapshots.map(s => ({
+            issueTrend,
 
-                    date: s.date,
-
-                    commits:
-                        s.totalCommits,
-                })),
-
-            prTrend:
-                snapshots.map(s => ({
-
-                    date: s.date,
-
-                    prs:
-                        s.totalPullRequests,
-                })),
-
-            velocityTrend:
-                snapshots.map(s => ({
-
-                    date: s.date,
-
-                    velocity:
-                        s.commitVelocity || 0,
-                })),
+            mergeTrend,
         };
     }
 }
