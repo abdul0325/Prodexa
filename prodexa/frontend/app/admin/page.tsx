@@ -122,7 +122,7 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Overview */}
+        {/* Overview  */}
         {activeTab === 'stats' && stats && (
           <div className="animate-fade-in section-gap">
             {/* Stat cards */}
