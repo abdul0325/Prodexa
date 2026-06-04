@@ -25,7 +25,7 @@ export default function DevAvatar({
     >
 
       <img
-        src={`https://github.com/${login}.png?size=64`}
+        src={`https://avatars.githubusercontent.com/${login}?size=64`}
         alt={login}
         style={{
           width: '100%',

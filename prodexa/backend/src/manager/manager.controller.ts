@@ -22,10 +22,14 @@ export class ManagerController {
     ) { }
 
     @Get('overview')
-
     async getOverview(
         @Req() req,
     ) {
+
+        console.log(
+            'JWT USER:',
+            req.user,
+        );
 
         return this.managerService
             .getOverview(

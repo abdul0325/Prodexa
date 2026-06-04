@@ -38,8 +38,16 @@ export class AuthService {
         },
       });
     }
+    console.log('USER ID FROM DB:', user.id);
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    console.log('JWT PAYLOAD:', payload);
+
     const token = this.jwtService.sign(payload);
 
     return { user, token };

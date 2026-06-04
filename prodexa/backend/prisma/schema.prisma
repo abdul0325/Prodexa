@@ -68,10 +68,11 @@ model Project {
   repositoryId String?
   repository   Repository? @relation(fields: [repositoryId], references: [id])
 
-  metrics             ProjectActivity[]
-  predictions         Prediction[]
-  developerActivities DeveloperActivity[]
-  notifications       Notification[]
+  metrics               ProjectActivity[]
+  predictions           Prediction[]
+  developerActivities   DeveloperActivity[]
+  notifications         Notification[]
+  dailyMetricsSnapshots DailyMetricsSnapshot[]
 
   @@index([userId])
   @@index([status])
@@ -207,6 +208,8 @@ model DailyMetricsSnapshot {
   id String @id @default(cuid())
 
   projectId String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   date DateTime
 
