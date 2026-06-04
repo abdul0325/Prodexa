@@ -10,7 +10,7 @@ Responsibilities:
 - prediction serving
 - engineering intelligence forecasting
 
-Called by NestJS backend.
+Called by NestJS backend
 """
 
 import os
