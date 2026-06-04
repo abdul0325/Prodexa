@@ -120,14 +120,27 @@ export class MetricsAggregationService {
          * COMMIT VELOCITY
          */
 
+        const tomorrow = new Date(today);
+
+        tomorrow.setDate(
+            tomorrow.getDate() + 1,
+        );
+
         const commitVelocity =
-            Math.round(
-                totalCommits /
-                Math.max(
-                    activeContributors,
-                    1,
-                ),
-            );
+            await this.prisma.commitEvent.count({
+
+                where: {
+
+                    repositoryId,
+
+                    committedAt: {
+
+                        gte: today,
+
+                        lt: tomorrow,
+                    },
+                },
+            });
 
         /*
          * CALCULATE DAYS SINCE START (Rolling Window)
