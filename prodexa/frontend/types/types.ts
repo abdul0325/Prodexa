@@ -6,6 +6,8 @@ export interface ManagerOverview {
 
     healthyProjects: number;
 
+    mediumRiskProjects: number;
+
     highRiskProjects: number;
 
     totalDevelopers: number;
