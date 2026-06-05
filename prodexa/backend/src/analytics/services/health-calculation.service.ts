@@ -31,18 +31,6 @@ export class HealthCalculationService {
             PrismaService,
     ) { }
 
-    /**
-     * Calculate Engineering Delivery Health Score
-     * 
-     * Formula:
-     * health = (velocityScore * 0.25) +
-     *          (collaborationScore * 0.20) +
-     *          (consistencyScore * 0.15) +
-     *          (qualityScore * 0.15) -
-     *          (riskScore * 0.25)
-     * 
-     * Risk should LOWER health (subtractive)
-     */
     async calculateEngineeringHealth(
         repositoryId: string,
         metrics: HealthMetrics,
@@ -144,9 +132,9 @@ export class HealthCalculationService {
             : 0;
 
         // Normalize and weight
-        const commitScore = Math.min(100, commitsPerDay * 10); // 10 commits/day = 100
-        const prScore = Math.min(100, prsPerDay * 20); // 5 PRs/day = 100
-        const mergeScore = mergeRate; // Already 0-100
+        const commitScore = Math.min(100, commitsPerDay * 10);
+        const prScore = Math.min(100, prsPerDay * 20);
+        const mergeScore = mergeRate;
 
         return (commitScore * 0.4) + (prScore * 0.3) + (mergeScore * 0.3);
     }
@@ -160,16 +148,15 @@ export class HealthCalculationService {
         if (activeContributors === 0) return 0;
 
         // Contributor distribution (avoid single-point failure)
-        // Ideal: 3-10 contributors for healthy collaboration
         const contributorScore = activeContributors >= 3 && activeContributors <= 10
             ? 100
             : activeContributors < 3
-            ? activeContributors * 33 // 1-2 contributors
-            : Math.max(50, 100 - (activeContributors - 10) * 5); // Too many contributors
+            ? activeContributors * 33
+            : Math.max(50, 100 - (activeContributors - 10) * 5);
 
         // Review participation (PRs per contributor)
         const prsPerContributor = totalPullRequests / activeContributors;
-        const prScore = Math.min(100, prsPerContributor * 10); // 10 PRs/contributor = 100
+        const prScore = Math.min(100, prsPerContributor * 10);
 
         return (contributorScore * 0.6) + (prScore * 0.4);
     }
@@ -179,15 +166,14 @@ export class HealthCalculationService {
         commitVelocity: number,
     ): number {
 
-        if (daysSinceStart < 7) return 50; // Not enough data
+        if (daysSinceStart < 7) return 50;
 
         // Consistency based on stable commit velocity
-        // Ideal: 5-50 commits per contributor per day
         const velocityScore = commitVelocity >= 5 && commitVelocity <= 50
             ? 100
             : commitVelocity < 5
-            ? commitVelocity * 20 // Low velocity
-            : Math.max(50, 100 - (commitVelocity - 50) * 2); // Too high velocity
+            ? commitVelocity * 20
+            : Math.max(50, 100 - (commitVelocity - 50) * 2);
 
         // Activity continuity (bonus for consistent activity)
         const continuityScore = daysSinceStart >= 30 ? 100 : daysSinceStart * 3.33;
@@ -207,7 +193,6 @@ export class HealthCalculationService {
         const mergeRate = (mergedPullRequests / totalPullRequests) * 100;
 
         // PR merge time (lower is better, in hours)
-        // Ideal: < 24 hours for merge
         const mergeTimeScore = averagePRMergeTime !== null
             ? Math.max(0, 100 - (averagePRMergeTime / 24) * 50)
             : 50;
@@ -230,7 +215,7 @@ export class HealthCalculationService {
             : 1;
         
         if (mergeRate < 0.5) {
-            riskScore += (0.5 - mergeRate) * 100; // Up to 50 points
+            riskScore += (0.5 - mergeRate) * 100;
         }
 
         // Risk 2: High merge time (slow reviews)
@@ -240,9 +225,9 @@ export class HealthCalculationService {
 
         // Risk 3: Extremely low or high velocity (unstable)
         if (commitVelocity < 1) {
-            riskScore += 30; // Very low activity
+            riskScore += 30;
         } else if (commitVelocity > 100) {
-            riskScore += 20; // Chaotic activity
+            riskScore += 20;
         }
 
         return Math.min(100, riskScore);

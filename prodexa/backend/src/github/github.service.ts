@@ -4,7 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { GitHubCommit, GitHubPull, GitHubIssue } from './github.types';
 
-const CACHE_TTL = 30 * 60; // 30 minutes in seconds
+const CACHE_TTL = 30 * 60;
 
 @Injectable()
 export class GithubService {
@@ -14,10 +14,6 @@ export class GithubService {
     private prisma: PrismaService,
     private httpService: HttpService,
   ) { }
-
-  // ─────────────────────────────────────────────
-  // CORE: Paginated fetcher with retry + rate limit
-  // ─────────────────────────────────────────────
 
   private async fetchPaginated<T>(
     url: string,
@@ -55,7 +51,7 @@ export class GithubService {
           if (response.data.length < perPage) return results;
           page++;
           lastError = null;
-          break; // success — exit retry loop
+          break;
         } catch (error: any) {
           lastError = error;
 
@@ -63,7 +59,7 @@ export class GithubService {
             const resetTime = error.response.headers['x-ratelimit-reset'];
             const waitMs = resetTime
               ? parseInt(resetTime) * 1000 - Date.now() + 1000
-              : Math.pow(2, attempt) * 1000; // exponential backoff
+              : Math.pow(2, attempt) * 1000;
 
             this.logger.warn(
               `Rate limited. Waiting ${Math.round(waitMs / 1000)}s before retry ${attempt}/${retries}`,
@@ -79,7 +75,6 @@ export class GithubService {
             );
           }
 
-          // Exponential backoff for other errors
           if (attempt < retries) {
             await this.sleep(Math.pow(2, attempt) * 500);
           }
@@ -94,10 +89,6 @@ export class GithubService {
       }
     }
   }
-
-  // ─────────────────────────────────────────────
-  // CACHE HELPERS
-  // ─────────────────────────────────────────────
 
   private getCacheKey(type: string, owner: string, repo: string): string {
     return `github:${type}:${owner}:${repo}`;
@@ -134,10 +125,6 @@ export class GithubService {
     this.logger.log(`Cache invalidated for ${owner}/${repo}`);
   }
 
-  // ─────────────────────────────────────────────
-  // PUBLIC METHODS (with caching)
-  // ─────────────────────────────────────────────
-
   async getContributors(
     owner: string,
     repo: string,
@@ -162,7 +149,6 @@ export class GithubService {
       );
       return response.data;
     } catch (error: any) {
-      // LOG THE REAL ERROR
       this.logger.error(`Contributors fetch failed for ${owner}/${repo}`);
       this.logger.error(`Status: ${error.response?.status}`);
       this.logger.error(`Message: ${error.response?.data?.message}`);

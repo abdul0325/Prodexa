@@ -1,7 +1,6 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -263,7 +262,6 @@ model CommitEvent {
 
   createdAt DateTime @default(now())
 
-  // RELATIONS
   fileChanges CommitFileChange[]
 
   impactAnalysis CommitImpactAnalysis?
@@ -347,7 +345,6 @@ model CommitFileChange {
 
   commitSha String
 
-  // RELATION
   commit CommitEvent @relation(fields: [commitSha], references: [sha])
 
   filename String
@@ -382,7 +379,6 @@ model CommitImpactAnalysis {
 
   commitSha String @unique
 
-  // RELATION
   commit CommitEvent @relation(fields: [commitSha], references: [sha])
 
   impactScore Int

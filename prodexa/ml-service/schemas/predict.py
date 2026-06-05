@@ -1,11 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
-
-# ─────────────────────────────────────
 # FEATURE VECTOR
-# ─────────────────────────────────────
-
 
 class ProjectFeatures(BaseModel):
 
@@ -45,11 +41,7 @@ class ProjectFeatures(BaseModel):
 
     backendRiskRatio: float
 
-
-# ─────────────────────────────────────
 # REQUEST
-# ─────────────────────────────────────
-
 
 class PredictRequest(BaseModel):
 
@@ -59,11 +51,7 @@ class PredictRequest(BaseModel):
 
     features: ProjectFeatures
 
-
-# ─────────────────────────────────────
 # RESPONSE
-# ─────────────────────────────────────
-
 
 class PredictResponse(BaseModel):
 
@@ -85,11 +73,7 @@ class PredictResponse(BaseModel):
 
     generatedAt: str
 
-
-# ─────────────────────────────────────
 # TRAINING RESPONSE
-# ─────────────────────────────────────
-
 
 class TrainResponse(BaseModel):
 

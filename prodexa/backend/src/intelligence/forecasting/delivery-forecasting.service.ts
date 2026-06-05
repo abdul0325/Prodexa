@@ -30,10 +30,6 @@ export class DeliveryForecastingService {
 
         const signals: string[] = [];
 
-        // ─────────────────────────────
-        // HIGH RISK ACTIVITY
-        // ─────────────────────────────
-
         const riskyCommits =
             recentImpacts.filter(
                 item =>
@@ -48,10 +44,6 @@ export class DeliveryForecastingService {
                 'Repeated high-risk engineering activity detected',
             );
         }
-
-        // ─────────────────────────────
-        // LOW VALUE ENGINEERING
-        // ─────────────────────────────
 
         const lowValue =
             recentImpacts.filter(
@@ -68,10 +60,6 @@ export class DeliveryForecastingService {
                 'Large volume of low-value engineering activity',
             );
         }
-
-        // ─────────────────────────────
-        // TESTING COVERAGE SIGNAL
-        // ─────────────────────────────
 
         const testingSignals =
             recentImpacts.filter(
@@ -98,10 +86,6 @@ export class DeliveryForecastingService {
             );
         }
 
-        // ─────────────────────────────
-        // HIGH MEANINGFUL CHANGES
-        // ─────────────────────────────
-
         const meaningful =
             recentImpacts.filter(
                 item =>
@@ -116,10 +100,6 @@ export class DeliveryForecastingService {
                 'Consistent meaningful engineering progress detected',
             );
         }
-
-        // ─────────────────────────────
-        // NORMALIZE
-        // ─────────────────────────────
 
         deliveryRisk =
             Math.max(

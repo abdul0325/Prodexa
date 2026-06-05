@@ -1,15 +1,3 @@
-"""
-Prodexa ML Training Module
-
-Behavior-aware engineering intelligence training system.
-
-Trains:
-1. Engineering Health Regressor
-2. Delivery Risk Classifier
-
-Using REAL engineering telemetry from the NestJS backend.
-"""
-
 from dotenv import load_dotenv
 import os
 import joblib
@@ -42,9 +30,7 @@ load_dotenv(
     )
 )
 
-# ─────────────────────────────────────
 # PATHS
-# ─────────────────────────────────────
 
 MODEL_DIR = os.path.join(
     os.path.dirname(__file__),
@@ -67,17 +53,13 @@ SCALER_PATH = os.path.join(
     "scaler.pkl",
 )
 
-# ─────────────────────────────────────
 # DATASET SOURCE
-# ─────────────────────────────────────
 
 BACKEND_DATASET_URL = f"{os.getenv('BACKEND_URL')}/ml/dataset"
 print("BACKEND_URL =", os.getenv("BACKEND_URL"))
 print("DATASET_URL =", BACKEND_DATASET_URL)
-# ─────────────────────────────────────
-# FETCH REAL DATASET
-# ─────────────────────────────────────
 
+# FETCH REAL DATASET
 
 def fetch_real_dataset():
 
@@ -97,16 +79,13 @@ def fetch_real_dataset():
     df = pd.DataFrame(data)
 
     print(
-        f"✅ Dataset loaded: " f"{len(df)} samples",
+        f"Dataset loaded: " f"{len(df)} samples",
     )
 
     return df
 
 
-# ─────────────────────────────────────
 # FEATURE ENGINEERING
-# ─────────────────────────────────────
-
 
 def engineer_features(
     df: pd.DataFrame,
@@ -137,10 +116,7 @@ def engineer_features(
     return df
 
 
-# ─────────────────────────────────────
 # TRAIN MODELS
-# ─────────────────────────────────────
-
 
 def train_models():
 
@@ -157,9 +133,7 @@ def train_models():
 
     df = engineer_features(df)
 
-    # ─────────────────────────────────
     # FEATURES
-    # ─────────────────────────────────
 
     feature_cols = [
         "totalCommits",
@@ -189,21 +163,17 @@ def train_models():
 
     X = df[feature_cols]
 
-    # ─────────────────────────────────
     # TARGETS
-    # ─────────────────────────────────
 
     y_health = df["label_engineeringHealth"]
 
     y_risk = df["label_deliveryRisk"]
 
-    # ─────────────────────────────────
     # TRAIN / TEST SPLIT
-    # ─────────────────────────────────
 
     if len(df) < 5:
 
-        print("⚠️ Small dataset detected. " "Using full dataset for training.")
+        print("Small dataset detected. " "Using full dataset for training.")
 
         X_train = X
         X_test = X
@@ -231,9 +201,7 @@ def train_models():
             random_state=42,
         )
 
-    # ─────────────────────────────────
     # SCALE FEATURES
-    # ─────────────────────────────────
 
     scaler = StandardScaler()
 
@@ -245,10 +213,8 @@ def train_models():
         X_test,
     )
 
-    # ─────────────────────────────────
     # MODEL 1
     # Engineering Health Regressor
-    # ─────────────────────────────────
 
     print(
         "🌲 Training Engineering " "Health Model...",
@@ -277,13 +243,11 @@ def train_models():
     )
 
     print(
-        f"✅ Engineering Health " f"MAE: {health_mae:.2f}",
+        f"Engineering Health " f"MAE: {health_mae:.2f}",
     )
 
-    # ─────────────────────────────────
     # MODEL 2
     # Delivery Risk Classifier
-    # ─────────────────────────────────
 
     print(
         "🌲 Training Delivery " "Risk Model...",
@@ -312,12 +276,10 @@ def train_models():
     )
 
     print(
-        f"✅ Delivery Risk Accuracy: " f"{risk_accuracy * 100:.1f}%",
+        f"Delivery Risk Accuracy: " f"{risk_accuracy * 100:.1f}%",
     )
 
-    # ─────────────────────────────────
     # SAVE MODELS
-    # ─────────────────────────────────
 
     joblib.dump(
         health_model,
@@ -338,9 +300,7 @@ def train_models():
         f"💾 Models saved to " f"{MODEL_DIR}",
     )
 
-    # ─────────────────────────────────
     # FEATURE IMPORTANCE
-    # ─────────────────────────────────
 
     importance_df = pd.DataFrame(
         {
@@ -368,11 +328,7 @@ def train_models():
         "samples": len(df),
     }
 
-
-# ─────────────────────────────────────
 # LOAD MODELS
-# ─────────────────────────────────────
-
 
 def load_models():
 
@@ -391,7 +347,7 @@ def load_models():
     ):
 
         print(
-            "⚠️ Models not found. " "Training now...",
+            "Models not found. " "Training now...",
         )
 
         train_models()
@@ -414,16 +370,13 @@ def load_models():
         scaler,
     )
 
-
-# ─────────────────────────────────────
 # MAIN
-# ─────────────────────────────────────
 
 if __name__ == "__main__":
 
     results = train_models()
 
-    print("\n🎯 Training complete!")
+    print("\nTraining complete!")
 
     print(
         f"   Engineering Health MAE: " f'{results["engineering_health_mae"]:.2f}',

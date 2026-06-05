@@ -28,7 +28,6 @@ export class IntelligenceController {
 export class MLDataController {
   constructor(private intelligenceService: IntelligenceService) {}
 
-  // GET /ml/project/:id/training-data
   @Get('project/:id/training-data')
   async getProjectTrainingData(@Param('id') projectId: string) {
     return this.intelligenceService.getProjectTrainingData(projectId);

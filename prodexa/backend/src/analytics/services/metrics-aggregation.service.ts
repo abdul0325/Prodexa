@@ -65,10 +65,7 @@ export class MetricsAggregationService {
             return;
         }
 
-        /*
-         * SOURCE OF TRUTH:
-         * CommitEvent table
-         */
+        //CommitEvent table
 
         const totalCommits =
             await this.prisma
@@ -80,10 +77,7 @@ export class MetricsAggregationService {
                     },
                 });
 
-        /*
-         * OPTIONAL:
-         * Pull Requests
-         */
+        //Pull Requests
 
         const totalPullRequests =
             await this.prisma
@@ -95,9 +89,7 @@ export class MetricsAggregationService {
                     },
                 });
 
-        /*
-         * ACTIVE CONTRIBUTORS
-         */
+        //ACTIVE CONTRIBUTORS
 
         const contributors =
             await this.prisma
@@ -116,9 +108,7 @@ export class MetricsAggregationService {
         const activeContributors =
             contributors.length;
 
-        /*
-         * COMMIT VELOCITY
-         */
+        //COMMIT VELOCITY
 
         const tomorrow = new Date(today);
 
@@ -141,11 +131,6 @@ export class MetricsAggregationService {
                     },
                 },
             });
-
-        /*
-         * CALCULATE DAYS SINCE START (Rolling Window)
-         * Track days since first snapshot for this project
-         */
 
         const firstSnapshot =
             await this.prisma

@@ -8,10 +8,6 @@ export class NotificationsService {
 
   constructor(private prisma: PrismaService) {}
 
-  // ─────────────────────────────────────────────
-  // CREATE NOTIFICATIONS (called internally by other services)
-  // ─────────────────────────────────────────────
-
   async createNotification(
     userId: string,
     type: NotificationType,
@@ -28,10 +24,6 @@ export class NotificationsService {
       this.logger.error('Failed to create notification', err);
     }
   }
-
-  // ─────────────────────────────────────────────
-  // SMART ALERTS — called after analysis completes
-  // ─────────────────────────────────────────────
 
   async checkAndNotify(projectId: string, userId: string) {
     const [devActivities, latestPrediction] = await Promise.all([
@@ -50,7 +42,7 @@ export class NotificationsService {
         this.createNotification(
           userId,
           NotificationType.PRODUCTIVITY_DROP,
-          '⚠️ Low Productivity Detected',
+          'Low Productivity Detected',
           `Project productivity score dropped to ${latestPrediction.productivityScore.toFixed(1)}. Immediate attention recommended.`,
           projectId,
         ),
@@ -98,7 +90,7 @@ export class NotificationsService {
       this.createNotification(
         userId,
         NotificationType.ANALYSIS_COMPLETE,
-        '✅ Analysis Complete',
+        'Analysis Complete',
         'Project analysis has finished. Your dashboard has been updated with the latest insights.',
         projectId,
       ),
@@ -109,10 +101,6 @@ export class NotificationsService {
       `Sent ${notifications.length} notifications for project ${projectId}`,
     );
   }
-
-  // ─────────────────────────────────────────────
-  // USER-FACING NOTIFICATION ENDPOINTS
-  // ─────────────────────────────────────────────
 
   async getUserNotifications(userId: string, unreadOnly = false) {
     return this.prisma.notification.findMany({

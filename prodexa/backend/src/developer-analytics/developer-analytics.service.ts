@@ -271,7 +271,7 @@ export class DeveloperAnalyticsService {
   async analyzeProjectContributors(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-      include: { user: true }, // ← include user to get their token
+      include: { user: true },
     });
     if (!project) throw new NotFoundException('Project not found');
 
@@ -303,7 +303,7 @@ export class DeveloperAnalyticsService {
       ).length;
 
       const issueCount = issues.filter(
-        (i) => i.user?.login === contributor.login && !i.pull_request, // exclude PRs counted as issues
+        (i) => i.user?.login === contributor.login && !i.pull_request,
       ).length;
 
       const productivityScore = calcProductivityScore(

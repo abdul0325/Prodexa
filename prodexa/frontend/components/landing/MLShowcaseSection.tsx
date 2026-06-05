@@ -267,8 +267,6 @@ export function MLShowcaseSection({
   padding: 2rem;
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px rgba(0, 34, 255, 0.1);
-
-  /* ✅ FIX */
   height: auto;
   display: inline-block;
   width: 100%;

@@ -33,10 +33,6 @@ export class TrainingDataService {
                     project.id,
                 );
 
-            // ─────────────────────────────
-            // DELIVERY RISK LABEL
-            // ─────────────────────────────
-
             let deliveryRisk = 0;
 
             const riskPressure =
@@ -53,10 +49,6 @@ export class TrainingDataService {
                 deliveryRisk = 1;
 
             }
-
-            // ─────────────────────────────
-            // HEALTH LABEL
-            // ─────────────────────────────
 
             const healthScore =
                 (

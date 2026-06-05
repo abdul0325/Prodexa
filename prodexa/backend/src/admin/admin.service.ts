@@ -30,9 +30,6 @@ export class AdminService {
       },
     });
   }
-  // ─────────────────────────────────────────────
-  // USER MANAGEMENT
-  // ─────────────────────────────────────────────
 
   async getAllUsers() {
     return this.prisma.user.findMany({
@@ -170,10 +167,6 @@ async updateUserStatus(
     return deletedUser;
   }
 
-  // ─────────────────────────────────────────────
-  // PROJECT MANAGEMENT
-  // ─────────────────────────────────────────────
-
   async getAllProjects() {
     return this.prisma.project.findMany({
       include: {
@@ -243,10 +236,6 @@ async updateUserStatus(
     return { message: `Project ${projectId} deleted successfully` };
   }
 
-  // ─────────────────────────────────────────────
-  // AUDIT LOGS
-  // ─────────────────────────────────────────────
-
   async getAuditLogs(limit = 50, offset = 0) {
     const [logs, total] = await Promise.all([
       this.prisma.auditLog.findMany({
@@ -270,10 +259,6 @@ async updateUserStatus(
       take: 100,
     });
   }
-
-  // ─────────────────────────────────────────────
-  // PLATFORM STATS (Admin Overview)
-  // ─────────────────────────────────────────────
 
   async getPlatformStats() {
     const [

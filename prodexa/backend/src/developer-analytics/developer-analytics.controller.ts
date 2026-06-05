@@ -12,7 +12,7 @@ export class DeveloperAnalyticsController {
     @Body('since') since?: string,
   ) {
     const sinceDate =
-      since || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(); // default last 30 days
+      since || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     return this.devService.analyzeDevelopers(userId, projectId, sinceDate);
   }
 

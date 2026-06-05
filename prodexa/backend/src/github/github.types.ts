@@ -35,7 +35,6 @@ export interface GitHubIssue {
     login: string;
   };
   pull_request?: {
-    // ← this field exists on issues that are PRs
     url: string;
     merged_at?: string;
   };

@@ -130,7 +130,7 @@ interface MLPrediction {
   projectScore: number;
   deliveryRisk: 'LOW' | 'MEDIUM' | 'HIGH';
   teamHealthStatus: 'EXCELLENT' | 'GOOD' | 'MODERATE' | 'RISKY';
-  forecastConfidence: number; // 0–1 float from Python (e.g. 0.87)
+  forecastConfidence: number;
   reasons: string[];
   signals: {
     avgImpactScore: number;
@@ -142,8 +142,6 @@ interface MLPrediction {
   generatedAt: string;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function ProjectDetailPage({
   params,
 }: {
@@ -152,13 +150,13 @@ export default function ProjectDetailPage({
   const { projectId } = use(params);
   const router = useRouter();
 
-  // ── Core dashboard data (GET /dashboard/project/:id)
+  // (GET /dashboard/project/:id)
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
 
-  // ── Activity timeline (GET /dashboard/project/:id/activity)
+  //(GET /dashboard/project/:id/activity)
   const [activity, setActivity] = useState<any[]>([]);
 
-  // ── ML prediction result (POST /ml/project/:id/analyze)
+  //(POST /ml/project/:id/analyze)
   const [mlData, setMlData] = useState<MLPrediction | null>(null);
 
   const [projectName, setProjectName] = useState('');
@@ -172,7 +170,7 @@ export default function ProjectDetailPage({
   ] = useState<'developers' | 'ml'
   >('developers');
 
-  // ── Intelligence endpoints
+  // Intelligence endpoints
   const [aiInsights, setAIInsights] = useState<AIInsightsResponse | null>(null);
 
   // riskDetection: { totalRisks: number; risks: RiskItem[] }
@@ -216,13 +214,13 @@ export default function ProjectDetailPage({
         executiveData,
         trendData,
       ] = await Promise.all([
-        fetchAIInsights(projectId),       // { totalInsights, insights: string[] }
-        fetchRiskDetection(projectId),    // { totalRisks, risks: RiskItem[] }
-        fetchProjectDeltas(projectId),    // { healthDelta, commitDelta, prDelta, velocityDelta }
-        fetchEngineeringHealth(projectId),// { score, status, metrics, signals }
-        fetchForecast(projectId),         // { riskLevel, forecast: string[] }
-        fetchExecutiveSummary(projectId), // { generatedAt, totalInsights, summary: string[] }
-        fetchProjectTrends(projectId),    // { healthTrend[], commitTrend[], prTrend[], velocityTrend[] }
+        fetchAIInsights(projectId),
+        fetchRiskDetection(projectId),
+        fetchProjectDeltas(projectId),
+        fetchEngineeringHealth(projectId),
+        fetchForecast(projectId),
+        fetchExecutiveSummary(projectId),
+        fetchProjectTrends(projectId),
       ]);
 
       setAIInsights(insights as AIInsightsResponse);
@@ -243,9 +241,9 @@ export default function ProjectDetailPage({
   const loadAll = useCallback(async () => {
     try {
       const [dash, act, projects] = await Promise.all([
-        api.dashboard.get(projectId),      // DashboardData
-        api.dashboard.activity(projectId), // ActivityPoint[]
-        api.projects.list(),               // Project[]
+        api.dashboard.get(projectId),
+        api.dashboard.activity(projectId),
+        api.projects.list(),
       ]);
       const currentProject = (projects as any[]).find(
         (p: any) => p.id === projectId,
@@ -354,10 +352,6 @@ export default function ProjectDetailPage({
     }
   }, [analysisStatus, analysisMessage]);
 
-  // ─────────────────────────────────────────────
-  // ACTION HANDLERS
-  // ─────────────────────────────────────────────
-
   async function handleAnalyze() {
     setAnalyzing(true);
     try {
@@ -388,16 +382,6 @@ export default function ProjectDetailPage({
     }
   }
 
-  // ─────────────────────────────────────────────
-  // DERIVED DISPLAY VALUES
-  // ─────────────────────────────────────────────
-
-  /**
-   * Health score priority:
-   * 1. engineeringHealth.score  (GET /analytics/:id/engineering-health → { score, status, ... })
-   * 2. liveHealthScore          (WebSocket realtime)
-   * 3. dashboard.healthScore    (GET /dashboard/project/:id)
-   */
   const displayHealth =
     mlData?.projectScore ??
     dashboard?.prediction?.productivityScore ??
@@ -450,8 +434,6 @@ export default function ProjectDetailPage({
     hotspotCount:
       mlData?.signals?.hotspotCount ?? 0,
 
-    // forecastConfidence: Python float 0–1, multiply by 100 for display
-    // This is ML-only, keep as is
     forecastConfidence: mlData?.forecastConfidence
       ? Math.round(mlData.forecastConfidence * 100)
       : 0,
@@ -470,10 +452,6 @@ export default function ProjectDetailPage({
   const riskPanelData = mlData ?? null;
   const trendChartData = trendsData?.healthTrend ?? [];
 
-  // ─────────────────────────────────────────────
-  // LOADING STATE
-  // ─────────────────────────────────────────────
-
   if (loading) {
 
     return (
@@ -486,18 +464,11 @@ export default function ProjectDetailPage({
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TABS
-  // ─────────────────────────────────────────────
-
   const tabs = [
     { key: 'developers', label: 'Developers', icon: Users },
     { key: 'ml', label: 'ML', icon: Bot },
   ];
 
-  // ─────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────
   console.log('DISPLAY HEALTH', displayHealth);
   console.log('DISPLAY STATUS', displayStatus);
 

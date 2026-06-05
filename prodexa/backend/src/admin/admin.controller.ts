@@ -24,19 +24,11 @@ import {
 export class AdminController {
   constructor(private adminService: AdminService) { }
 
-  // ─────────────────────────────────────────────
-  // PLATFORM OVERVIEW
-  // ─────────────────────────────────────────────
-
   /** GET /admin/stats — Platform overview */
   @Get('stats')
   getPlatformStats() {
     return this.adminService.getPlatformStats();
   }
-
-  // ─────────────────────────────────────────────
-  // USER MANAGEMENT
-  // ─────────────────────────────────────────────
 
   /** GET /admin/users — List all users */
   @Get('users')
@@ -90,10 +82,6 @@ export class AdminController {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // PROJECT MANAGEMENT
-  // ─────────────────────────────────────────────
-
   /** GET /admin/projects — List all projects across all users */
   @Get('projects')
   getAllProjects() {
@@ -126,10 +114,6 @@ export class AdminController {
       projectId,
     );
   }
-
-  // ─────────────────────────────────────────────
-  // AUDIT LOGS
-  // ─────────────────────────────────────────────
 
   /** GET /admin/audit-logs — Paginated audit log */
   @Get('audit-logs')

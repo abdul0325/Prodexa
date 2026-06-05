@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -12,10 +13,6 @@ export class NoiseDetectionService {
 
         let noiseScore = 0;
 
-        // ─────────────────────────────
-        // DOCS FILES
-        // ─────────────────────────────
-
         if (
             filename.endsWith('.md') ||
             filename.includes('README')
@@ -27,10 +24,6 @@ export class NoiseDetectionService {
                 'Documentation-only change',
             );
         }
-
-        // ─────────────────────────────
-        // LOCKFILES
-        // ─────────────────────────────
 
         if (
             filename.includes('package-lock') ||
@@ -45,10 +38,6 @@ export class NoiseDetectionService {
             );
         }
 
-        // ─────────────────────────────
-        // GENERATED FILES
-        // ─────────────────────────────
-
         if (
             filename.includes('/dist/') ||
             filename.includes('/build/') ||
@@ -61,10 +50,6 @@ export class NoiseDetectionService {
                 'Generated/build artifact',
             );
         }
-
-        // ─────────────────────────────
-        // PATCH ANALYSIS
-        // ─────────────────────────────
 
         if (patch) {
 

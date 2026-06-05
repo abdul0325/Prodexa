@@ -1,8 +1,3 @@
-"""
-Prodexa Engineering Intelligence
-Predictor
-"""
-
 import numpy as np
 import pandas as pd
 
@@ -13,15 +8,11 @@ from training.train import (
     engineer_features,
 )
 
-# ─────────────────────────────────────
 # LOAD MODELS
-# ─────────────────────────────────────
 
 health_model, risk_model, scaler = load_models()
 
-# ─────────────────────────────────────
 # RISK LABELS
-# ─────────────────────────────────────
 
 RISK_LABELS = {
     0: "LOW",
@@ -29,10 +20,7 @@ RISK_LABELS = {
     2: "HIGH",
 }
 
-# ─────────────────────────────────────
 # PREDICT PROJECT
-# ─────────────────────────────────────
-
 
 def predict_project(
     project_id: str,

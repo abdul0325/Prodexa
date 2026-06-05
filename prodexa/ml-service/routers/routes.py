@@ -19,10 +19,7 @@ from training.train import (
 
 router = APIRouter()
 
-# ─────────────────────────────────────
 # PREDICT
-# ─────────────────────────────────────
-
 
 @router.post("/predict")
 async def predict(
@@ -63,10 +60,7 @@ async def predict(
                 ),
         )
 
-# ─────────────────────────────────────
 # TRAIN
-# ─────────────────────────────────────
-
 
 @router.post("/train")
 async def retrain():
@@ -127,10 +121,7 @@ async def retrain():
                 ),
         )
 
-# ─────────────────────────────────────
 # HEALTH
-# ─────────────────────────────────────
-
 
 @router.get("/health")
 async def health_check():
@@ -160,10 +151,7 @@ async def health_check():
         ],
     }
 
-# ─────────────────────────────────────
 # MODEL INFO
-# ─────────────────────────────────────
-
 
 @router.get("/model-info")
 async def model_info():

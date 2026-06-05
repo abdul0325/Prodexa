@@ -85,7 +85,6 @@ export class AuditLogInterceptor implements NestInterceptor {
   private sanitizeBody(body: any): any {
     if (!body) return {};
     const sanitized = { ...body };
-    // Remove sensitive fields from logs
     delete sanitized.password;
     delete sanitized.passwordHash;
     delete sanitized.githubToken;

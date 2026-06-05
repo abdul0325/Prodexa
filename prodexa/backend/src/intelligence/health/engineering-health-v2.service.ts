@@ -54,10 +54,6 @@ export class EngineeringHealthV2Service {
 
         const signals: string[] = [];
 
-        // ─────────────────────────────
-        // MEANINGFUL WORK
-        // ─────────────────────────────
-
         const meaningfulCommits =
             recentImpacts.filter(
                 impact =>
@@ -75,10 +71,6 @@ export class EngineeringHealthV2Service {
             );
         }
 
-        // ─────────────────────────────
-        // HIGH RISK COMMITS
-        // ─────────────────────────────
-
         const riskyCommits =
             recentImpacts.filter(
                 impact =>
@@ -95,10 +87,6 @@ export class EngineeringHealthV2Service {
                 'Elevated high-risk engineering activity detected',
             );
         }
-
-        // ─────────────────────────────
-        // LOW VALUE CHURN
-        // ─────────────────────────────
 
         const lowValueCommits =
             recentImpacts.filter(
@@ -118,10 +106,6 @@ export class EngineeringHealthV2Service {
             );
         }
 
-        // ─────────────────────────────
-        // HOTSPOT INSTABILITY
-        // ─────────────────────────────
-
         const unstableFiles =
             recentHotspots.filter(
                 file =>
@@ -138,10 +122,6 @@ export class EngineeringHealthV2Service {
                 'Engineering hotspots show elevated instability',
             );
         }
-
-        // ─────────────────────────────
-        // TESTING SIGNALS
-        // ─────────────────────────────
 
         const testingSignals =
             recentImpacts.filter(
@@ -169,10 +149,6 @@ export class EngineeringHealthV2Service {
                 'Healthy testing-related engineering activity detected',
             );
         }
-
-        // ─────────────────────────────
-        // SCORE NORMALIZATION
-        // ─────────────────────────────
 
         score =
             Math.max(

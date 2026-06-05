@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class IntelligenceService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // Predict project-level metrics
   async predictProject(projectId: string) {
@@ -60,14 +60,13 @@ export class IntelligenceService {
     return { developerLogin, predictedScore };
   }
 
-  /**
-   * Simple linear forecast: take last N points, calculate slope, predict next point
-   */
+  // Simple linear forecast: take last N points, calculate slope, predict next point
+
   private simpleLinearForecast(values: number[]): number {
     const n = values.length;
     if (n < 2) return values[n - 1] ?? 0;
 
-    const xMean = (n - 1) / 2; // 0,1,2,...n-1
+    const xMean = (n - 1) / 2;
     const yMean = values.reduce((sum, v) => sum + v, 0) / n;
 
     let num = 0;
@@ -78,7 +77,7 @@ export class IntelligenceService {
     });
 
     const slope = num / (den || 1);
-    const predicted = values[n - 1] + slope; // next point
+    const predicted = values[n - 1] + slope;
 
     return Math.max(0, Math.min(100, Math.round(predicted)));
   }
@@ -217,9 +216,9 @@ export class IntelligenceService {
     const totalIssues = devActivities.reduce((sum, d) => sum + d.issueCount, 0);
     const avgProductivity = devActivities.length
       ? Math.round(
-          devActivities.reduce((sum, d) => sum + d.productivityScore, 0) /
-            devActivities.length,
-        )
+        devActivities.reduce((sum, d) => sum + d.productivityScore, 0) /
+        devActivities.length,
+      )
       : 0;
     const activityPoints = devActivities.length;
 

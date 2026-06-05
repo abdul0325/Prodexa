@@ -33,7 +33,6 @@ export class AuthService {
       user = await this.prisma.user.update({
         where: { email },
         data: {
-          // FIX: update githubToken on every login to keep it fresh
           githubToken: accessToken,
         },
       });

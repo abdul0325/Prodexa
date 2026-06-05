@@ -7,6 +7,6 @@ import { PrismaModule } from '../prisma.module';
   imports: [PrismaModule],
   controllers: [NotificationsController],
   providers: [NotificationsService],
-  exports: [NotificationsService], // exported so AnalyticsProcessor can use it
+  exports: [NotificationsService],
 })
 export class NotificationsModule {}

@@ -7,10 +7,6 @@ import { DashboardService } from './presentation.service';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  /**
-   * Unified project dashboard endpoint
-   * Returns: health, leaderboard, developer risk
-   */
   @Get('project/:id')
   async getProjectDashboard(
     @Param('id') projectId: string,
@@ -20,9 +16,6 @@ export class DashboardController {
     return this.dashboardService.getProjectDashboard(projectId, days);
   }
 
-  /**
-   * Optional: Project activity timeline endpoint
-   */
   @Get('project/:id/activity')
   async getActivityTimeline(@Param('id') projectId: string) {
     return this.dashboardService.getActivityTimeline(projectId);

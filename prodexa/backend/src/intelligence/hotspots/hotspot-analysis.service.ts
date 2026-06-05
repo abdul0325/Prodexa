@@ -14,10 +14,6 @@ export class HotspotAnalysisService {
 
     async analyzeHotspots() {
 
-        // ─────────────────────────────
-        // TOP CHURN FILES
-        // ─────────────────────────────
-
         const fileChanges =
             await this.prisma
                 .commitFileChange
@@ -44,10 +40,6 @@ export class HotspotAnalysisService {
                     take: 15,
                 });
 
-        // ─────────────────────────────
-        // BUILD HOTSPOT ANALYSIS
-        // ─────────────────────────────
-
         const hotspots =
             fileChanges.map(file => {
 
@@ -60,10 +52,6 @@ export class HotspotAnalysisService {
                 let instabilityScore = 0;
 
                 const reasons: string[] = [];
-
-                // ─────────────────────────
-                // HIGH CHANGE FREQUENCY
-                // ─────────────────────────
 
                 if (frequency >= 10) {
 
@@ -82,10 +70,6 @@ export class HotspotAnalysisService {
                     );
                 }
 
-                // ─────────────────────────
-                // LARGE TOTAL CHANGES
-                // ─────────────────────────
-
                 if (totalChanges >= 1000) {
 
                     instabilityScore += 40;
@@ -103,10 +87,6 @@ export class HotspotAnalysisService {
                     );
                 }
 
-                // ─────────────────────────
-                // CRITICAL SYSTEM FILES
-                // ─────────────────────────
-
                 if (
                     file.filename.includes('auth') ||
                     file.filename.includes('security') ||
@@ -119,10 +99,6 @@ export class HotspotAnalysisService {
                         'Critical system surface',
                     );
                 }
-
-                // ─────────────────────────
-                // DETERMINE SEVERITY
-                // ─────────────────────────
 
                 const severity =
                     this.getSeverity(
@@ -150,10 +126,6 @@ export class HotspotAnalysisService {
                     reasons,
                 };
             });
-
-        // ─────────────────────────────
-        // SORT BY MOST UNSTABLE
-        // ─────────────────────────────
 
         hotspots.sort(
             (a, b) =>

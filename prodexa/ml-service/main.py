@@ -93,21 +93,21 @@ async def startup_event():
         ) = load_models()
 
         print(
-            "✅ Engineering Health " "Model loaded",
+            "Engineering Health " "Model loaded",
         )
 
         print(
-            "✅ Delivery Risk " "Model loaded",
+            "Delivery Risk " "Model loaded",
         )
 
         print(
-            "✅ Feature Scaler loaded",
+            "Feature Scaler loaded",
         )
 
     except Exception as error:
 
         print(
-            "❌ ML startup failed:",
+            "ML startup failed:",
         )
 
         print(error)

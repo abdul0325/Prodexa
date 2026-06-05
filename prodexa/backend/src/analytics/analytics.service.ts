@@ -5,7 +5,6 @@ import { Queue } from 'bullmq';
 import { DeveloperAnalyticsService } from '../developer-analytics/developer-analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-// FIX: Removed @Processor('analytics') decorator — only ONE processor per queue.
 // The actual job processing is now solely in analytics.processor.ts
 @Injectable()
 export class AnalyticsQueueService {

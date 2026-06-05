@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-//backend/src/gateway/realtime.gateway.ts
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -27,14 +26,9 @@ export class RealtimeGateway
 
   private readonly logger = new Logger(RealtimeGateway.name);
 
-  // Track which user is on which socket
-  private userSockets = new Map<string, string[]>(); // userId → socketIds[]
+  private userSockets = new Map<string, string[]>();
 
   constructor(private jwtService: JwtService) { }
-
-  // ─────────────────────────────────────────────
-  // CONNECTION LIFECYCLE
-  // ─────────────────────────────────────────────
 
   async handleConnection(client: Socket) {
     try {
@@ -79,10 +73,6 @@ export class RealtimeGateway
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  // ─────────────────────────────────────────────
-  // CLIENT EVENTS (subscribe to project room)
-  // ─────────────────────────────────────────────
-
   @SubscribeMessage('subscribe:project')
   handleSubscribeProject(
     @ConnectedSocket() client: Socket,
@@ -104,15 +94,11 @@ export class RealtimeGateway
     return { event: 'unsubscribed', projectId: data.projectId };
   }
 
-  // ─────────────────────────────────────────────
-  // SERVER EMIT METHODS (called from services)
-  // ─────────────────────────────────────────────
-
   /** Emit analysis status update to everyone watching a project */
   emitAnalysisStatus(projectId: string, status: string, message?: string) {
     this.server.to(`project:${projectId}`).emit('analysis:status', {
       projectId,
-      status, // QUEUED | ANALYZING | DONE | FAILED
+      status,
       message,
       timestamp: new Date().toISOString(),
     });

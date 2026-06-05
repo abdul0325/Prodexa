@@ -60,10 +60,6 @@ export class ImpactAnalysisService {
 
         for (const file of files) {
 
-            // ─────────────────────────────
-            // NOISE DETECTION
-            // ─────────────────────────────
-
             const noise =
                 this.noiseDetection
                     .analyzePatch(
@@ -84,10 +80,6 @@ export class ImpactAnalysisService {
                 continue;
             }
 
-            // ─────────────────────────────
-            // ENGINEERING SURFACE
-            // ─────────────────────────────
-
             const surface =
                 this.surfaceAnalysis
                     .classify(
@@ -107,10 +99,6 @@ export class ImpactAnalysisService {
                 impactScore += 20;
             }
 
-            // ─────────────────────────────
-            // DOCUMENTATION
-            // ─────────────────────────────
-
             if (file.isDocumentation) {
 
                 impactScore += 2;
@@ -124,10 +112,6 @@ export class ImpactAnalysisService {
                 continue;
             }
 
-            // ─────────────────────────────
-            // TEST FILES
-            // ─────────────────────────────
-
             if (file.isTestFile) {
 
                 impactScore += 20;
@@ -139,10 +123,6 @@ export class ImpactAnalysisService {
                 );
             }
 
-            // ─────────────────────────────
-            // CONFIG FILES
-            // ─────────────────────────────
-
             if (file.isConfigFile) {
 
                 impactScore += 10;
@@ -153,10 +133,6 @@ export class ImpactAnalysisService {
                     `Infrastructure/config modified: ${file.filename}`,
                 );
             }
-
-            // ─────────────────────────────
-            // LARGE CODE CHANGES
-            // ─────────────────────────────
 
             const totalChanges =
                 file.additions +
@@ -179,10 +155,6 @@ export class ImpactAnalysisService {
                 riskScore += 10;
             }
 
-            // ─────────────────────────────
-            // BACKEND BUSINESS LOGIC
-            // ─────────────────────────────
-
             if (
                 file.filename.includes('/services/') ||
                 file.filename.includes('/controllers/')
@@ -196,10 +168,6 @@ export class ImpactAnalysisService {
                     `Core backend logic changed: ${file.filename}`,
                 );
             }
-
-            // ─────────────────────────────
-            // SECURITY / AUTH
-            // ─────────────────────────────
 
             if (
                 file.filename.includes('auth') ||
@@ -216,10 +184,6 @@ export class ImpactAnalysisService {
                 );
             }
         }
-
-        // ─────────────────────────────
-        // SCORE NORMALIZATION
-        // ─────────────────────────────
 
         impactScore =
             Math.max(0, impactScore);
@@ -239,16 +203,8 @@ export class ImpactAnalysisService {
         meaningfulnessScore =
             Math.min(100, meaningfulnessScore);
 
-        // ─────────────────────────────
-        // REMOVE DUPLICATE REASONS
-        // ─────────────────────────────
-
         const uniqueReasons =
             [...new Set(reasons)];
-
-        // ─────────────────────────────
-        // LEVELS
-        // ─────────────────────────────
 
         const impactLevel =
             this.getImpactLevel(
@@ -259,10 +215,6 @@ export class ImpactAnalysisService {
             this.getRiskLevel(
                 riskScore,
             );
-
-        // ─────────────────────────────
-        // SUMMARY
-        // ─────────────────────────────
 
         const summary =
             this.generateSummary(

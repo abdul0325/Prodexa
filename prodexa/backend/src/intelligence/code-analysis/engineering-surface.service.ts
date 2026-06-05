@@ -11,10 +11,6 @@ export class EngineeringSurfaceService {
         const lower =
             filename.toLowerCase();
 
-        // ─────────────────────────────
-        // SECURITY
-        // ─────────────────────────────
-
         if (
             lower.includes('auth') ||
             lower.includes('jwt') ||
@@ -26,10 +22,6 @@ export class EngineeringSurfaceService {
                 criticality: 'HIGH',
             };
         }
-
-        // ─────────────────────────────
-        // DATABASE
-        // ─────────────────────────────
 
         if (
             lower.includes('prisma') ||
@@ -43,10 +35,6 @@ export class EngineeringSurfaceService {
             };
         }
 
-        // ─────────────────────────────
-        // INFRA
-        // ─────────────────────────────
-
         if (
             lower.includes('docker') ||
             lower.includes('nginx') ||
@@ -59,10 +47,6 @@ export class EngineeringSurfaceService {
             };
         }
 
-        // ─────────────────────────────
-        // FRONTEND
-        // ─────────────────────────────
-
         if (
             lower.includes('/app/') ||
             lower.includes('/components/')
@@ -73,10 +57,6 @@ export class EngineeringSurfaceService {
                 criticality: 'MEDIUM',
             };
         }
-
-        // ─────────────────────────────
-        // BACKEND
-        // ─────────────────────────────
 
         if (
             lower.includes('/services/') ||
@@ -89,9 +69,6 @@ export class EngineeringSurfaceService {
             };
         }
 
-        // ─────────────────────────────
-        // TESTS
-        // ─────────────────────────────
 
         if (
             lower.includes('.spec.') ||
@@ -104,10 +81,6 @@ export class EngineeringSurfaceService {
             };
         }
 
-        // ─────────────────────────────
-        // ANALYTICS
-        // ─────────────────────────────
-
         if (
             lower.includes('analytics') ||
             lower.includes('metrics')
@@ -118,10 +91,6 @@ export class EngineeringSurfaceService {
                 criticality: 'HIGH',
             };
         }
-
-        // ─────────────────────────────
-        // AI / ML
-        // ─────────────────────────────
 
         if (
             lower.includes('intelligence') ||

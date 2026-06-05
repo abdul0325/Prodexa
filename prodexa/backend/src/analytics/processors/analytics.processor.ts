@@ -180,7 +180,7 @@ export class AnalyticsProcessor extends WorkerHost {
         });
         this.gateway.emitNotification(project.userId, {
           type: 'ANALYSIS_COMPLETE',
-          title: '✅ Analysis Complete',
+          title: 'Analysis Complete',
           message:
             `${project.name} analysis finished. ` +
             `Health Score: ${prediction.projectScore}/100 · ` +
